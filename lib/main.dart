@@ -20,38 +20,36 @@ class MainApp extends StatelessWidget {
       child: MaterialApp(
         title: "BlitzShare",
         darkTheme: ThemeData.dark(),
-        home: HomePage(),
+        home: ApplicationPage(),
       ),
     );
   }
 }
 
-class AppState extends ChangeNotifier {
+class AppState extends ChangeNotifier with WidgetsBindingObserver {
   final NetworkService _networkService;
-  //final List<Map<String, String>> _devices = [];
   final List<Device> _devices = [];
   bool _isDiscovering = false;
 
   AppState(this._networkService);
 
-  //List<Map<String, String>> get devices => List.unmodifiable(_devices);
   List<Device> get devices => List.unmodifiable(_devices);
   bool get isDiscovering => _isDiscovering;
 
   void initialize() {
     _networkService.initialize();
-    _networkService.discoveredDevices.listen((device) {
-      /*
-      if (!_devices.any((d) => d['ip'] == device['ip'])) {
-        _devices.add(device);
+    _networkService.discoveredDevices.listen(
+      (device) {
+        if (!_devices.any((d) => d.ip == device.ip)) {
+          _devices.add(device);
+          notifyListeners();
+        }
+      },
+      onError: (disconnectedIp) {
+        _devices.removeWhere((d) => d.ip == disconnectedIp);
         notifyListeners();
-      }
-      */
-      if (!_devices.any((d) => d.ip == device.ip)) {
-        _devices.add(device);
-        notifyListeners();
-      }
-    });
+      },
+    );
   }
 
   Future startDiscovery() async {
@@ -67,5 +65,24 @@ class AppState extends ChangeNotifier {
   void clearDevices() {
     _devices.clear();
     notifyListeners();
+  }
+
+  void myDeviceInfo() {}
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.detached ||
+        state == AppLifecycleState.inactive) {
+      print("App is closing, sending DISCONNECT message...");
+      _networkService.dispose();
+    }
+  }
+
+  @override
+  void dispose() {
+    print("Dispose");
+    WidgetsBinding.instance.removeObserver(this);
+    //_networkService.dispose();
+    super.dispose();
   }
 }

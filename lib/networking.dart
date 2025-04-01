@@ -17,6 +17,7 @@ class NetworkService {
 
   String? _localIp;
   String? _deviceId;
+  Map<String, DateTime> _deviceLastSeen = {};
 
   final StreamController<Device> _discoveryController =
       StreamController.broadcast();
@@ -25,11 +26,24 @@ class NetworkService {
 
   Future initialize() async {
     _localIp = await _networkInfo.getWifiIP();
-    _deviceId = await _getDeviceId();
+    _deviceId = await _getDeviceInfo();
     _startListening();
+    _startHeartbeat();
   }
 
-  Future<String> _getDeviceId() async {
+  Future<Device> getMyDeviceInfo() async {
+    final List<String> info = _deviceId!.split("|");
+
+    return Device(
+      ip: _localIp!,
+      name: info[0],
+      deviceType: DeviceType.values.firstWhere(
+        (v) => v.toString() == 'DeviceType.${info[1]}',
+      ),
+    );
+  }
+
+  Future<String> _getDeviceInfo() async {
     if (Platform.isAndroid) {
       AndroidDeviceInfo androidInfo = await _deviceInfo.androidInfo;
       return "${androidInfo.model}|android";
@@ -46,7 +60,31 @@ class NetworkService {
       MacOsDeviceInfo macOsDeviceInfo = await _deviceInfo.macOsInfo;
       return "${macOsDeviceInfo.modelName}|macos";
     }
-    return "UnknownDevice";
+    return "Unknown device|unknown";
+  }
+
+  void _startHeartbeat() {
+    Timer.periodic(Duration(seconds: 5), (timer) async {
+      try {
+        final String broadcastAddress =
+            await _networkInfo.getWifiBroadcast() ?? '255.255.255.255';
+        final RawDatagramSocket socket = await RawDatagramSocket.bind(
+          InternetAddress.anyIPv4,
+          0,
+        );
+        socket.broadcastEnabled = true;
+
+        final String message = "HEARTBEAT:$_localIp";
+        socket.send(
+          utf8.encode(message),
+          InternetAddress(broadcastAddress),
+          _port,
+        );
+        socket.close();
+      } catch (e) {
+        print("Heartbeat error: $e");
+      }
+    });
   }
 
   void _startListening() async {
@@ -87,9 +125,29 @@ class NetworkService {
                 ),
               ),
             );
-          } else if (message.startsWith("DISCONNECT:")) {}
+
+            _deviceLastSeen[senderIp] = DateTime.now();
+          } else if (message.startsWith("DISCONNECT:")) {
+            final String disconnectedIp = message.substring(10);
+            _discoveryController.addError(disconnectedIp);
+          } else if (message.startsWith("HEARTBEAT:")) {
+            final senderIp = message.substring(9);
+            _deviceLastSeen[senderIp] = DateTime.now();
+          }
         }
       }
+    });
+
+    Timer.periodic(Duration(seconds: 10), (timer) {
+      DateTime now = DateTime.now();
+      _deviceLastSeen.removeWhere((ip, lastSeen) {
+        if (now.difference(lastSeen).inSeconds > 15) {
+          print("Device $ip timed out, removing...");
+          _discoveryController.addError(ip);
+          return true;
+        }
+        return false;
+      });
     });
   }
 
@@ -147,8 +205,36 @@ class NetworkService {
   }
 
   void dispose() {
+    _sendDisconnectMessage();
     _listeningSocket?.close();
     _discoveryController.close();
+  }
+
+  void _sendDisconnectMessage() async {
+    try {
+      final String broadcastAddress =
+          await _networkInfo.getWifiBroadcast() ?? '255.255.255.255';
+      final RawDatagramSocket socket = await RawDatagramSocket.bind(
+        InternetAddress.anyIPv4,
+        0,
+      );
+      socket.broadcastEnabled = true;
+
+      final String message = "DISCONNECT:$_localIp";
+      for (int i = 0; i < 5; i++) {
+        print("Sending DISCONNECT: $_localIp");
+        socket.send(
+          utf8.encode(message),
+          InternetAddress(broadcastAddress),
+          _port,
+        );
+        await Future.delayed(Duration(milliseconds: 500));
+      }
+
+      socket.close();
+    } catch (e) {
+      print("Error sending disconnect message: $e");
+    }
   }
 }
 

@@ -2,11 +2,142 @@ import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:sharing_app/devicepage.dart';
 import 'package:sharing_app/main.dart';
 import 'package:sharing_app/networking.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:marquee/marquee.dart';
 
+class ApplicationPage extends StatefulWidget {
+  const ApplicationPage({super.key});
+
+  @override
+  State<ApplicationPage> createState() => _ApplicationPageState();
+}
+
+class _ApplicationPageState extends State<ApplicationPage> {
+  int _selectedIndex = 0;
+  late final bool _isMobile;
+  bool _isExpanded = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _isMobile = Platform.isAndroid || Platform.isIOS;
+  }
+
+  Widget _buildNavigation() {
+    return _isMobile
+        ? SafeArea(
+          child: BottomNavigationBar(
+            items: const [
+              BottomNavigationBarItem(
+                icon: Icon(Icons.settings_remote_rounded),
+                label: 'Devices',
+              ),
+              BottomNavigationBarItem(
+                icon: Icon(Icons.settings),
+                label: 'Settings',
+              ),
+              BottomNavigationBarItem(
+                icon: Icon(Icons.history),
+                label: 'History',
+              ),
+            ],
+            currentIndex: _selectedIndex,
+            onTap: _onItemTapped,
+          ),
+        )
+        : SafeArea(
+          child: NavigationRail(
+            extended: _isExpanded,
+            labelType: NavigationRailLabelType.none,
+            minWidth: 80,
+            destinations: const [
+              NavigationRailDestination(
+                icon: Icon(Icons.settings_remote_rounded),
+                label: Text('Devices'),
+              ),
+              NavigationRailDestination(
+                icon: Icon(Icons.settings),
+                label: Text('Settings'),
+              ),
+              NavigationRailDestination(
+                icon: Icon(Icons.history),
+                label: Text('History'),
+              ),
+            ],
+            selectedIndex: _selectedIndex,
+            onDestinationSelected: _onItemTapped,
+          ),
+        );
+  }
+
+  Widget _buildCurrentPage() {
+    switch (_selectedIndex) {
+      case 0:
+        return const DevicePage();
+      case 1:
+        return Scaffold();
+      //return const SettingsPage();
+      case 2:
+        return Scaffold();
+      //return const HistoryPage();
+      default:
+        throw UnimplementedError('No page for index $_selectedIndex');
+    }
+  }
+
+  void _onItemTapped(int index) {
+    setState(() => _selectedIndex = index);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: Text('Device Discovery'),
+        leading:
+            _isMobile
+                ? null
+                : IconButton(
+                  icon: const Icon(Icons.menu),
+                  onPressed: () {
+                    setState(() {
+                      _isExpanded = !_isExpanded;
+                    });
+                  },
+                ),
+      ),
+      body:
+          _isMobile
+              ? Column(
+                children: [
+                  Expanded(
+                    child: ColoredBox(
+                      color: Colors.red,
+                      child: _buildCurrentPage(),
+                    ),
+                  ),
+                  _buildNavigation(),
+                ],
+              )
+              : Row(
+                children: [
+                  _buildNavigation(),
+                  Expanded(
+                    child: ColoredBox(
+                      color: Colors.blue,
+                      child: _buildCurrentPage(),
+                    ),
+                  ),
+                ],
+              ),
+    );
+  }
+}
+
+/*
 class HomePage extends StatelessWidget {
   const HomePage({super.key});
 
@@ -61,7 +192,7 @@ class HomePage extends StatelessWidget {
     );
   }
 }
-
+*/
 /*
 class AdaptiveText extends StatefulWidget {
   final String text;
