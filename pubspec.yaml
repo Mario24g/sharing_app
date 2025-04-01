@@ -18,6 +18,10 @@ dependencies:
 
   provider: ^6.1.2
 
+  font_awesome_flutter: ^10.8.0
+
+  marquee: ^2.3.0
+
 dev_dependencies:
   flutter_test:
     sdk: flutter

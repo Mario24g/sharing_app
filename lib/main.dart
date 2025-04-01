@@ -1,6 +1,6 @@
 import 'package:sharing_app/homepage.dart';
 import 'package:sharing_app/networking.dart'
-    show DiscoveredDevice, NetworkService, sendBroadcast;
+    show Device, NetworkService, sendBroadcast;
 import 'package:provider/provider.dart';
 import 'package:flutter/material.dart';
 
@@ -29,13 +29,13 @@ class MainApp extends StatelessWidget {
 class AppState extends ChangeNotifier {
   final NetworkService _networkService;
   //final List<Map<String, String>> _devices = [];
-  final List<DiscoveredDevice> _devices = [];
+  final List<Device> _devices = [];
   bool _isDiscovering = false;
 
   AppState(this._networkService);
 
   //List<Map<String, String>> get devices => List.unmodifiable(_devices);
-  List<DiscoveredDevice> get devices => List.unmodifiable(_devices);
+  List<Device> get devices => List.unmodifiable(_devices);
   bool get isDiscovering => _isDiscovering;
 
   void initialize() {

@@ -3,83 +3,11 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:device_info_plus/device_info_plus.dart';
-import 'package:flutter/foundation.dart';
 import 'package:network_info_plus/network_info_plus.dart';
 
-final List<Map<String, dynamic>> discoveredDevices = [];
-
-void sendBroadcast() async {
-  try {
-    final NetworkInfo info = NetworkInfo();
-
-    String localIp = await NetworkInfo().getWifiIP() ?? '';
-    String deviceId = await getDevice();
-    String message = "DISCOVERY-REQUEST FROM $deviceId";
-
-    // 1. Get network info directly
-    final String wifiBroadcast =
-        await info.getWifiBroadcast() ?? "192.168.1.255";
-
-    // 2. Create socket
-    final RawDatagramSocket udpSocket = await RawDatagramSocket.bind(
-      InternetAddress.anyIPv4,
-      8888,
-    );
-    udpSocket.broadcastEnabled = true;
-
-    // 3. Listen for responses
-    udpSocket.listen((event) {
-      if (event == RawSocketEvent.read) {
-        final Datagram? datagram = udpSocket.receive();
-        if (datagram != null) {
-          String senderIp = datagram.address.address;
-          if (senderIp != localIp) {
-            print(
-              "Received from ${datagram.address.address}: ${utf8.decode(datagram.data)}",
-            );
-
-            //String senderIp = datagram.address.address;
-            String decodedData = utf8.decode(datagram.data);
-            bool alreadyfound = discoveredDevices.any(
-              (device) => device["ip"] == senderIp,
-            );
-
-            if (!alreadyfound) {
-              discoveredDevices.add({"ip": senderIp, "device": decodedData});
-
-              print("Device added: $decodedData ($senderIp)");
-            }
-          }
-        }
-      }
-    });
-
-    // 4. Send broadcast
-    final InternetAddress broadcastAddress = InternetAddress(wifiBroadcast);
-    final Uint8List data = utf8.encode(message);
-    udpSocket.send(data, broadcastAddress, 8888);
-  } catch (e) {
-    print("Broadcast failed: $e");
-  }
-}
-
-Future<String> getDevice() async {
-  DeviceInfoPlugin deviceInfo = DeviceInfoPlugin();
-  String deviceId = "UnknownDevice";
-
-  if (Platform.isAndroid) {
-    AndroidDeviceInfo androidInfo = await deviceInfo.androidInfo;
-    deviceId = "${androidInfo.model}-${androidInfo.id}";
-  } else if (Platform.isWindows) {
-    WindowsDeviceInfo windowsDeviceInfo = await deviceInfo.windowsInfo;
-    deviceId =
-        "${windowsDeviceInfo.computerName}-${windowsDeviceInfo.deviceId}";
-  } else if (Platform.isLinux) {
-    LinuxDeviceInfo linuxDeviceInfo = await deviceInfo.linuxInfo;
-    deviceId = "${linuxDeviceInfo.name}-${linuxDeviceInfo.versionId}";
-  }
-  return deviceId;
-}
+/*
+Keep in mind linux ufw, android permissions and firewall
+*/
 
 class NetworkService {
   final int _port = 8888;
@@ -90,17 +18,10 @@ class NetworkService {
   String? _localIp;
   String? _deviceId;
 
-  /*
-  final StreamController<Map<String, String>> _discoveryController =
-      StreamController.broadcast();*/
-
-  final StreamController<DiscoveredDevice> _discoveryController =
+  final StreamController<Device> _discoveryController =
       StreamController.broadcast();
 
-  /*Stream<Map<String, String>> get discoveredDevices =>
-      _discoveryController.stream;*/
-
-  Stream<DiscoveredDevice> get discoveredDevices => _discoveryController.stream;
+  Stream<Device> get discoveredDevices => _discoveryController.stream;
 
   Future initialize() async {
     _localIp = await _networkInfo.getWifiIP();
@@ -111,19 +32,19 @@ class NetworkService {
   Future<String> _getDeviceId() async {
     if (Platform.isAndroid) {
       AndroidDeviceInfo androidInfo = await _deviceInfo.androidInfo;
-      return "${androidInfo.model}|${androidInfo.id}|ANDROID";
+      return "${androidInfo.model}|android";
     } else if (Platform.isIOS) {
       IosDeviceInfo iosDeviceInfo = await _deviceInfo.iosInfo;
-      return "${iosDeviceInfo.modelName}|${iosDeviceInfo.systemVersion}|IOS";
+      return "${iosDeviceInfo.modelName}|ios";
     } else if (Platform.isWindows) {
       WindowsDeviceInfo windowsInfo = await _deviceInfo.windowsInfo;
-      return "${windowsInfo.computerName}|${windowsInfo.productName}|WINDOWS";
+      return "${windowsInfo.computerName}|windows";
     } else if (Platform.isLinux) {
       LinuxDeviceInfo linuxDeviceInfo = await _deviceInfo.linuxInfo;
-      return "${linuxDeviceInfo.prettyName}|${linuxDeviceInfo.id}|LINUX";
+      return "${linuxDeviceInfo.prettyName}|linux";
     } else if (Platform.isMacOS) {
       MacOsDeviceInfo macOsDeviceInfo = await _deviceInfo.macOsInfo;
-      return "${macOsDeviceInfo.modelName}|${macOsDeviceInfo.model}|MACOS";
+      return "${macOsDeviceInfo.modelName}|macos";
     }
     return "UnknownDevice";
   }
@@ -154,21 +75,19 @@ class NetworkService {
           //Si recibe un mensaje RESPONSE, añade el dispositivo que ha anunciado su presencia
           else if (message.startsWith("RESPONSE:")) {
             if (senderIp == _localIp) return;
-
-            /*
-            _discoveryController.add({
-              'ip': senderIp,
-              'message': message.substring(9),
-              'timestamp': DateTime.now().toString(),
-            });*/
+            final String identification = message.substring(9);
+            final List<String> components = identification.split("|");
 
             _discoveryController.add(
-              DiscoveredDevice(
+              Device(
                 ip: senderIp,
-                name: message.substring(9), // Extract device name from message
+                name: components[0],
+                deviceType: DeviceType.values.firstWhere(
+                  (v) => v.toString() == 'DeviceType.${components[1]}',
+                ),
               ),
             );
-          }
+          } else if (message.startsWith("DISCONNECT:")) {}
         }
       }
     });
@@ -185,34 +104,40 @@ class NetworkService {
       socket.broadcastEnabled = true;
 
       final String message = "DISCOVER:$_deviceId";
-      socket.send(
-        utf8.encode(message),
-        InternetAddress(broadcastAddress),
-        _port,
-      );
+
+      for (int i = 0; i < 5; i++) {
+        socket.send(
+          utf8.encode(message),
+          InternetAddress(broadcastAddress),
+          _port,
+        );
+        await Future.delayed(Duration(milliseconds: 500));
+      }
 
       final Stopwatch stopwatch = Stopwatch()..start();
-      while (stopwatch.elapsedMilliseconds < 5000) {
+      while (stopwatch.elapsedMilliseconds < 3000) {
         final datagram = socket.receive();
         if (datagram != null) {
           final senderIp = datagram.address.address;
           final responseMessage = utf8.decode(datagram.data);
 
           if (responseMessage.startsWith("RESPONSE:")) {
-            /*_discoveryController.add({
-              'ip': senderIp,
-              'message': responseMessage.substring(9),
-              'timestamp': DateTime.now().toString(),
-            });*/
+            final String identification = responseMessage.substring(9);
+            final List<String> components = identification.split("|");
 
             _discoveryController.add(
-              DiscoveredDevice(ip: senderIp, name: message.substring(9)),
+              Device(
+                ip: senderIp,
+                name: components[0],
+                deviceType: DeviceType.values.firstWhere(
+                  (v) => v.toString() == 'DeviceType.${components[1]}',
+                  orElse: () => DeviceType.unknown,
+                ),
+              ),
             );
           }
         }
-        await Future.delayed(
-          Duration(milliseconds: 100),
-        ); // Prevent blocking the app
+        await Future.delayed(Duration(milliseconds: 100));
       }
 
       socket.close();
@@ -227,17 +152,13 @@ class NetworkService {
   }
 }
 
-class DiscoveredDevice {
+class Device {
   final String ip;
   final String name;
-  //final DeviceType deviceType;
+  final DeviceType deviceType;
   final String timestamp = DateTime.now().toString();
 
-  DiscoveredDevice({
-    required this.ip,
-    required this.name,
-    //required this.deviceType,
-  });
+  Device({required this.ip, required this.name, required this.deviceType});
 }
 
-enum DeviceType { windows, linux, macos, android, ios }
+enum DeviceType { windows, linux, macos, android, ios, unknown }
