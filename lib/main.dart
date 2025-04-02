@@ -26,7 +26,7 @@ class MainApp extends StatelessWidget {
   }
 }
 
-class AppState extends ChangeNotifier with WidgetsBindingObserver {
+class AppState extends ChangeNotifier /*with WidgetsBindingObserver*/ {
   final NetworkService _networkService;
   final List<Device> _devices = [];
   bool _isDiscovering = false;
@@ -56,7 +56,7 @@ class AppState extends ChangeNotifier with WidgetsBindingObserver {
     _isDiscovering = true;
     notifyListeners();
 
-    await _networkService.sendDiscovery();
+    await _networkService.sendDiscoveryUDP();
 
     _isDiscovering = false;
     notifyListeners();
@@ -69,20 +69,18 @@ class AppState extends ChangeNotifier with WidgetsBindingObserver {
 
   void myDeviceInfo() {}
 
-  @override
+  /*@override
   void didChangeAppLifecycleState(AppLifecycleState state) {
     if (state == AppLifecycleState.detached ||
         state == AppLifecycleState.inactive) {
       print("App is closing, sending DISCONNECT message...");
       _networkService.dispose();
     }
-  }
+  }*/
 
   @override
   void dispose() {
-    print("Dispose");
-    WidgetsBinding.instance.removeObserver(this);
-    //_networkService.dispose();
+    _networkService.dispose();
     super.dispose();
   }
 }

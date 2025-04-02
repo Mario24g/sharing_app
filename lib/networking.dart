@@ -17,18 +17,20 @@ class NetworkService {
 
   String? _localIp;
   String? _deviceId;
-  Map<String, DateTime> _deviceLastSeen = {};
-
+  final Map<String, DateTime> _deviceLastSeen = {};
+  final Set<String> _knownIps = {};
   final StreamController<Device> _discoveryController =
       StreamController.broadcast();
 
   Stream<Device> get discoveredDevices => _discoveryController.stream;
+  final Map<String, Socket> _tcpSockets = {};
 
   Future initialize() async {
     _localIp = await _networkInfo.getWifiIP();
     _deviceId = await _getDeviceInfo();
     _startListening();
-    _startHeartbeat();
+    _startTcpServer();
+    _monitorDevices();
   }
 
   Future<Device> getMyDeviceInfo() async {
@@ -63,30 +65,6 @@ class NetworkService {
     return "Unknown device|unknown";
   }
 
-  void _startHeartbeat() {
-    Timer.periodic(Duration(seconds: 5), (timer) async {
-      try {
-        final String broadcastAddress =
-            await _networkInfo.getWifiBroadcast() ?? '255.255.255.255';
-        final RawDatagramSocket socket = await RawDatagramSocket.bind(
-          InternetAddress.anyIPv4,
-          0,
-        );
-        socket.broadcastEnabled = true;
-
-        final String message = "HEARTBEAT:$_localIp";
-        socket.send(
-          utf8.encode(message),
-          InternetAddress(broadcastAddress),
-          _port,
-        );
-        socket.close();
-      } catch (e) {
-        print("Heartbeat error: $e");
-      }
-    });
-  }
-
   void _startListening() async {
     _listeningSocket = await RawDatagramSocket.bind(
       InternetAddress.anyIPv4,
@@ -113,37 +91,34 @@ class NetworkService {
           //Si recibe un mensaje RESPONSE, añade el dispositivo que ha anunciado su presencia
           else if (message.startsWith("RESPONSE:")) {
             if (senderIp == _localIp) return;
-            final String identification = message.substring(9);
-            final List<String> components = identification.split("|");
-
-            _discoveryController.add(
-              Device(
-                ip: senderIp,
-                name: components[0],
-                deviceType: DeviceType.values.firstWhere(
-                  (v) => v.toString() == 'DeviceType.${components[1]}',
+            if (!_knownIps.contains(senderIp)) {
+              final String identification = message.substring(9);
+              final List<String> components = identification.split("|");
+              _knownIps.add(senderIp);
+              _discoveryController.add(
+                Device(
+                  ip: senderIp,
+                  name: components[0],
+                  deviceType: DeviceType.values.firstWhere(
+                    (v) => v.toString() == 'DeviceType.${components[1]}',
+                  ),
                 ),
-              ),
-            );
+              );
 
-            _deviceLastSeen[senderIp] = DateTime.now();
-          } else if (message.startsWith("DISCONNECT:")) {
-            final String disconnectedIp = message.substring(10);
-            _discoveryController.addError(disconnectedIp);
-          } else if (message.startsWith("HEARTBEAT:")) {
-            final senderIp = message.substring(9);
-            _deviceLastSeen[senderIp] = DateTime.now();
+              _startTcpConnection(senderIp);
+            }
           }
         }
       }
     });
+  }
 
+  void _monitorDevices() {
     Timer.periodic(Duration(seconds: 10), (timer) {
       DateTime now = DateTime.now();
       _deviceLastSeen.removeWhere((ip, lastSeen) {
         if (now.difference(lastSeen).inSeconds > 15) {
-          print("Device $ip timed out, removing...");
-          _discoveryController.addError(ip);
+          _removeDevice(ip);
           return true;
         }
         return false;
@@ -151,7 +126,62 @@ class NetworkService {
     });
   }
 
-  Future sendDiscovery() async {
+  void _startTcpConnection(String ip) async {
+    try {
+      Socket socket = await Socket.connect(ip, _port);
+      _tcpSockets[ip] = socket;
+
+      (data) {
+        String message = utf8.decode(data);
+        if (message == "HEARTBEAT") {
+          _deviceLastSeen[ip] = DateTime.now();
+        } else if (message.startsWith("DISCONNECT")) {
+          String disconnectedIp = message.substring(11);
+
+          // Remove device from list
+          _deviceLastSeen.remove(disconnectedIp);
+          _tcpSockets.remove(disconnectedIp);
+          _discoveryController.addError(disconnectedIp);
+        }
+      };
+      _startHeartbeat(socket);
+    } catch (e) {
+      print("TCP connection failed: $e");
+    }
+  }
+
+  void _startTcpServer() async {
+    ServerSocket server = await ServerSocket.bind(
+      InternetAddress.anyIPv4,
+      _port,
+    );
+
+    server.listen((Socket client) {
+      client.listen(
+        (data) {
+          String message = utf8.decode(data);
+
+          if (message == "HEARTBEAT") {
+            _deviceLastSeen[client.remoteAddress.address] = DateTime.now();
+          }
+        },
+        onDone: () {
+          _removeDevice(client.remoteAddress.address);
+        },
+        onError: (error) {
+          _removeDevice(client.remoteAddress.address);
+        },
+      );
+    });
+  }
+
+  void _startHeartbeat(Socket socket) {
+    Timer.periodic(Duration(seconds: 5), (timer) {
+      socket.write("HEARTBEAT");
+    });
+  }
+
+  Future sendDiscoveryUDP() async {
     try {
       final String broadcastAddress =
           await _networkInfo.getWifiBroadcast() ?? '255.255.255.255';
@@ -210,7 +240,28 @@ class NetworkService {
     _discoveryController.close();
   }
 
+  void _removeDevice(String ip) {
+    _tcpSockets[ip]?.destroy();
+    _tcpSockets.remove(ip);
+    _knownIps.remove(ip);
+    _discoveryController.addError(ip);
+  }
+
   void _sendDisconnectMessage() async {
+    try {
+      for (MapEntry<String, Socket> entry in _tcpSockets.entries) {
+        Socket socket = entry.value;
+        socket.write("DISCONNECT:$_localIp");
+        await socket.flush();
+        socket.destroy();
+      }
+      _tcpSockets.clear();
+    } catch (e) {
+      print("Error sending disconnect message: $e");
+    }
+  }
+
+  /*void _sendDisconnectMessage() async {
     try {
       final String broadcastAddress =
           await _networkInfo.getWifiBroadcast() ?? '255.255.255.255';
@@ -235,7 +286,7 @@ class NetworkService {
     } catch (e) {
       print("Error sending disconnect message: $e");
     }
-  }
+  }*/
 }
 
 class Device {
