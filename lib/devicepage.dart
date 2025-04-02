@@ -1,11 +1,38 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:provider/provider.dart';
 import 'package:sharing_app/main.dart';
 import 'package:sharing_app/networking.dart';
+import 'package:file_picker/file_picker.dart';
 
-class DevicePage extends StatelessWidget {
+class DevicePage extends StatefulWidget {
   const DevicePage({super.key});
+
+  @override
+  State<StatefulWidget> createState() => _DevicePageState();
+}
+
+class _DevicePageState extends State<DevicePage> {
+  File? _pickedFile;
+  PlatformFile? _pickedPlatformFile;
+
+  Future _pickFile() async {
+    FilePickerResult? result = await FilePicker.platform.pickFiles(
+      dialogTitle: "Select image",
+      type: FileType.any,
+      //allowedExtensions: ["png", "jpg", "jpeg"],
+      allowMultiple: true,
+    );
+
+    if (result != null) {
+      setState(() {
+        _pickedPlatformFile = result.files.single;
+        _pickedFile = File(result.files.single.path!);
+      });
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -49,6 +76,20 @@ class DevicePage extends StatelessWidget {
             },
           ),
         ),
+
+        ElevatedButton(
+          onPressed: _pickFile,
+          child: ListTile(
+            leading: Icon(Icons.image, color: Colors.white),
+            title: Text("Pick a file", style: TextStyle(color: Colors.white)),
+          ),
+        ),
+
+        if (_pickedFile != null) ...[
+          SizedBox(height: 10),
+          Text(_pickedFile!.path),
+          //Image.file(_pickedFile!, height: 60),
+        ],
       ],
     );
   }
