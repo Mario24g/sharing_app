@@ -20,7 +20,7 @@ class _DevicePageState extends State<DevicePage> {
 
   Future _pickFile() async {
     FilePickerResult? result = await FilePicker.platform.pickFiles(
-      dialogTitle: "Select image",
+      dialogTitle: "Select file",
       type: FileType.any,
       //allowedExtensions: ["png", "jpg", "jpeg"],
       allowMultiple: true,
