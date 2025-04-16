@@ -85,7 +85,7 @@ class AppState extends ChangeNotifier /*with WidgetsBindingObserver*/ {
 
   @override
   void dispose() {
-    _networkService.dispose();
+    //TODO _networkService.dispose();
     super.dispose();
   }
 }

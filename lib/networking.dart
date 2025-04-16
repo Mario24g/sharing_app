@@ -191,32 +191,6 @@ class NetworkService {
     }
   }
 
-  /*void _startTcpServer() async {
-    ServerSocket server = await ServerSocket.bind(
-      InternetAddress.anyIPv4,
-      shared: true, //TODO: change later
-      8890,
-    );
-
-    server.listen((Socket client) {
-      client.listen(
-        (data) {
-          String message = utf8.decode(data);
-          if (message == "HEARTBEAT") {
-            _deviceLastSeen[client.remoteAddress.address] = DateTime.now();
-          }
-        },
-        onDone: () {
-          _removeDevice(client.remoteAddress.address);
-          //server.close();
-        },
-        onError: (error) {
-          _removeDevice(client.remoteAddress.address);
-          server.close();
-        },
-      );
-    });
-  }*/
   void _startTcpServer() async {
     ServerSocket server = await ServerSocket.bind(
       InternetAddress.anyIPv4,
@@ -227,6 +201,7 @@ class NetworkService {
     server.listen((Socket client) {
       client.listen((data) async {
         String message = utf8.decode(data);
+        print("Message received: $message");
 
         if (message.startsWith("SEND:")) {
           String content = message.substring(5);
@@ -244,7 +219,7 @@ class NetworkService {
           int senderPort = int.parse(components[1]);
 
           onTransferRequest!(senderIp, senderPort);
-        } else if (message == "ACCEPT") {
+        } else if (message.startsWith("ACCEPT")) {
           print("Target device accepted request");
         }
       });
@@ -274,37 +249,6 @@ class NetworkService {
       }
     });
   }
-
-  /*void _startTransferClient(String ip, int port) async {
-    final Socket socket = await Socket.connect(ip, port);
-    try {
-      print(
-        "Connected to:"
-        '${socket.remoteAddress.address}:${socket.remotePort}',
-      );
-      socket.listen(
-        (data) async {
-          String message = String.fromCharCodes(data).trim();
-          print(message);
-          List<String> split = message.split(":");
-          String fileName = split[0];
-          int fileLength = int.parse(split[1]);
-
-          IOSink iosink = File(fileName).openWrite();
-          try {
-            await socket.map(toIntList).pipe(iosink);
-          } finally {
-            iosink.close();
-          }
-        },
-        onDone: () {
-          socket.destroy();
-        },
-      );
-    } finally {
-      socket.destroy();
-    }
-  }*/
 
   List<int> toIntList(Uint8List source) {
     return List.from(source);

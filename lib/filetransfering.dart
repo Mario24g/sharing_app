@@ -1,4 +1,3 @@
-import 'dart:convert';
 import 'dart:io';
 import 'dart:typed_data';
 
@@ -8,6 +7,7 @@ import 'package:sharing_app/networking.dart';
 class FileTransferManager {
   final int _port = 8890;
   ServerSocket? server;
+  File? fileToTransfer;
 
   ////
   /*void startTransfer(File file, Device targetDevice) async {
@@ -61,6 +61,7 @@ class FileTransferManager {
     final NetworkInfo networkInfo = NetworkInfo();
     final String localIp = await networkInfo.getWifiIP() ?? '0.0.0.0';
     final String notification = "NOTIFICATION:$localIp:$_port";
+    fileToTransfer = file;
 
     try {
       final Socket socket = await Socket.connect(targetDevice.ip, 8890);
@@ -108,10 +109,15 @@ class FileTransferManager {
   }*/
 
   void startServer(File file) async {
-    final ServerSocket server = await ServerSocket.bind('localhost', _port);
+    final ServerSocket server = await ServerSocket.bind(
+      InternetAddress.anyIPv4,
+      shared: true,
+      _port,
+    );
     print("Server started at ${server.address.address}:${server.port}");
 
     server.listen((client) async {
+      print("Client to transfer connected");
       final String fileName = file.path.split(Platform.pathSeparator).last;
       final int fileLength = await file.length();
       client.writeln('$fileName:$fileLength');
@@ -128,7 +134,7 @@ class FileTransferManager {
     final Socket socket = await Socket.connect(senderIp, _port);
     try {
       print(
-        "Connected to:"
+        "Connected from target to:"
         '${socket.remoteAddress.address}:${socket.remotePort}',
       );
       socket.listen(

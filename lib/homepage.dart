@@ -56,10 +56,13 @@ class _ApplicationPageState extends State<ApplicationPage> {
                       requestingDevice.ip,
                       8890,
                     );
-                    print("Target device accepted");
+                    appState.fileTransferManager.startClient(
+                      requestingDevice.ip,
+                    );
 
                     socket.writeln("ACCEPT");
                     await socket.flush();
+                    //print("Target sent ACCEPT to ${requestingDevice.ip}");
                     await socket.close();
                   } catch (e) {
                     print("Failed to notify target device: $e");

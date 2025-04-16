@@ -102,6 +102,7 @@ class _DevicePageState extends State<DevicePage> {
                       _pickedFile!,
                       _selectedDevice!,
                     );
+                    appState.fileTransferManager.startServer(_pickedFile!);
                   },
           child: Text("Transfer"),
         ),
