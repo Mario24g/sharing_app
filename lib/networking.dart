@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
+import 'dart:typed_data';
 
 import 'package:device_info_plus/device_info_plus.dart';
 import 'package:network_info_plus/network_info_plus.dart';
@@ -10,10 +11,13 @@ Keep in mind linux ufw, android permissions and firewall
 */
 
 class NetworkService {
-  final int _port = 8888;
+  final int port;
   final NetworkInfo _networkInfo = NetworkInfo();
   final DeviceInfoPlugin _deviceInfo = DeviceInfoPlugin();
   RawDatagramSocket? _listeningSocket;
+  void Function(String senderIp, int senderPort)? onTransferRequest;
+
+  NetworkService({this.port = 8888});
 
   String? _localIp;
   String? _deviceId;
@@ -28,23 +32,12 @@ class NetworkService {
   Future initialize() async {
     _localIp = await _networkInfo.getWifiIP();
     _deviceId = await _getDeviceInfo();
-    _startListening();
+    _startListeningBroadcast();
     _startTcpServer();
     _monitorDevices();
   }
 
-  Future<Device> getMyDeviceInfo() async {
-    final List<String> info = _deviceId!.split("|");
-
-    return Device(
-      ip: _localIp!,
-      name: info[0],
-      deviceType: DeviceType.values.firstWhere(
-        (v) => v.toString() == 'DeviceType.${info[1]}',
-      ),
-    );
-  }
-
+  /* DEVICE INFORMATION */
   Future<String> _getDeviceInfo() async {
     if (Platform.isAndroid) {
       AndroidDeviceInfo androidInfo = await _deviceInfo.androidInfo;
@@ -65,10 +58,11 @@ class NetworkService {
     return "Unknown device|unknown";
   }
 
-  void _startListening() async {
+  /* BROADCAST DISCOVERY */
+  void _startListeningBroadcast() async {
     _listeningSocket = await RawDatagramSocket.bind(
       InternetAddress.anyIPv4,
-      _port,
+      port,
     );
     _listeningSocket!.broadcastEnabled = true;
 
@@ -85,7 +79,7 @@ class NetworkService {
             _listeningSocket!.send(
               utf8.encode(responseMessage),
               datagram.address,
-              _port,
+              port,
             );
           }
           //Si recibe un mensaje RESPONSE, añade el dispositivo que ha anunciado su presencia
@@ -113,75 +107,7 @@ class NetworkService {
     });
   }
 
-  void _monitorDevices() {
-    Timer.periodic(Duration(seconds: 10), (timer) {
-      DateTime now = DateTime.now();
-      _deviceLastSeen.removeWhere((ip, lastSeen) {
-        if (now.difference(lastSeen).inSeconds > 15) {
-          _removeDevice(ip);
-          return true;
-        }
-        return false;
-      });
-    });
-  }
-
-  void _startTcpConnection(String ip) async {
-    try {
-      Socket socket = await Socket.connect(ip, _port);
-      _tcpSockets[ip] = socket;
-
-      (data) {
-        String message = utf8.decode(data);
-        if (message == "HEARTBEAT") {
-          _deviceLastSeen[ip] = DateTime.now();
-        } else if (message.startsWith("DISCONNECT")) {
-          String disconnectedIp = message.substring(11);
-
-          // Remove device from list
-          _deviceLastSeen.remove(disconnectedIp);
-          _tcpSockets.remove(disconnectedIp);
-          _discoveryController.addError(disconnectedIp);
-        }
-      };
-      _startHeartbeat(socket);
-    } catch (e) {
-      print("TCP connection failed: $e");
-    }
-  }
-
-  void _startTcpServer() async {
-    ServerSocket server = await ServerSocket.bind(
-      InternetAddress.anyIPv4,
-      _port,
-    );
-
-    server.listen((Socket client) {
-      client.listen(
-        (data) {
-          String message = utf8.decode(data);
-
-          if (message == "HEARTBEAT") {
-            _deviceLastSeen[client.remoteAddress.address] = DateTime.now();
-          }
-        },
-        onDone: () {
-          _removeDevice(client.remoteAddress.address);
-        },
-        onError: (error) {
-          _removeDevice(client.remoteAddress.address);
-        },
-      );
-    });
-  }
-
-  void _startHeartbeat(Socket socket) {
-    Timer.periodic(Duration(seconds: 5), (timer) {
-      socket.write("HEARTBEAT");
-    });
-  }
-
-  Future sendDiscoveryUDP() async {
+  Future sendDiscoveryBroadcast() async {
     try {
       final String broadcastAddress =
           await _networkInfo.getWifiBroadcast() ?? '255.255.255.255';
@@ -197,7 +123,7 @@ class NetworkService {
         socket.send(
           utf8.encode(message),
           InternetAddress(broadcastAddress),
-          _port,
+          port,
         );
         await Future.delayed(Duration(milliseconds: 500));
       }
@@ -234,6 +160,177 @@ class NetworkService {
     }
   }
 
+  void _startTcpConnection(String ip) async {
+    try {
+      Socket socket = await Socket.connect(ip, 8890);
+      _tcpSockets[ip] = socket;
+
+      socket.listen((data) {
+        String message = utf8.decode(data);
+        if (message == "HEARTBEAT") {
+          _deviceLastSeen[ip] = DateTime.now();
+        } else if (message.startsWith("DISCONNECT")) {
+          String disconnectedIp = message.substring(11);
+
+          // Remove device from list
+          _deviceLastSeen.remove(disconnectedIp);
+          _tcpSockets.remove(disconnectedIp);
+          _discoveryController.addError(disconnectedIp);
+        } else if (message.startsWith("SEND")) {
+          String content = message.substring(5);
+          List<String> components = content.split(":");
+
+          String ip = components[0];
+          int port = int.parse(components[1]);
+          _startTransferClient(ip, port);
+        }
+      });
+      _startHeartbeat(socket);
+    } catch (e) {
+      print("TCP connection failed: $e");
+    }
+  }
+
+  /*void _startTcpServer() async {
+    ServerSocket server = await ServerSocket.bind(
+      InternetAddress.anyIPv4,
+      shared: true, //TODO: change later
+      8890,
+    );
+
+    server.listen((Socket client) {
+      client.listen(
+        (data) {
+          String message = utf8.decode(data);
+          if (message == "HEARTBEAT") {
+            _deviceLastSeen[client.remoteAddress.address] = DateTime.now();
+          }
+        },
+        onDone: () {
+          _removeDevice(client.remoteAddress.address);
+          //server.close();
+        },
+        onError: (error) {
+          _removeDevice(client.remoteAddress.address);
+          server.close();
+        },
+      );
+    });
+  }*/
+  void _startTcpServer() async {
+    ServerSocket server = await ServerSocket.bind(
+      InternetAddress.anyIPv4,
+      8890,
+      shared: true,
+    );
+
+    server.listen((Socket client) {
+      client.listen((data) async {
+        String message = utf8.decode(data);
+
+        if (message.startsWith("SEND:")) {
+          String content = message.substring(5);
+          List<String> components = content.split(":");
+
+          String senderIp = components[0];
+          int senderPort = int.parse(components[1]);
+
+          _startTransferClient(senderIp, senderPort);
+        } else if (message.startsWith("NOTIFICATION:")) {
+          String content = message.substring(13);
+          List<String> components = content.split(":");
+
+          String senderIp = components[0];
+          int senderPort = int.parse(components[1]);
+
+          onTransferRequest!(senderIp, senderPort);
+        } else if (message == "ACCEPT") {
+          print("Target device accepted request");
+        }
+      });
+    });
+  }
+
+  void _startTransferClient(String senderIp, int senderPort) async {
+    final Socket socket = await Socket.connect(senderIp, senderPort);
+
+    socket.listen((data) async {
+      String message = utf8.decode(data).trim();
+
+      // Here we can parse the file name and length
+      List<String> split = message.split(":");
+      String fileName = split[0];
+      int fileLength = int.parse(split[1]);
+
+      IOSink iosink = File(fileName).openWrite();
+      try {
+        await socket.listen((data) {
+          iosink.add(data);
+        }).asFuture();
+      } finally {
+        iosink.close();
+        print("File received: $fileName");
+        socket.close();
+      }
+    });
+  }
+
+  /*void _startTransferClient(String ip, int port) async {
+    final Socket socket = await Socket.connect(ip, port);
+    try {
+      print(
+        "Connected to:"
+        '${socket.remoteAddress.address}:${socket.remotePort}',
+      );
+      socket.listen(
+        (data) async {
+          String message = String.fromCharCodes(data).trim();
+          print(message);
+          List<String> split = message.split(":");
+          String fileName = split[0];
+          int fileLength = int.parse(split[1]);
+
+          IOSink iosink = File(fileName).openWrite();
+          try {
+            await socket.map(toIntList).pipe(iosink);
+          } finally {
+            iosink.close();
+          }
+        },
+        onDone: () {
+          socket.destroy();
+        },
+      );
+    } finally {
+      socket.destroy();
+    }
+  }*/
+
+  List<int> toIntList(Uint8List source) {
+    return List.from(source);
+  }
+
+  /* MONITOR AND HEARTBEAT */
+  void _startHeartbeat(Socket socket) {
+    Timer.periodic(Duration(seconds: 5), (timer) {
+      socket.write("HEARTBEAT");
+    });
+  }
+
+  void _monitorDevices() {
+    Timer.periodic(Duration(seconds: 10), (timer) {
+      DateTime now = DateTime.now();
+      _deviceLastSeen.removeWhere((ip, lastSeen) {
+        if (now.difference(lastSeen).inSeconds > 15) {
+          _removeDevice(ip);
+          return true;
+        }
+        return false;
+      });
+    });
+  }
+
+  /* CLEANUP */
   void dispose() {
     _sendDisconnectMessage();
     _listeningSocket?.close();
@@ -260,33 +357,6 @@ class NetworkService {
       print("Error sending disconnect message: $e");
     }
   }
-
-  /*void _sendDisconnectMessage() async {
-    try {
-      final String broadcastAddress =
-          await _networkInfo.getWifiBroadcast() ?? '255.255.255.255';
-      final RawDatagramSocket socket = await RawDatagramSocket.bind(
-        InternetAddress.anyIPv4,
-        0,
-      );
-      socket.broadcastEnabled = true;
-
-      final String message = "DISCONNECT:$_localIp";
-      for (int i = 0; i < 5; i++) {
-        print("Sending DISCONNECT: $_localIp");
-        socket.send(
-          utf8.encode(message),
-          InternetAddress(broadcastAddress),
-          _port,
-        );
-        await Future.delayed(Duration(milliseconds: 500));
-      }
-
-      socket.close();
-    } catch (e) {
-      print("Error sending disconnect message: $e");
-    }
-  }*/
 }
 
 class Device {

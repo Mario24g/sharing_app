@@ -1,26 +1,35 @@
 import 'package:sharing_app/homepage.dart';
-import 'package:sharing_app/networking.dart'
-    show Device, NetworkService, sendBroadcast;
+import 'package:sharing_app/networking.dart' show Device, NetworkService;
 import 'package:provider/provider.dart';
 import 'package:flutter/material.dart';
+import 'package:sharing_app/filetransfering.dart';
 
 void main() {
-  final networkService = NetworkService();
-  runApp(MainApp(networkService));
+  runApp(const MainApp());
 }
 
 class MainApp extends StatelessWidget {
-  final NetworkService networkService;
-  const MainApp(this.networkService, {super.key});
+  const MainApp({super.key});
 
   @override
   Widget build(BuildContext context) {
-    return ChangeNotifierProvider(
-      create: (_) => AppState(networkService)..initialize(),
+    return MultiProvider(
+      providers: [
+        Provider<NetworkService>(create: (_) => NetworkService()),
+        Provider<FileTransferManager>(create: (_) => FileTransferManager()),
+        ChangeNotifierProxyProvider<NetworkService, AppState>(
+          create: (context) => AppState(context.read<NetworkService>()),
+          update: (context, networkService, appState) {
+            appState ??= AppState(networkService);
+            appState.initialize();
+            return appState;
+          },
+        ),
+      ],
       child: MaterialApp(
-        title: "BlitzShare",
+        title: 'BlitzShare',
         darkTheme: ThemeData.dark(),
-        home: ApplicationPage(),
+        home: const ApplicationPage(),
       ),
     );
   }
@@ -28,6 +37,7 @@ class MainApp extends StatelessWidget {
 
 class AppState extends ChangeNotifier /*with WidgetsBindingObserver*/ {
   final NetworkService _networkService;
+  FileTransferManager fileTransferManager = FileTransferManager();
   final List<Device> _devices = [];
   bool _isDiscovering = false;
 
@@ -56,7 +66,7 @@ class AppState extends ChangeNotifier /*with WidgetsBindingObserver*/ {
     _isDiscovering = true;
     notifyListeners();
 
-    await _networkService.sendDiscoveryUDP();
+    await _networkService.sendDiscoveryBroadcast();
 
     _isDiscovering = false;
     notifyListeners();
@@ -69,14 +79,9 @@ class AppState extends ChangeNotifier /*with WidgetsBindingObserver*/ {
 
   void myDeviceInfo() {}
 
-  /*@override
-  void didChangeAppLifecycleState(AppLifecycleState state) {
-    if (state == AppLifecycleState.detached ||
-        state == AppLifecycleState.inactive) {
-      print("App is closing, sending DISCONNECT message...");
-      _networkService.dispose();
-    }
-  }*/
+  void setOnTransferRequestHandler(void Function(String ip, int port) handler) {
+    _networkService.onTransferRequest = handler;
+  }
 
   @override
   void dispose() {

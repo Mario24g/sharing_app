@@ -6,6 +6,7 @@ import 'package:provider/provider.dart';
 import 'package:sharing_app/main.dart';
 import 'package:sharing_app/networking.dart';
 import 'package:file_picker/file_picker.dart';
+import 'package:sharing_app/filetransfering.dart';
 
 class DevicePage extends StatefulWidget {
   const DevicePage({super.key});
@@ -15,6 +16,7 @@ class DevicePage extends StatefulWidget {
 }
 
 class _DevicePageState extends State<DevicePage> {
+  Device? _selectedDevice;
   File? _pickedFile;
   PlatformFile? _pickedPlatformFile;
 
@@ -36,7 +38,9 @@ class _DevicePageState extends State<DevicePage> {
 
   @override
   Widget build(BuildContext context) {
-    final appState = Provider.of<AppState>(context);
+    final AppState appState = Provider.of<AppState>(context);
+    final List<Device> deviceList = appState.devices;
+    final List<bool> _selected = List.generate(deviceList.length, (i) => false);
 
     return Column(
       children: [
@@ -47,36 +51,66 @@ class _DevicePageState extends State<DevicePage> {
 
         Expanded(
           child: ListView.builder(
-            itemCount: appState.devices.length,
+            itemCount: deviceList.length,
             itemBuilder: (context, index) {
-              final device = appState.devices[index];
-              return ListTile(
-                title: Container(
-                  padding: const EdgeInsets.only(right: 12.0),
-                  constraints: BoxConstraints(
-                    maxWidth: MediaQuery.of(context).size.width * 0.7,
+              final Device device = deviceList[index];
+              final bool isSelected = _selectedDevice?.ip == device.ip;
+              return Container(
+                color: isSelected ? Colors.green : null,
+
+                child: ListTile(
+                  title: Container(
+                    padding: const EdgeInsets.only(right: 12.0),
+                    constraints: BoxConstraints(
+                      maxWidth: MediaQuery.of(context).size.width * 0.7,
+                    ),
+                    child: Text(
+                      device.name,
+                      overflow: TextOverflow.ellipsis,
+                      maxLines: 1,
+                    ),
                   ),
-                  child: Text(
-                    device.name,
-                    overflow: TextOverflow.ellipsis,
-                    maxLines: 1,
-                  ),
+                  trailing: FaIcon(switch (device.deviceType) {
+                    DeviceType.windows => FontAwesomeIcons.windows,
+                    DeviceType.linux => FontAwesomeIcons.linux,
+                    DeviceType.macos => FontAwesomeIcons.apple,
+                    DeviceType.android => FontAwesomeIcons.android,
+                    DeviceType.ios => FontAwesomeIcons.apple,
+                    DeviceType.unknown => FontAwesomeIcons.question,
+                  }),
+                  subtitle: Text(device.ip),
+                  onTap: () {
+                    setState(() {
+                      _selectedDevice = device;
+                      //_selectedDevice == null ? device : null;
+                    });
+                  },
+                  //trailing: Text(device['timestamp']?.split(' ')[1] ?? ''),
                 ),
-                trailing: FaIcon(switch (device.deviceType) {
-                  DeviceType.windows => FontAwesomeIcons.windows,
-                  DeviceType.linux => FontAwesomeIcons.linux,
-                  DeviceType.macos => FontAwesomeIcons.apple,
-                  DeviceType.android => FontAwesomeIcons.android,
-                  DeviceType.ios => FontAwesomeIcons.apple,
-                  DeviceType.unknown => FontAwesomeIcons.question,
-                }),
-                //subtitle: Text(device['ip'] ?? ''),
-                //trailing: Text(device['timestamp']?.split(' ')[1] ?? ''),
               );
             },
           ),
         ),
 
+        ElevatedButton(
+          //onPressed: () => _fileTransferManager.startServer(_pickedFile!),
+          onPressed:
+              _selectedDevice == null || _pickedFile == null
+                  ? null
+                  : () {
+                    appState.fileTransferManager.notifyTransfer(
+                      _pickedFile!,
+                      _selectedDevice!,
+                    );
+                  },
+          child: Text("Transfer"),
+        ),
+
+        /*ElevatedButton(
+          onPressed:
+              () => _fileTransferManager.startClient(_selectedDevice!.ip),
+          child: Text("Client"),
+        ),*/
         ElevatedButton(
           onPressed: _pickFile,
           child: ListTile(
