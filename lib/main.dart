@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:sharing_app/homepage.dart';
 import 'package:sharing_app/networking.dart' show Device, NetworkService;
 import 'package:provider/provider.dart';
@@ -5,7 +7,15 @@ import 'package:flutter/material.dart';
 import 'package:sharing_app/filetransfering.dart';
 
 void main() {
-  runApp(const MainApp());
+  //TODO: remember to remove
+  runZonedGuarded(
+    () {
+      runApp(const MainApp());
+    },
+    (error, stack) {
+      print("Unhandled error: $error");
+    },
+  );
 }
 
 class MainApp extends StatelessWidget {
@@ -83,9 +93,10 @@ class AppState extends ChangeNotifier /*with WidgetsBindingObserver*/ {
     _networkService.onTransferRequest = handler;
   }
 
-  @override
+  //TODO: find a way to close resources and notify disconnection
+  /*@override
   void dispose() {
-    //TODO _networkService.dispose();
+    _networkService.dispose();
     super.dispose();
-  }
+  }*/
 }
