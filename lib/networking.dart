@@ -96,7 +96,7 @@ class NetworkService {
                 Device(
                   ip: senderIp,
                   name: components[0],
-                  deviceType: DeviceType.values.firstWhere(
+                  devicePlatform: DevicePlatform.values.firstWhere(
                     (v) => v.toString() == 'DeviceType.${components[1]}',
                   ),
                 ),
@@ -153,9 +153,9 @@ class NetworkService {
               Device(
                 ip: senderIp,
                 name: components[0],
-                deviceType: DeviceType.values.firstWhere(
+                devicePlatform: DevicePlatform.values.firstWhere(
                   (v) => v.toString() == 'DeviceType.${components[1]}',
-                  orElse: () => DeviceType.unknown,
+                  orElse: () => DevicePlatform.unknown,
                 ),
               ),
             );
@@ -343,10 +343,10 @@ class NetworkService {
 class Device {
   final String ip;
   final String name;
-  final DeviceType deviceType;
+  final DevicePlatform devicePlatform;
   final String timestamp = DateTime.now().toString();
 
-  Device({required this.ip, required this.name, required this.deviceType});
+  Device({required this.ip, required this.name, required this.devicePlatform});
 }
 
-enum DeviceType { windows, linux, macos, android, ios, unknown }
+enum DevicePlatform { windows, linux, macos, android, ios, unknown }

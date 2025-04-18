@@ -70,13 +70,13 @@ class _DevicePageState extends State<DevicePage> {
                       maxLines: 1,
                     ),
                   ),
-                  trailing: FaIcon(switch (device.deviceType) {
-                    DeviceType.windows => FontAwesomeIcons.windows,
-                    DeviceType.linux => FontAwesomeIcons.linux,
-                    DeviceType.macos => FontAwesomeIcons.apple,
-                    DeviceType.android => FontAwesomeIcons.android,
-                    DeviceType.ios => FontAwesomeIcons.apple,
-                    DeviceType.unknown => FontAwesomeIcons.question,
+                  trailing: FaIcon(switch (device.devicePlatform) {
+                    DevicePlatform.windows => FontAwesomeIcons.windows,
+                    DevicePlatform.linux => FontAwesomeIcons.linux,
+                    DevicePlatform.macos => FontAwesomeIcons.apple,
+                    DevicePlatform.android => FontAwesomeIcons.android,
+                    DevicePlatform.ios => FontAwesomeIcons.apple,
+                    DevicePlatform.unknown => FontAwesomeIcons.question,
                   }),
                   subtitle: Text(device.ip),
                   onTap: () {
