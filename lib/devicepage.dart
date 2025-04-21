@@ -79,11 +79,15 @@ class _DevicePageState extends State<DevicePage> {
               _selectedDevice == null || _pickedFile == null
                   ? null
                   : () {
-                    appState.fileTransferManager.notifyTransfer(
+                    appState.fileTransferManager.sendFile1(
+                      _selectedDevice!.ip,
+                      _pickedFile!,
+                    );
+                    /*appState.fileTransferManager.notifyTransfer(
                       _pickedFile!,
                       _selectedDevice!,
                     );
-                    appState.fileTransferManager.startServer(_pickedFile!);
+                    appState.fileTransferManager.startServer(_pickedFile!);*/
                   },
           child: Text("Transfer"),
         ),

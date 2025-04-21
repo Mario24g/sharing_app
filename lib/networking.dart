@@ -4,8 +4,12 @@ import 'dart:io';
 import 'dart:typed_data';
 
 import 'package:device_info_plus/device_info_plus.dart';
+import 'package:http/http.dart' as http;
 import 'package:network_info_plus/network_info_plus.dart';
+import 'package:path_provider/path_provider.dart';
 import 'package:sharing_app/model/device.dart';
+import 'package:downloadsfolder/downloadsfolder.dart';
+import 'package:mime/mime.dart';
 
 /*
 Keep in mind linux ufw, android permissions and firewall
@@ -38,7 +42,122 @@ class NetworkService {
     _startListeningBroadcast();
     _startDiscoveryLoop();
     _startTcpServer();
+    _startHttpServer1();
     _monitorDevices();
+  }
+
+  void _startHttpServer() async {
+    final server = await HttpServer.bind(InternetAddress.anyIPv4, 8889);
+    print('Server running on http://$_localIp:${server.port}');
+
+    await for (HttpRequest request in server) {
+      if (request.method == 'POST' && request.uri.path == '/upload') {
+        final tempDir = await getTemporaryDirectory();
+        final String tempFilePath = '${tempDir.path}/received_file';
+
+        final File tempFile = File(tempFilePath);
+        await tempFile.writeAsBytes(
+          await request.fold<List<int>>([], (p, e) => p..addAll(e)),
+        );
+        print('File received temporarily at ${tempFile.path}');
+
+        // Now copy to Downloads using the plugin
+        bool? success = await copyFileIntoDownloadFolder(
+          tempFilePath,
+          'received_file',
+        );
+        if (success == true) {
+          print('File copied to Downloads folder');
+          request.response
+            ..statusCode = HttpStatus.ok
+            ..write('Upload received and saved');
+        } else {
+          print('Failed to copy to Downloads');
+          request.response
+            ..statusCode = HttpStatus.internalServerError
+            ..write('Failed to save file');
+        }
+      } else {
+        request.response
+          ..statusCode = HttpStatus.notFound
+          ..write('Not found');
+      }
+      await request.response.close();
+    }
+  }
+
+  void _startHttpServer1() async {
+    final server = await HttpServer.bind(InternetAddress.anyIPv4, 8889);
+    print('Server running on http://$_localIp:${server.port}');
+
+    await for (HttpRequest request in server) {
+      if (request.method == 'POST' && request.uri.path == '/upload') {
+        try {
+          final contentType = request.headers.contentType;
+          if (contentType == null ||
+              !contentType.mimeType.startsWith('multipart/form-data')) {
+            request.response
+              ..statusCode = HttpStatus.badRequest
+              ..write('Invalid content type');
+            await request.response.close();
+            continue;
+          }
+
+          // Parse the multipart request
+          final boundary = contentType.parameters['boundary'];
+          final transformer = MimeMultipartTransformer(boundary!);
+          final parts = await transformer.bind(request).toList();
+
+          for (final part in parts) {
+            final headers = part.headers;
+            final contentDisposition = headers['content-disposition'];
+
+            // Extract filename
+            final filenameRegex = RegExp(r'filename="(.+)"');
+            final match = filenameRegex.firstMatch(contentDisposition!);
+            final filename = match != null ? match.group(1)! : 'received_file';
+
+            // Create a temp file
+            final Directory tempDir = await getTemporaryDirectory();
+            final tempFilePath = '${tempDir.path}/$filename';
+            final tempFile = File(tempFilePath);
+            await tempFile.writeAsBytes(
+              await part.toList().then(
+                (parts) => parts.expand((e) => e).toList(),
+              ),
+            );
+
+            // Move to Downloads
+            final success = await copyFileIntoDownloadFolder(
+              tempFilePath,
+              filename,
+            );
+            if (success == true) {
+              print('✅ File saved as $filename in Downloads');
+              request.response
+                ..statusCode = HttpStatus.ok
+                ..write('Upload received and saved as $filename');
+            } else {
+              print('❌ Failed to move file to Downloads');
+              request.response
+                ..statusCode = HttpStatus.internalServerError
+                ..write('Failed to save file');
+            }
+          }
+        } catch (e) {
+          print('❌ Error receiving file: $e');
+          request.response
+            ..statusCode = HttpStatus.internalServerError
+            ..write('Error: $e');
+        }
+      } else {
+        request.response
+          ..statusCode = HttpStatus.notFound
+          ..write('Not found');
+      }
+
+      await request.response.close();
+    }
   }
 
   /* DEVICE INFORMATION */

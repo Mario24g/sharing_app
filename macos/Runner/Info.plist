@@ -28,5 +28,8 @@
 	<string>MainMenu</string>
 	<key>NSPrincipalClass</key>
 	<string>NSApplication</string>
+	<key>com.apple.security.files.downloads.read-write</key>
+	<true/>
+
 </dict>
 </plist>

@@ -1,14 +1,80 @@
+import 'dart:convert';
 import 'dart:io';
 import 'dart:typed_data';
 
+import 'package:http/http.dart' as http;
 import 'package:network_info_plus/network_info_plus.dart';
+import 'package:path/path.dart';
 import 'package:sharing_app/model/device.dart';
 import 'package:sharing_app/networking.dart';
+import 'package:http/http.dart';
+import 'package:path/path.dart';
+import 'package:async/async.dart';
+import 'dart:io';
+import 'package:http/http.dart' as http;
 
 class FileTransferManager {
   final int _port = 8890;
   ServerSocket? server;
   File? fileToTransfer;
+
+  Future<void> sendFile(String targetIp, File file) async {
+    final url = Uri.parse('http://$targetIp:8889/upload');
+    final bytes = await file.readAsBytes();
+
+    try {
+      final response = await http.post(
+        url,
+        headers: {HttpHeaders.contentTypeHeader: 'application/octet-stream'},
+        body: bytes,
+      );
+
+      if (response.statusCode == 200) {
+        print("File sent successfully");
+      } else {
+        print("Failed to send file. Status: ${response.statusCode}");
+      }
+    } catch (e) {
+      print("Error sending file: $e");
+    }
+  }
+
+  Future sendFile1(String targetIp, File file) async {
+    // string to uri
+    Uri uri = Uri.parse('http://$targetIp:8889/upload');
+    // open a byteStream
+    ByteStream stream = http.ByteStream(file.openRead());
+    stream.cast();
+    // get file length
+    int length = await file.length();
+
+    // create multipart request
+    MultipartRequest request = http.MultipartRequest("POST", uri);
+
+    // multipart that takes file.. here this "image_file" is a key of the API request
+    MultipartFile multipartFile = http.MultipartFile(
+      'image_file',
+      stream,
+      length,
+      filename: basename(file.path),
+    );
+
+    // add file to multipart
+    request.files.add(multipartFile);
+
+    // send request to upload image
+    await request
+        .send()
+        .then((response) async {
+          // listen for response
+          response.stream.transform(utf8.decoder).listen((value) {
+            print(value);
+          });
+        })
+        .catchError((e) {
+          print(e);
+        });
+  }
 
   ////
   /*void startTransfer(File file, Device targetDevice) async {
