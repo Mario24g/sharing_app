@@ -2,6 +2,7 @@ import 'dart:io';
 import 'dart:typed_data';
 
 import 'package:network_info_plus/network_info_plus.dart';
+import 'package:sharing_app/model/device.dart';
 import 'package:sharing_app/networking.dart';
 
 class FileTransferManager {

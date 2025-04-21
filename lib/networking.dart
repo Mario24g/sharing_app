@@ -5,6 +5,7 @@ import 'dart:typed_data';
 
 import 'package:device_info_plus/device_info_plus.dart';
 import 'package:network_info_plus/network_info_plus.dart';
+import 'package:sharing_app/model/device.dart';
 
 /*
 Keep in mind linux ufw, android permissions and firewall
@@ -41,6 +42,26 @@ class NetworkService {
   }
 
   /* DEVICE INFORMATION */
+  Future<String> getMyDeviceInfo() async {
+    if (Platform.isAndroid) {
+      AndroidDeviceInfo androidInfo = await _deviceInfo.androidInfo;
+      return "${androidInfo.model} $_localIp";
+    } else if (Platform.isIOS) {
+      IosDeviceInfo iosDeviceInfo = await _deviceInfo.iosInfo;
+      return "${iosDeviceInfo.modelName} $_localIp";
+    } else if (Platform.isWindows) {
+      WindowsDeviceInfo windowsInfo = await _deviceInfo.windowsInfo;
+      return "${windowsInfo.computerName} $_localIp";
+    } else if (Platform.isLinux) {
+      LinuxDeviceInfo linuxDeviceInfo = await _deviceInfo.linuxInfo;
+      return "${linuxDeviceInfo.prettyName} $_localIp";
+    } else if (Platform.isMacOS) {
+      MacOsDeviceInfo macOsDeviceInfo = await _deviceInfo.macOsInfo;
+      return "${macOsDeviceInfo.modelName} $_localIp";
+    }
+    return "Unknown device|unknown";
+  }
+
   Future<String> _getDeviceInfo() async {
     if (Platform.isAndroid) {
       AndroidDeviceInfo androidInfo = await _deviceInfo.androidInfo;
@@ -97,7 +118,7 @@ class NetworkService {
                   ip: senderIp,
                   name: components[0],
                   devicePlatform: DevicePlatform.values.firstWhere(
-                    (v) => v.toString() == 'DeviceType.${components[1]}',
+                    (v) => v.toString() == 'DevicePlatform.${components[1]}',
                   ),
                 ),
               );
@@ -339,14 +360,3 @@ class NetworkService {
     }
   }
 }
-
-class Device {
-  final String ip;
-  final String name;
-  final DevicePlatform devicePlatform;
-  final String timestamp = DateTime.now().toString();
-
-  Device({required this.ip, required this.name, required this.devicePlatform});
-}
-
-enum DevicePlatform { windows, linux, macos, android, ios, unknown }

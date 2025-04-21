@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:sharing_app/devicepage.dart';
 import 'package:sharing_app/main.dart';
+import 'package:sharing_app/model/device.dart';
 import 'package:sharing_app/networking.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:marquee/marquee.dart';
@@ -146,9 +147,21 @@ class _ApplicationPageState extends State<ApplicationPage> {
 
   @override
   Widget build(BuildContext context) {
+    final AppState appState = Provider.of<AppState>(context);
     return Scaffold(
       appBar: AppBar(
-        title: Text('Device Discovery'),
+        title: FutureBuilder<String>(
+          future: appState.myDeviceInfo(),
+          builder: (context, snapshot) {
+            if (snapshot.connectionState == ConnectionState.waiting) {
+              return const Text('Loading...');
+            } else if (snapshot.hasError) {
+              return const Text('Error');
+            } else {
+              return Text("My device: ${snapshot.data}");
+            }
+          },
+        ),
         leading:
             _isMobile
                 ? null

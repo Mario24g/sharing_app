@@ -1,7 +1,8 @@
 import 'dart:async';
 
 import 'package:sharing_app/homepage.dart';
-import 'package:sharing_app/networking.dart' show Device, NetworkService;
+import 'package:sharing_app/model/device.dart';
+import 'package:sharing_app/networking.dart' show NetworkService;
 import 'package:provider/provider.dart';
 import 'package:flutter/material.dart';
 import 'package:sharing_app/filetransfering.dart';
@@ -87,7 +88,9 @@ class AppState extends ChangeNotifier /*with WidgetsBindingObserver*/ {
     notifyListeners();
   }
 
-  void myDeviceInfo() {}
+  Future<String> myDeviceInfo() async {
+    return await _networkService.getMyDeviceInfo();
+  }
 
   void setOnTransferRequestHandler(void Function(String ip, int port) handler) {
     _networkService.onTransferRequest = handler;
