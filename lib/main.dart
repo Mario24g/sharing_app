@@ -50,12 +50,10 @@ class AppState extends ChangeNotifier /*with WidgetsBindingObserver*/ {
   final NetworkService _networkService;
   FileTransferManager fileTransferManager = FileTransferManager();
   final List<Device> _devices = [];
-  bool _isDiscovering = false;
 
   AppState(this._networkService);
 
   List<Device> get devices => List.unmodifiable(_devices);
-  bool get isDiscovering => _isDiscovering;
 
   void initialize() {
     _networkService.initialize();
@@ -71,16 +69,6 @@ class AppState extends ChangeNotifier /*with WidgetsBindingObserver*/ {
         notifyListeners();
       },
     );
-  }
-
-  Future startDiscovery() async {
-    _isDiscovering = true;
-    notifyListeners();
-
-    await _networkService.sendDiscoveryBroadcast();
-
-    _isDiscovering = false;
-    notifyListeners();
   }
 
   void clearDevices() {

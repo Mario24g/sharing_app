@@ -4,18 +4,14 @@ import 'dart:io';
 import 'dart:typed_data';
 
 import 'package:device_info_plus/device_info_plus.dart';
-import 'package:http/http.dart' as http;
 import 'package:network_info_plus/network_info_plus.dart';
-import 'package:path_provider/path_provider.dart';
 import 'package:sharing_app/services/devicediscovery.dart';
 import 'package:sharing_app/services/filereceiver.dart';
 import 'package:sharing_app/model/device.dart';
-import 'package:downloadsfolder/downloadsfolder.dart';
-import 'package:mime/mime.dart';
-import 'package:sharing_app/services/filesender.dart';
+import 'package:sharing_app/services/tcpconnection.dart';
 
 /*
-Keep in mind linux ufw, android permissions and firewall
+TODO: Keep in mind linux ufw, android permissions and firewall
 */
 
 class NetworkService {
@@ -23,11 +19,10 @@ class NetworkService {
   String? _deviceId;
   final int port;
   final NetworkInfo _networkInfo = NetworkInfo();
-  late DeviceDiscoverer _deviceDiscoverer;
   final FileReceiver _fileReceiver = FileReceiver(port: 8889);
   final DeviceInfoPlugin _deviceInfo = DeviceInfoPlugin();
-  RawDatagramSocket? _listeningSocket;
   void Function(String senderIp, int senderPort)? onTransferRequest;
+  void Function(String ip)? startTcpConnection;
 
   NetworkService({this.port = 8888});
 
@@ -37,26 +32,33 @@ class NetworkService {
       StreamController.broadcast();
 
   Stream<Device> get discoveredDevices => _discoveryController.stream;
-  final bool _shouldContinueDiscovery = true;
 
   final Map<String, Socket> _tcpSockets = {};
 
   Future initialize() async {
     _localIp = await _networkInfo.getWifiIP();
     _deviceId = await _getDeviceInfo();
-    _deviceDiscoverer = DeviceDiscoverer(
+
+    final TCPConnection tcpConnection = TCPConnection(
+      port: 8890,
+      localIp: _localIp!,
+      deviceLastSeen: _deviceLastSeen,
+      discoveryController: _discoveryController,
+      onTransferRequest: onTransferRequest,
+      tcpSockets: _tcpSockets,
+    )..initialize();
+
+    DeviceDiscoverer(
       port: 8888,
       ip: _localIp!,
       deviceId: _deviceId!,
       networkInfo: _networkInfo,
-      onDeviceDiscovered: _startTcpConnection,
+      onDeviceDiscovered: tcpConnection.handleDiscoveredDevice,
       discoveryController: _discoveryController,
       knownIps: _knownIps,
       deviceLastSeen: _deviceLastSeen,
-    );
-    _deviceDiscoverer.initialize();
-    //_startListeningBroadcast();
-    //_startDiscoveryLoop();
+    ).initialize();
+
     _startTcpServer();
     _fileReceiver.startReceiverServer();
     _monitorDevices();
@@ -101,115 +103,6 @@ class NetworkService {
       return "${macOsDeviceInfo.modelName}|macos";
     }
     return "Unknown device|unknown";
-  }
-
-  /* BROADCAST DISCOVERY */
-  void _startListeningBroadcast() async {
-    _listeningSocket = await RawDatagramSocket.bind(
-      InternetAddress.anyIPv4,
-      port,
-    );
-    _listeningSocket!.broadcastEnabled = true;
-
-    _listeningSocket!.listen((event) {
-      if (event == RawSocketEvent.read) {
-        final datagram = _listeningSocket!.receive();
-        if (datagram != null) {
-          final senderIp = datagram.address.address;
-          final message = utf8.decode(datagram.data);
-
-          //Si recibe un mensaje DISCOVER, responde a su remitente para anunciar su presencia
-          if (message.startsWith("DISCOVER:")) {
-            final responseMessage = "RESPONSE:$_deviceId";
-            _listeningSocket!.send(
-              utf8.encode(responseMessage),
-              datagram.address,
-              port,
-            );
-          }
-          //Si recibe un mensaje RESPONSE, añade el dispositivo que ha anunciado su presencia
-          else if (message.startsWith("RESPONSE:")) {
-            if (senderIp == _localIp) return;
-            if (!_knownIps.contains(senderIp)) {
-              final String identification = message.substring(9);
-              final List<String> components = identification.split("|");
-              _knownIps.add(senderIp);
-              _discoveryController.add(
-                Device(
-                  ip: senderIp,
-                  name: components[0],
-                  devicePlatform: DevicePlatform.values.firstWhere(
-                    (v) => v.toString() == 'DevicePlatform.${components[1]}',
-                  ),
-                ),
-              );
-
-              _startTcpConnection(senderIp);
-            }
-          }
-        }
-      }
-    });
-  }
-
-  void _startDiscoveryLoop() async {
-    while (_shouldContinueDiscovery) {
-      await sendDiscoveryBroadcast();
-      await Future.delayed(Duration(seconds: 2));
-    }
-  }
-
-  Future sendDiscoveryBroadcast() async {
-    try {
-      final String broadcastAddress =
-          await _networkInfo.getWifiBroadcast() ?? '255.255.255.255';
-      final RawDatagramSocket socket = await RawDatagramSocket.bind(
-        InternetAddress.anyIPv4,
-        0,
-      );
-      socket.broadcastEnabled = true;
-
-      final String message = "DISCOVER:$_deviceId";
-
-      for (int i = 0; i < 5; i++) {
-        socket.send(
-          utf8.encode(message),
-          InternetAddress(broadcastAddress),
-          port,
-        );
-        //await Future.delayed(Duration(milliseconds: 500));
-      }
-
-      final Stopwatch stopwatch = Stopwatch()..start();
-      while (stopwatch.elapsedMilliseconds < 3000) {
-        final datagram = socket.receive();
-        if (datagram != null) {
-          final senderIp = datagram.address.address;
-          final responseMessage = utf8.decode(datagram.data);
-
-          if (responseMessage.startsWith("RESPONSE:")) {
-            final String identification = responseMessage.substring(9);
-            final List<String> components = identification.split("|");
-            _deviceLastSeen[senderIp] = DateTime.now();
-            _discoveryController.add(
-              Device(
-                ip: senderIp,
-                name: components[0],
-                devicePlatform: DevicePlatform.values.firstWhere(
-                  (v) => v.toString() == 'DeviceType.${components[1]}',
-                  orElse: () => DevicePlatform.unknown,
-                ),
-              ),
-            );
-          }
-        }
-        await Future.delayed(Duration(milliseconds: 100));
-      }
-
-      socket.close();
-    } catch (e) {
-      print("Discovery error: $e");
-    }
   }
 
   /* TCP CONNECTION */
