@@ -2,11 +2,13 @@ import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:sharing_app/services/filereceiver.dart';
 import 'package:sharing_app/main.dart';
 import 'package:sharing_app/model/device.dart';
 import 'package:sharing_app/networking.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:sharing_app/filetransfering.dart';
+import 'package:sharing_app/services/filesender.dart';
 import 'package:sharing_app/widgets/deviceview.dart';
 
 class DevicePage extends StatefulWidget {
@@ -74,20 +76,27 @@ class _DevicePageState extends State<DevicePage> {
         ),
 
         ElevatedButton(
-          //onPressed: () => _fileTransferManager.startServer(_pickedFile!),
           onPressed:
               _selectedDevice == null || _pickedFile == null
                   ? null
                   : () {
-                    appState.fileTransferManager.sendFile1(
+                    final FileSender fileSender = FileSender(port: 8889);
+                    fileSender.sendFile(_selectedDevice!.ip, _pickedFile!, (
+                      progress,
+                    ) {
+                      print(
+                        'Transfer progress: ${(progress * 100).toStringAsFixed(2)}%',
+                      );
+                    });
+                    /*appState.fileTransferManager.sendFile1(
                       _selectedDevice!.ip,
                       _pickedFile!,
-                    );
-                    /*appState.fileTransferManager.notifyTransfer(
-                      _pickedFile!,
-                      _selectedDevice!,
-                    );
-                    appState.fileTransferManager.startServer(_pickedFile!);*/
+                      (progress) {
+                        print(
+                          'Transfer progress: ${(progress * 100).toStringAsFixed(2)}%',
+                        );
+                      },
+                    );*/
                   },
           child: Text("Transfer"),
         ),
