@@ -46,7 +46,7 @@ class MainApp extends StatelessWidget {
   }
 }
 
-class AppState extends ChangeNotifier /*with WidgetsBindingObserver*/ {
+class AppState extends ChangeNotifier {
   final NetworkService _networkService;
   FileTransferManager fileTransferManager = FileTransferManager();
   final List<Device> _devices = [];
@@ -76,18 +76,7 @@ class AppState extends ChangeNotifier /*with WidgetsBindingObserver*/ {
     notifyListeners();
   }
 
-  Future<String> myDeviceInfo() async {
-    return await _networkService.getMyDeviceInfo();
-  }
-
   void setOnTransferRequestHandler(void Function(String ip, int port) handler) {
     _networkService.onTransferRequest = handler;
   }
-
-  //TODO: find a way to close resources and notify disconnection
-  /*@override
-  void dispose() {
-    _networkService.dispose();
-    super.dispose();
-  }*/
 }

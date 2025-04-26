@@ -5,9 +5,7 @@ import 'package:provider/provider.dart';
 import 'package:sharing_app/devicepage.dart';
 import 'package:sharing_app/main.dart';
 import 'package:sharing_app/model/device.dart';
-import 'package:sharing_app/networking.dart';
-import 'package:font_awesome_flutter/font_awesome_flutter.dart';
-import 'package:marquee/marquee.dart';
+import 'package:sharing_app/data/deviceinfo.dart';
 
 class ApplicationPage extends StatefulWidget {
   const ApplicationPage({super.key});
@@ -151,7 +149,7 @@ class _ApplicationPageState extends State<ApplicationPage> {
     return Scaffold(
       appBar: AppBar(
         title: FutureBuilder<String>(
-          future: appState.myDeviceInfo(),
+          future: DeviceInfo.getMyDeviceInfo(),
           builder: (context, snapshot) {
             if (snapshot.connectionState == ConnectionState.waiting) {
               return const Text('Loading...');
