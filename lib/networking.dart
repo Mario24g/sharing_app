@@ -16,9 +16,10 @@ class NetworkService {
   String? _localIp;
   String? _deviceId;
   final NetworkInfo _networkInfo = NetworkInfo();
-  final FileReceiver _fileReceiver = FileReceiver(port: 8889);
   void Function(String senderIp, int senderPort)? onTransferRequest;
   void Function(String ip)? startTcpConnection;
+  void Function(String message)? onFileReceived;
+  void Function(String message)? onDeviceDisconnected;
 
   final Map<String, DateTime> _deviceLastSeen = {};
   final Set<String> _knownIps = {};
@@ -53,7 +54,11 @@ class NetworkService {
       deviceLastSeen: _deviceLastSeen,
     ).initialize();
 
-    _fileReceiver.startReceiverServer();
+    FileReceiver(
+      port: 8889,
+      onFileReceived: onFileReceived,
+    ).startReceiverServer();
+
     _monitorDevices();
   }
 
@@ -68,15 +73,15 @@ class NetworkService {
               .map((e) => e.key)
               .toList();
 
-      for (final ip in toRemove) {
+      for (String ip in toRemove) {
         _removeDevice(ip);
         _deviceLastSeen.remove(ip);
       }
     });
   }
 
-  void _removeDevice(String ip) {
-    print("Removing device: $ip");
+  void _removeDevice(String ip) async {
+    onDeviceDisconnected!("Lost connection to $ip");
     _tcpSockets[ip]?.destroy();
     _tcpSockets.remove(ip);
     _knownIps.remove(ip);

@@ -1,6 +1,6 @@
 import 'dart:async';
 
-import 'package:sharing_app/homepage.dart';
+import 'package:sharing_app/pages/applicationpage.dart';
 import 'package:sharing_app/model/device.dart';
 import 'package:sharing_app/networking.dart' show NetworkService;
 import 'package:provider/provider.dart';
@@ -47,17 +47,16 @@ class MainApp extends StatelessWidget {
 }
 
 class AppState extends ChangeNotifier {
-  final NetworkService _networkService;
-  FileTransferManager fileTransferManager = FileTransferManager();
+  final NetworkService networkService;
   final List<Device> _devices = [];
 
-  AppState(this._networkService);
+  AppState(this.networkService);
 
   List<Device> get devices => List.unmodifiable(_devices);
 
   void initialize() {
-    _networkService.initialize();
-    _networkService.discoveredDevices.listen(
+    networkService.initialize();
+    networkService.discoveredDevices.listen(
       (device) {
         if (!_devices.any((d) => d.ip == device.ip)) {
           _devices.add(device);
@@ -77,6 +76,6 @@ class AppState extends ChangeNotifier {
   }
 
   void setOnTransferRequestHandler(void Function(String ip, int port) handler) {
-    _networkService.onTransferRequest = handler;
+    networkService.onTransferRequest = handler;
   }
 }

@@ -10,6 +10,7 @@ import 'package:file_picker/file_picker.dart';
 import 'package:sharing_app/filetransfering.dart';
 import 'package:sharing_app/services/filesender.dart';
 import 'package:sharing_app/widgets/deviceview.dart';
+import 'package:sharing_app/widgets/notificationflushbar.dart';
 
 class DevicePage extends StatefulWidget {
   const DevicePage({super.key});
@@ -88,15 +89,9 @@ class _DevicePageState extends State<DevicePage> {
                         'Transfer progress: ${(progress * 100).toStringAsFixed(2)}%',
                       );
                     });
-                    /*appState.fileTransferManager.sendFile1(
-                      _selectedDevice!.ip,
-                      _pickedFile!,
-                      (progress) {
-                        print(
-                          'Transfer progress: ${(progress * 100).toStringAsFixed(2)}%',
-                        );
-                      },
-                    );*/
+                    NotificationFlushbar(
+                      message: "Transfering file to ${_selectedDevice?.name}",
+                    ).show(context);
                   },
           child: Text("Transfer"),
         ),

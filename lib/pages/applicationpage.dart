@@ -2,10 +2,14 @@ import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:sharing_app/devicepage.dart';
+import 'package:sharing_app/pages/devicepage.dart';
 import 'package:sharing_app/main.dart';
 import 'package:sharing_app/model/device.dart';
 import 'package:sharing_app/data/deviceinfo.dart';
+import 'package:another_flushbar/flushbar.dart';
+import 'package:another_flushbar/flushbar_helper.dart';
+import 'package:another_flushbar/flushbar_route.dart';
+import 'package:sharing_app/widgets/notificationflushbar.dart';
 
 class ApplicationPage extends StatefulWidget {
   const ApplicationPage({super.key});
@@ -27,6 +31,12 @@ class _ApplicationPageState extends State<ApplicationPage> {
     WidgetsBinding.instance.addPostFrameCallback((_) {
       final AppState appState = context.read<AppState>();
       appState.setOnTransferRequestHandler(_handleIncomingRequest);
+      appState.networkService.onFileReceived = (message) {
+        NotificationFlushbar(message: message).show(context);
+      };
+      appState.networkService.onDeviceDisconnected = (message) {
+        NotificationFlushbar(message: message).show(context);
+      };
     });
   }
 
@@ -55,9 +65,9 @@ class _ApplicationPageState extends State<ApplicationPage> {
                       requestingDevice.ip,
                       8890,
                     );
-                    appState.fileTransferManager.startClient(
+                    /*appState.fileTransferManager.startClient(
                       requestingDevice.ip,
-                    );
+                    );*/
 
                     socket.writeln("ACCEPT");
                     await socket.flush();

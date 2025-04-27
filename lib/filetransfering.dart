@@ -7,11 +7,7 @@ import 'package:http/http.dart' as http;
 import 'package:network_info_plus/network_info_plus.dart';
 import 'package:path/path.dart';
 import 'package:sharing_app/model/device.dart';
-import 'package:sharing_app/networking.dart';
 import 'package:http/http.dart';
-import 'package:path/path.dart';
-import 'package:async/async.dart';
-import 'dart:io';
 import 'package:http/http.dart' as http;
 
 class _ProgressStream extends Stream<List<int>> {

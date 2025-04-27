@@ -9,8 +9,9 @@ class FileReceiver {
   HttpServer? _server;
   int _bytesReceived = 0;
   final int port;
+  final void Function(String message)? onFileReceived;
 
-  FileReceiver({required this.port});
+  FileReceiver({required this.port, required this.onFileReceived});
 
   void startReceiverServer() async {
     final HttpServer server = await HttpServer.bind(
@@ -68,19 +69,18 @@ class FileReceiver {
               filename,
             );
             if (success == true) {
-              print('File saved as $filename in Downloads');
+              onFileReceived!("File received: $filename in downloads folder");
               request.response
                 ..statusCode = HttpStatus.ok
                 ..write('Upload received and saved as $filename');
             } else {
-              print('Failed to move file to Downloads');
               request.response
                 ..statusCode = HttpStatus.internalServerError
                 ..write('Failed to save file');
             }
           }
         } catch (e) {
-          print('Error receiving file: $e');
+          onFileReceived!("Error receiving file");
           request.response
             ..statusCode = HttpStatus.internalServerError
             ..write('Error: $e');
