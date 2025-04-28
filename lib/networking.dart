@@ -6,6 +6,7 @@ import 'package:sharing_app/data/deviceinfo.dart';
 import 'package:sharing_app/services/devicediscovery.dart';
 import 'package:sharing_app/services/filereceiver.dart';
 import 'package:sharing_app/model/device.dart';
+import 'package:sharing_app/services/notificationservice.dart';
 import 'package:sharing_app/services/tcpconnection.dart';
 
 /*
@@ -15,6 +16,7 @@ TODO: Keep in mind linux ufw, android permissions and firewall
 class NetworkService {
   String? _localIp;
   String? _deviceId;
+
   final NetworkInfo _networkInfo = NetworkInfo();
   void Function(String senderIp, int senderPort)? onTransferRequest;
   void Function(String ip)? startTcpConnection;

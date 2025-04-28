@@ -9,7 +9,9 @@ import 'package:sharing_app/networking.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:sharing_app/filetransfering.dart';
 import 'package:sharing_app/services/filesender.dart';
+import 'package:sharing_app/services/notificationservice.dart';
 import 'package:sharing_app/widgets/deviceview.dart';
+import 'package:sharing_app/widgets/fileview.dart';
 import 'package:sharing_app/widgets/notificationflushbar.dart';
 
 class DevicePage extends StatefulWidget {
@@ -41,6 +43,8 @@ class _DevicePageState extends State<DevicePage> {
       });
     }
   }
+
+  void removeFile() {}
 
   @override
   Widget build(BuildContext context) {
@@ -106,7 +110,16 @@ class _DevicePageState extends State<DevicePage> {
 
         if (_pickedFile != null) ...[
           SizedBox(height: 10),
-          Text(_pickedFile!.path),
+          FileView(
+            file: _pickedFile!,
+            isSelected: false,
+            onTap: () {},
+            onFileRemoved: () {
+              setState(() {
+                _pickedFile = null;
+              });
+            },
+          ),
           //Image.file(_pickedFile!, height: 60),
         ],
       ],

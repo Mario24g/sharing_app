@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:io';
 
 import 'package:sharing_app/pages/applicationpage.dart';
 import 'package:sharing_app/model/device.dart';
@@ -6,11 +7,14 @@ import 'package:sharing_app/networking.dart' show NetworkService;
 import 'package:provider/provider.dart';
 import 'package:flutter/material.dart';
 import 'package:sharing_app/filetransfering.dart';
+import 'package:sharing_app/services/notificationservice.dart';
 
 void main() {
   //TODO: remember to remove
   runZonedGuarded(
-    () {
+    () async {
+      WidgetsFlutterBinding.ensureInitialized();
+      if (!Platform.isWindows) await NotificationService().init();
       runApp(const MainApp());
     },
     (error, stack) {
@@ -27,7 +31,6 @@ class MainApp extends StatelessWidget {
     return MultiProvider(
       providers: [
         Provider<NetworkService>(create: (_) => NetworkService()),
-        Provider<FileTransferManager>(create: (_) => FileTransferManager()),
         ChangeNotifierProxyProvider<NetworkService, AppState>(
           create: (context) => AppState(context.read<NetworkService>()),
           update: (context, networkService, appState) {

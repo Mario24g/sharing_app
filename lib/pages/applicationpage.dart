@@ -6,9 +6,7 @@ import 'package:sharing_app/pages/devicepage.dart';
 import 'package:sharing_app/main.dart';
 import 'package:sharing_app/model/device.dart';
 import 'package:sharing_app/data/deviceinfo.dart';
-import 'package:another_flushbar/flushbar.dart';
-import 'package:another_flushbar/flushbar_helper.dart';
-import 'package:another_flushbar/flushbar_route.dart';
+import 'package:sharing_app/services/notificationservice.dart';
 import 'package:sharing_app/widgets/notificationflushbar.dart';
 
 class ApplicationPage extends StatefulWidget {
@@ -32,6 +30,10 @@ class _ApplicationPageState extends State<ApplicationPage> {
       final AppState appState = context.read<AppState>();
       appState.setOnTransferRequestHandler(_handleIncomingRequest);
       appState.networkService.onFileReceived = (message) {
+        NotificationService().showNotification(
+          title: "File Received",
+          body: message,
+        );
         NotificationFlushbar(message: message).show(context);
       };
       appState.networkService.onDeviceDisconnected = (message) {
