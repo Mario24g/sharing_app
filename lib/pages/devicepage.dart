@@ -19,28 +19,21 @@ class DevicePage extends StatefulWidget {
 }
 
 class _DevicePageState extends State<DevicePage> {
-  final List<Device> _selectedDevices = [];
-
-  List<File> _pickedFiles = [];
-  final List<File> _selectedFiles = [];
-
-  Future _pickFile() async {
+  Future _pickFile(AppState appState) async {
     FilePickerResult? result = await FilePicker.platform.pickFiles(
       dialogTitle: "Select file(s)",
       type: FileType.any,
-      //allowedExtensions: ["png", "jpg", "jpeg"],
       allowMultiple: true,
     );
 
     if (result != null) {
-      setState(() {
-        _pickedFiles =
-            result.files
-                .where((file) => file.path != null)
-                .map((file) => File(file.path!))
-                .toList();
-        _selectedFiles.addAll(_pickedFiles);
-      });
+      final List<File> files =
+          result.files
+              .where((file) => file.path != null)
+              .map((file) => File(file.path!))
+              .toList();
+
+      appState.addPickedFiles(files);
     }
   }
 
@@ -64,6 +57,9 @@ class _DevicePageState extends State<DevicePage> {
   Widget build(BuildContext context) {
     final AppState appState = Provider.of<AppState>(context);
     final List<Device> deviceList = appState.devices;
+    final List<File> pickedFiles = appState.pickedFiles;
+    final List<File> selectedFiles = appState.selectedFiles;
+    final List<Device> selectedDevices = appState.selectedDevices;
 
     return SizedBox.expand(
       child: Column(
@@ -76,36 +72,26 @@ class _DevicePageState extends State<DevicePage> {
                       itemCount: deviceList.length,
                       itemBuilder: (context, index) {
                         final Device device = deviceList[index];
-                        bool isSelected = _selectedDevices.contains(device);
+                        final bool isSelected = selectedDevices.contains(
+                          device,
+                        );
                         return DeviceView(
                           device: device,
                           isSelected: isSelected,
-                          onTap: () {
-                            setState(() {
-                              if (!_selectedDevices.contains(device)) {
-                                _selectedDevices.add(device);
-                                isSelected = true;
-                              } else {
-                                _selectedDevices.remove(device);
-                                isSelected = false;
-                              }
-                            });
-                          },
+                          onTap: () => appState.toggleDeviceSelection(device),
                         );
                       },
                     ),
           ),
-
           ElevatedButton(
             onPressed:
-                _selectedDevices.isEmpty || _selectedFiles.isEmpty
+                selectedDevices.isEmpty || selectedFiles.isEmpty
                     ? null
                     : () {
-                      //TODO: _notifyTransfer(_selectedDevices.first);
                       final FileSender fileSender = FileSender(port: 8889);
                       fileSender.createTransferTask(
-                        _selectedDevices,
-                        _selectedFiles,
+                        selectedDevices,
+                        selectedFiles,
                         (message) {
                           NotificationFlushbar.build(message).show(context);
                         },
@@ -113,9 +99,8 @@ class _DevicePageState extends State<DevicePage> {
                     },
             child: Text("Transfer"),
           ),
-
           ElevatedButton(
-            onPressed: _pickFile,
+            onPressed: () => _pickFile(appState),
             style: ElevatedButton.styleFrom(
               padding: EdgeInsets.symmetric(vertical: 12, horizontal: 16),
             ),
@@ -129,74 +114,58 @@ class _DevicePageState extends State<DevicePage> {
               ],
             ),
           ),
-
-          if (_pickedFiles.isNotEmpty) ...[
+          if (pickedFiles.isNotEmpty) ...[
             SizedBox(height: 10),
             Text("Files for transfer"),
             SizedBox(height: 10),
             Row(
               mainAxisAlignment: MainAxisAlignment.center,
-              spacing: 30,
               children: [
                 ElevatedButton(
-                  onPressed: () {
-                    setState(() {
-                      _selectedFiles.clear();
-                      _pickedFiles.clear();
-                    });
-                  },
+                  onPressed: () => appState.clearFiles(),
                   child: Text("Remove all"),
                 ),
+                SizedBox(width: 30),
                 ElevatedButton(
                   onPressed: () {
-                    setState(() {
-                      _selectedFiles.isEmpty
-                          ? _selectedFiles.addAll(_pickedFiles)
-                          : _selectedFiles.clear();
-                    });
+                    if (selectedFiles.isEmpty) {
+                      for (var file in pickedFiles) {
+                        appState.toggleFileSelection(file);
+                      }
+                    } else {
+                      for (var file in List.from(selectedFiles)) {
+                        appState.toggleFileSelection(file);
+                      }
+                    }
                   },
                   child: Text(
-                    _selectedFiles.isEmpty ? "Select all" : "Deselect all",
+                    selectedFiles.isEmpty ? "Select all" : "Deselect all",
                   ),
                 ),
               ],
             ),
-
             SizedBox(height: 10),
             Expanded(
-              child:
-                  _pickedFiles.isEmpty
-                      ? Text("No files were selected")
-                      : ListView.builder(
-                        itemCount: _pickedFiles.length,
-                        itemBuilder: (context, index) {
-                          final File file = _pickedFiles[index];
-                          bool isSelected = _selectedFiles.contains(file);
-                          return FileView(
-                            file: file,
-                            isSelected: isSelected,
-                            onTap: () {
-                              setState(() {
-                                if (!_selectedFiles.contains(file)) {
-                                  _selectedFiles.add(file);
-                                  isSelected = true;
-                                } else {
-                                  _selectedFiles.remove(file);
-                                  isSelected = false;
-                                }
-                              });
-                            },
-                            onFileRemoved: () {
-                              setState(() {
-                                if (_selectedFiles.contains(file)) {
-                                  _selectedFiles.remove(file);
-                                }
-                                _pickedFiles.remove(file);
-                              });
-                            },
-                          );
-                        },
-                      ),
+              child: ListView.builder(
+                itemCount: pickedFiles.length,
+                itemBuilder: (context, index) {
+                  final File file = pickedFiles[index];
+                  final bool isSelected = selectedFiles.contains(file);
+                  return FileView(
+                    file: file,
+                    isSelected: isSelected,
+                    onTap: () => appState.toggleFileSelection(file),
+                    onFileRemoved: () {
+                      appState.toggleFileSelection(file);
+                      final List<File> updatedList = List<File>.from(
+                        pickedFiles,
+                      )..remove(file);
+                      appState.clearFiles();
+                      appState.addPickedFiles(updatedList);
+                    },
+                  );
+                },
+              ),
             ),
           ],
         ],

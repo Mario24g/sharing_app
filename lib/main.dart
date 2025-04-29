@@ -51,12 +51,14 @@ class MainApp extends StatelessWidget {
 class AppState extends ChangeNotifier {
   final NetworkService networkService;
   final List<Device> _devices = [];
-  List<Device> _selectedDevices = [];
-  List<File> _selectedFiles = [];
+  final List<Device> _selectedDevices = [];
+  final List<File> _pickedFiles = [];
+  final List<File> _selectedFiles = [];
 
-  List<Device> get selectedDevices => _selectedDevices;
-  List<File> get selectedFiles => _selectedFiles;
   List<Device> get devices => List.unmodifiable(_devices);
+  List<File> get selectedFiles => List.unmodifiable(_selectedFiles);
+  List<File> get pickedFiles => List.unmodifiable(_pickedFiles);
+  List<Device> get selectedDevices => List.unmodifiable(_selectedDevices);
 
   AppState(this.networkService);
 
@@ -76,26 +78,37 @@ class AppState extends ChangeNotifier {
     );
   }
 
+  void addPickedFiles(List<File> files) {
+    _pickedFiles.addAll(files);
+    notifyListeners();
+  }
+
+  void toggleFileSelection(File file) {
+    if (_selectedFiles.contains(file)) {
+      _selectedFiles.remove(file);
+    } else {
+      _selectedFiles.add(file);
+    }
+    notifyListeners();
+  }
+
+  void clearFiles() {
+    _pickedFiles.clear();
+    _selectedFiles.clear();
+    notifyListeners();
+  }
+
+  void toggleDeviceSelection(Device device) {
+    if (_selectedDevices.contains(device)) {
+      _selectedDevices.remove(device);
+    } else {
+      _selectedDevices.add(device);
+    }
+    notifyListeners();
+  }
+
   void clearDevices() {
     _devices.clear();
-    notifyListeners();
-  }
-
-  void updateSelectedDevices(List<Device> devices) {
-    //_selectedDevices.addAll(devices);
-    _selectedDevices = devices;
-    notifyListeners();
-  }
-
-  void updateSelectedFiles(List<File> files) {
-    //_selectedFiles.addAll(files);
-    _selectedFiles = files;
-    notifyListeners();
-  }
-
-  void clearSelections() {
-    _selectedDevices.clear();
-    _selectedFiles.clear();
     notifyListeners();
   }
 
