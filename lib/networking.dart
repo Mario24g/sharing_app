@@ -6,7 +6,6 @@ import 'package:sharing_app/data/deviceinfo.dart';
 import 'package:sharing_app/services/devicediscovery.dart';
 import 'package:sharing_app/services/filereceiver.dart';
 import 'package:sharing_app/model/device.dart';
-import 'package:sharing_app/services/notificationservice.dart';
 import 'package:sharing_app/services/tcpconnection.dart';
 
 /*
@@ -18,7 +17,8 @@ class NetworkService {
   String? _deviceId;
 
   final NetworkInfo _networkInfo = NetworkInfo();
-  void Function(String senderIp, int senderPort)? onTransferRequest;
+  void Function(String senderIp)? onTransferRequest;
+  void Function()? onAccept;
   void Function(String ip)? startTcpConnection;
   void Function(String message)? onFileReceived;
   void Function(String message)? onDeviceDisconnected;
@@ -42,6 +42,7 @@ class NetworkService {
       deviceLastSeen: _deviceLastSeen,
       discoveryController: _discoveryController,
       onTransferRequest: onTransferRequest,
+      onAccept: onAccept,
       tcpSockets: _tcpSockets,
     )..initialize();
 

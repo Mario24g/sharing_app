@@ -51,10 +51,14 @@ class MainApp extends StatelessWidget {
 class AppState extends ChangeNotifier {
   final NetworkService networkService;
   final List<Device> _devices = [];
+  List<Device> _selectedDevices = [];
+  List<File> _selectedFiles = [];
+
+  List<Device> get selectedDevices => _selectedDevices;
+  List<File> get selectedFiles => _selectedFiles;
+  List<Device> get devices => List.unmodifiable(_devices);
 
   AppState(this.networkService);
-
-  List<Device> get devices => List.unmodifiable(_devices);
 
   void initialize() {
     networkService.initialize();
@@ -77,7 +81,29 @@ class AppState extends ChangeNotifier {
     notifyListeners();
   }
 
-  void setOnTransferRequestHandler(void Function(String ip, int port) handler) {
+  void updateSelectedDevices(List<Device> devices) {
+    //_selectedDevices.addAll(devices);
+    _selectedDevices = devices;
+    notifyListeners();
+  }
+
+  void updateSelectedFiles(List<File> files) {
+    //_selectedFiles.addAll(files);
+    _selectedFiles = files;
+    notifyListeners();
+  }
+
+  void clearSelections() {
+    _selectedDevices.clear();
+    _selectedFiles.clear();
+    notifyListeners();
+  }
+
+  void setOnTransferRequestHandler(void Function(String ip) handler) {
     networkService.onTransferRequest = handler;
+  }
+
+  void setOnAcceptHandler(void Function() handler) {
+    networkService.onAccept = handler;
   }
 }

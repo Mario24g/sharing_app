@@ -9,8 +9,6 @@ import 'package:sharing_app/model/device.dart';
 
 class FileSender {
   final int port;
-  ServerSocket? server;
-  File? fileToTransfer;
 
   FileSender({required this.port});
 

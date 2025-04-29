@@ -1,7 +1,7 @@
 import 'dart:io';
 
 import 'package:flutter/material.dart';
-import 'package:path/path.dart';
+import 'package:network_info_plus/network_info_plus.dart';
 import 'package:provider/provider.dart';
 import 'package:sharing_app/main.dart';
 import 'package:sharing_app/model/device.dart';
@@ -41,6 +41,22 @@ class _DevicePageState extends State<DevicePage> {
                 .toList();
         _selectedFiles.addAll(_pickedFiles);
       });
+    }
+  }
+
+  void _notifyTransfer(Device targetDevice) async {
+    final NetworkInfo networkInfo = NetworkInfo();
+    final String localIp = await networkInfo.getWifiIP() ?? '0.0.0.0';
+    final String notification = "NOTIFICATION:$localIp";
+
+    try {
+      final Socket socket = await Socket.connect(targetDevice.ip, 8890);
+
+      socket.writeln(notification);
+      await socket.flush();
+      await socket.close();
+    } catch (e) {
+      print("Failed to notify target device: $e");
     }
   }
 
@@ -85,12 +101,13 @@ class _DevicePageState extends State<DevicePage> {
                 _selectedDevices.isEmpty || _selectedFiles.isEmpty
                     ? null
                     : () {
+                      //TODO: _notifyTransfer(_selectedDevices.first);
                       final FileSender fileSender = FileSender(port: 8889);
                       fileSender.createTransferTask(
                         _selectedDevices,
                         _selectedFiles,
                         (message) {
-                          NotificationFlushbar(message: message).show(context);
+                          NotificationFlushbar.build(message).show(context);
                         },
                       );
                     },

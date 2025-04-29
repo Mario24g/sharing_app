@@ -76,7 +76,6 @@ class DeviceDiscoverer {
                 ),
               );
 
-              //_startTcpConnection(senderIp);
               onDeviceDiscovered?.call(senderIp);
             }
           }
@@ -110,7 +109,6 @@ class DeviceDiscoverer {
           InternetAddress(broadcastAddress),
           port,
         );
-        //await Future.delayed(Duration(milliseconds: 500));
       }
 
       final Stopwatch stopwatch = Stopwatch()..start();

@@ -81,8 +81,6 @@ class FileView extends StatelessWidget {
         ),
         subtitle: Text(formatBytes(file.lengthSync())),
         onTap: onTap,
-
-        //trailing: Text(device['timestamp']?.split(' ')[1] ?? ''),
       ),
     );
   }

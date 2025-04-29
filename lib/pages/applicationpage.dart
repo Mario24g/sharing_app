@@ -34,18 +34,22 @@ class _ApplicationPageState extends State<ApplicationPage> {
           title: "File Received",
           body: message,
         );
-        NotificationFlushbar(message: message).show(context);
+        NotificationFlushbar.build(message).show(context);
       };
       appState.networkService.onDeviceDisconnected = (message) {
-        NotificationFlushbar(message: message).show(context);
+        NotificationFlushbar.build(message).show(context);
       };
     });
   }
 
-  void _handleIncomingRequest(String ip, int port) {
+  void _handleIncomingRequest(String ip) {
     final AppState appState = context.read<AppState>();
+    print("Requesting device id: $ip");
+    for (Device device in appState.devices) {
+      print("Device in devices: ${device.ip}");
+    }
     final Device requestingDevice = appState.devices.firstWhere(
-      (d) => d.ip == ip,
+      (d) => d.ip.trim() == ip.trim(),
     );
     showDialog(
       context: context,
@@ -67,20 +71,13 @@ class _ApplicationPageState extends State<ApplicationPage> {
                       requestingDevice.ip,
                       8890,
                     );
-                    /*appState.fileTransferManager.startClient(
-                      requestingDevice.ip,
-                    );*/
 
                     socket.writeln("ACCEPT");
                     await socket.flush();
-                    //print("Target sent ACCEPT to ${requestingDevice.ip}");
                     await socket.close();
                   } catch (e) {
                     print("Failed to notify target device: $e");
                   }
-
-                  /*final networkService = context.read<NetworkService>();
-                  networkService.startTransferClient(ip, port);*/
                 },
                 child: Text("Accept"),
               ),
@@ -157,7 +154,6 @@ class _ApplicationPageState extends State<ApplicationPage> {
 
   @override
   Widget build(BuildContext context) {
-    final AppState appState = Provider.of<AppState>(context);
     return Scaffold(
       appBar: AppBar(
         title: FutureBuilder<String>(
