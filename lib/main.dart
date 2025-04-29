@@ -6,7 +6,6 @@ import 'package:sharing_app/model/device.dart';
 import 'package:sharing_app/networking.dart' show NetworkService;
 import 'package:provider/provider.dart';
 import 'package:flutter/material.dart';
-import 'package:sharing_app/filetransfering.dart';
 import 'package:sharing_app/services/notificationservice.dart';
 
 void main() {

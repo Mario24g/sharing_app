@@ -5,6 +5,7 @@ import 'dart:io';
 import 'package:http/http.dart';
 import 'package:path/path.dart';
 import 'package:http/http.dart' as http;
+import 'package:sharing_app/model/device.dart';
 
 class FileSender {
   final int port;
@@ -12,6 +13,31 @@ class FileSender {
   File? fileToTransfer;
 
   FileSender({required this.port});
+
+  void createTransferTask(
+    List<Device> selectedDevices,
+    List<File> selectedFiles,
+    void Function(String message)? onTransferComplete,
+  ) async {
+    final List<Future> uploadTasks = [];
+
+    for (final Device device in selectedDevices) {
+      for (final File file in selectedFiles) {
+        uploadTasks.add(
+          sendFile(device.ip, file, (progress) {
+            print(
+              'Transfering ${basename(file.path)} to ${device.name}: ${(progress * 100).toStringAsFixed(2)}%',
+            );
+          }),
+        );
+      }
+    }
+
+    await Future.wait(uploadTasks);
+    onTransferComplete?.call(
+      "Transferred ${selectedFiles.length} file(s) to ${selectedDevices.length} device(s)",
+    );
+  }
 
   Future sendFile(
     String targetIp,

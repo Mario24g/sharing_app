@@ -1,11 +1,10 @@
 import 'dart:io';
+import 'dart:math';
 
 import 'package:downloadsfolder/downloadsfolder.dart';
 import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
-import 'package:sharing_app/model/device.dart';
 import 'package:mime/mime.dart';
-import 'package:path/path.dart' as p;
 
 class FileView extends StatelessWidget {
   final File file;
@@ -29,6 +28,23 @@ class FileView extends StatelessWidget {
     if (mime == 'application/pdf') return FontAwesomeIcons.filePdf;
     if (mime.startsWith('text/')) return FontAwesomeIcons.fileLines;
     return FontAwesomeIcons.file;
+  }
+
+  static String formatBytes(int bytes, [int decimals = 2]) {
+    if (bytes <= 0) return "0 B";
+    const List<String> suffixes = [
+      "B",
+      "KB",
+      "MB",
+      "GB",
+      "TB",
+      "PB",
+      "EB",
+      "ZB",
+      "YB",
+    ];
+    int i = (log(bytes) / log(1024)).floor();
+    return '${(bytes / pow(1024, i)).toStringAsFixed(decimals)} ${suffixes[i]}';
   }
 
   @override
@@ -63,7 +79,7 @@ class FileView extends StatelessWidget {
           ),
           child: Icon(Icons.delete),
         ),
-        subtitle: Text(file.lengthSync().toString()),
+        subtitle: Text(formatBytes(file.lengthSync())),
         onTap: onTap,
 
         //trailing: Text(device['timestamp']?.split(' ')[1] ?? ''),

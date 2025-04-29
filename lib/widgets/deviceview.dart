@@ -31,7 +31,7 @@ class DeviceView extends StatelessWidget {
             maxLines: 1,
           ),
         ),
-        trailing: FaIcon(switch (device.devicePlatform) {
+        leading: FaIcon(switch (device.devicePlatform) {
           DevicePlatform.windows => FontAwesomeIcons.windows,
           DevicePlatform.linux => FontAwesomeIcons.linux,
           DevicePlatform.macos => FontAwesomeIcons.apple,
@@ -41,7 +41,6 @@ class DeviceView extends StatelessWidget {
         }),
         subtitle: Text(device.ip),
         onTap: onTap,
-        //trailing: Text(device['timestamp']?.split(' ')[1] ?? ''),
       ),
     );
   }
