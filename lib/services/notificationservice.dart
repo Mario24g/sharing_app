@@ -1,6 +1,9 @@
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 
 class NotificationService {
+  bool _isInitialized = false;
+  bool get isInitialized => _isInitialized;
+
   static final NotificationService _instance = NotificationService._internal();
   factory NotificationService() => _instance;
   NotificationService._internal();
@@ -22,9 +25,12 @@ class NotificationService {
         );
 
     await flutterLocalNotificationsPlugin.initialize(initializationSettings);
+    _isInitialized = true;
   }
 
   Future showNotification({required String title, required String body}) async {
+    if (!_isInitialized) return;
+
     const AndroidNotificationDetails androidDetails =
         AndroidNotificationDetails(
           'file_channel_id',

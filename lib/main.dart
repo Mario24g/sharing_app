@@ -13,7 +13,9 @@ void main() {
   runZonedGuarded(
     () async {
       WidgetsFlutterBinding.ensureInitialized();
-      if (!Platform.isWindows) await NotificationService().init();
+      if (Platform.isAndroid || Platform.isIOS) {
+        await NotificationService().init();
+      }
       runApp(const MainApp());
     },
     (error, stack) {
