@@ -1,9 +1,10 @@
 import 'dart:async';
 import 'dart:io';
 
+import 'package:sharing_app/model/historyentry.dart';
 import 'package:sharing_app/pages/applicationpage.dart';
 import 'package:sharing_app/model/device.dart';
-import 'package:sharing_app/networking.dart' show NetworkService;
+import 'package:sharing_app/services/networking.dart' show NetworkService;
 import 'package:provider/provider.dart';
 import 'package:flutter/material.dart';
 import 'package:sharing_app/services/notificationservice.dart';
@@ -56,11 +57,13 @@ class AppState extends ChangeNotifier {
   final List<Device> _selectedDevices = [];
   final List<File> _pickedFiles = [];
   final List<File> _selectedFiles = [];
+  final List<HistoryEntry> _historyEntries = [];
 
   List<Device> get devices => List.unmodifiable(_devices);
   List<File> get selectedFiles => List.unmodifiable(_selectedFiles);
   List<File> get pickedFiles => List.unmodifiable(_pickedFiles);
   List<Device> get selectedDevices => List.unmodifiable(_selectedDevices);
+  List<HistoryEntry> get historyEntries => List.unmodifiable(_historyEntries);
 
   AppState(this.networkService);
 

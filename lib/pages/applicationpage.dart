@@ -6,6 +6,7 @@ import 'package:sharing_app/pages/devicepage.dart';
 import 'package:sharing_app/main.dart';
 import 'package:sharing_app/model/device.dart';
 import 'package:sharing_app/data/deviceinfo.dart';
+import 'package:sharing_app/pages/historypage.dart';
 import 'package:sharing_app/services/notificationservice.dart';
 import 'package:sharing_app/widgets/notificationflushbar.dart';
 
@@ -141,8 +142,7 @@ class _ApplicationPageState extends State<ApplicationPage> {
         return Scaffold();
       //return const SettingsPage();
       case 2:
-        return Scaffold();
-      //return const HistoryPage();
+        return const HistoryPage();
       default:
         throw UnimplementedError('No page for index $_selectedIndex');
     }
