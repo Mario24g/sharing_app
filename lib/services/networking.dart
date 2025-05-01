@@ -4,7 +4,6 @@ import 'dart:io';
 import 'package:network_info_plus/network_info_plus.dart';
 import 'package:sharing_app/data/deviceinfo.dart';
 import 'package:sharing_app/services/devicediscovery.dart';
-import 'package:sharing_app/services/filereceiver.dart';
 import 'package:sharing_app/model/device.dart';
 import 'package:sharing_app/services/tcpconnection.dart';
 

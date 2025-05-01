@@ -6,7 +6,6 @@ import 'package:provider/provider.dart';
 import 'package:sharing_app/main.dart';
 import 'package:sharing_app/model/device.dart';
 import 'package:file_picker/file_picker.dart';
-import 'package:sharing_app/services/filesender.dart';
 import 'package:sharing_app/services/transferservice.dart';
 import 'package:sharing_app/widgets/deviceview.dart';
 import 'package:sharing_app/widgets/fileview.dart';

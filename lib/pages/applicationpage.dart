@@ -5,7 +5,6 @@ import 'package:provider/provider.dart';
 import 'package:sharing_app/pages/devicepage.dart';
 import 'package:sharing_app/main.dart';
 import 'package:sharing_app/model/device.dart';
-import 'package:sharing_app/data/deviceinfo.dart';
 import 'package:sharing_app/pages/historypage.dart';
 import 'package:sharing_app/services/notificationservice.dart';
 import 'package:sharing_app/services/transferservice.dart';
@@ -43,7 +42,6 @@ class _ApplicationPageState extends State<ApplicationPage> {
         print("asd");
         NotificationFlushbar.build(message).show(context);
       };
-      transferService.startFileReceiver();
       /*appState.networkService.onFileReceived = (message) {
         NotificationService().showNotification(
           title: "File Received",
@@ -167,16 +165,10 @@ class _ApplicationPageState extends State<ApplicationPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: FutureBuilder<String>(
-          future: DeviceInfo.getMyDeviceInfo(),
-          builder: (context, snapshot) {
-            if (snapshot.connectionState == ConnectionState.waiting) {
-              return const Text('Loading...');
-            } else if (snapshot.hasError) {
-              return const Text('Error');
-            } else {
-              return Text("My device: ${snapshot.data}");
-            }
+        title: Consumer<AppState>(
+          builder: (context, appState, _) {
+            final deviceInfo = appState.deviceInfo;
+            return Text(deviceInfo ?? "Loading...");
           },
         ),
         leading:

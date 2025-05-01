@@ -9,6 +9,7 @@ import 'package:provider/provider.dart';
 import 'package:flutter/material.dart';
 import 'package:sharing_app/services/notificationservice.dart';
 import 'package:sharing_app/services/transferservice.dart';
+import 'package:sharing_app/data/deviceinfo.dart';
 
 void main() {
   //TODO: remember to remove
@@ -64,16 +65,19 @@ class AppState extends ChangeNotifier {
   final List<File> _pickedFiles = [];
   final List<File> _selectedFiles = [];
   final List<HistoryEntry> _historyEntries = [];
+  String? _deviceInfo;
 
   List<Device> get devices => List.unmodifiable(_devices);
   List<File> get selectedFiles => List.unmodifiable(_selectedFiles);
   List<File> get pickedFiles => List.unmodifiable(_pickedFiles);
   List<Device> get selectedDevices => List.unmodifiable(_selectedDevices);
   List<HistoryEntry> get historyEntries => List.unmodifiable(_historyEntries);
+  String? get deviceInfo => _deviceInfo;
 
   AppState(this.networkService);
 
   void initialize() {
+    _fetchDeviceInfo();
     networkService.initialize();
     networkService.discoveredDevices.listen(
       (device) {
@@ -87,6 +91,11 @@ class AppState extends ChangeNotifier {
         notifyListeners();
       },
     );
+  }
+
+  Future _fetchDeviceInfo() async {
+    _deviceInfo = await DeviceInfo.getMyDeviceInfo();
+    notifyListeners();
   }
 
   void addPickedFiles(List<File> files) {

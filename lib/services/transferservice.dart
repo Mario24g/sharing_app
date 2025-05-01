@@ -11,7 +11,9 @@ class TransferService {
 
   void Function(String message)? onFileReceived;
 
-  TransferService({required this.appState});
+  TransferService({required this.appState}) {
+    startFileReceiver();
+  }
 
   void createTransferTask(
     List<Device> selectedDevices,
