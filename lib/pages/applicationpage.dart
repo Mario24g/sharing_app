@@ -8,6 +8,7 @@ import 'package:sharing_app/model/device.dart';
 import 'package:sharing_app/data/deviceinfo.dart';
 import 'package:sharing_app/pages/historypage.dart';
 import 'package:sharing_app/services/notificationservice.dart';
+import 'package:sharing_app/services/transferservice.dart';
 import 'package:sharing_app/widgets/notificationflushbar.dart';
 
 class ApplicationPage extends StatefulWidget {
@@ -29,17 +30,27 @@ class _ApplicationPageState extends State<ApplicationPage> {
 
     WidgetsBinding.instance.addPostFrameCallback((_) {
       final AppState appState = context.read<AppState>();
+      final TransferService transferService = context.read<TransferService>();
       appState.setOnTransferRequestHandler(_handleIncomingRequest);
-      appState.networkService.onFileReceived = (message) {
+      appState.networkService.onDeviceDisconnected = (message) {
+        NotificationFlushbar.build(message).show(context);
+      };
+      transferService.onFileReceived = (message) {
+        NotificationService().showNotification(
+          title: "File Received",
+          body: message,
+        );
+        print("asd");
+        NotificationFlushbar.build(message).show(context);
+      };
+      transferService.startFileReceiver();
+      /*appState.networkService.onFileReceived = (message) {
         NotificationService().showNotification(
           title: "File Received",
           body: message,
         );
         NotificationFlushbar.build(message).show(context);
-      };
-      appState.networkService.onDeviceDisconnected = (message) {
-        NotificationFlushbar.build(message).show(context);
-      };
+      };*/
     });
   }
 

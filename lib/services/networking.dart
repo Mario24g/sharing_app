@@ -20,7 +20,6 @@ class NetworkService {
   void Function(String senderIp)? onTransferRequest;
   void Function()? onAccept;
   void Function(String ip)? startTcpConnection;
-  void Function(String message)? onFileReceived;
   void Function(String message)? onDeviceDisconnected;
 
   final Map<String, DateTime> _deviceLastSeen = {};
@@ -57,10 +56,10 @@ class NetworkService {
       deviceLastSeen: _deviceLastSeen,
     ).initialize();
 
-    FileReceiver(
+    /*FileReceiver(
       port: 8889,
       onFileReceived: onFileReceived,
-    ).startReceiverServer();
+    ).startReceiverServer();*/
 
     _monitorDevices();
   }

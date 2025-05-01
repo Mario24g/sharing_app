@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'dart:io';
 
 import 'package:downloadsfolder/downloadsfolder.dart';
@@ -8,89 +9,112 @@ class FileReceiver {
   final int port;
   final void Function(String message)? onFileReceived;
 
+  final Map<String, int> _expectedFiles = {};
+  final Map<String, int> _receivedFiles = {};
+
   FileReceiver({required this.port, required this.onFileReceived});
 
   void startReceiverServer() async {
-    final HttpServer server = await HttpServer.bind(
-      InternetAddress.anyIPv4,
-      port,
-    );
+    final server = await HttpServer.bind(InternetAddress.anyIPv4, port);
     print('Server running on http://${server.address.address}:${server.port}');
 
     await for (HttpRequest request in server) {
-      handleRequest(request);
-    }
-  }
-
-  void handleRequest(HttpRequest request) async {
-    try {
-      if (request.method == 'POST' && request.uri.path == '/upload') {
-        final ContentType? contentType = request.headers.contentType;
-        if (contentType == null ||
-            !contentType.mimeType.startsWith('multipart/form-data')) {
-          request.response
-            ..statusCode = HttpStatus.badRequest
-            ..write('Invalid content type');
-          return;
-        }
-
-        final String? boundary = contentType.parameters['boundary'];
-        final MimeMultipartTransformer transformer = MimeMultipartTransformer(
-          boundary!,
-        );
-        final List<MimeMultipart> parts =
-            await transformer.bind(request).toList();
-
-        for (final MimeMultipart part in parts) {
-          final Map<String, String> headers = part.headers;
-          final String? contentDisposition = headers['content-disposition'];
-
-          final RegExp filenameRegex = RegExp(r'filename="(.+)"');
-          final RegExpMatch? match = filenameRegex.firstMatch(
-            contentDisposition!,
-          );
-          final String filename = match?.group(1) ?? 'received_file';
-
-          final Directory tempDir = await getTemporaryDirectory();
-          final String tempFilePath =
-              '${tempDir.path}/${DateTime.now().millisecondsSinceEpoch}_$filename';
-          final File tempFile = File(tempFilePath);
-          await tempFile.writeAsBytes(
-            await part.toList().then(
-              (parts) => parts.expand((e) => e).toList(),
-            ),
-          );
-
-          final bool? success = await copyFileIntoDownloadFolder(
-            tempFilePath,
-            filename,
-          );
-
-          if (success == true) {
-            onFileReceived?.call(
-              "File received: $filename in downloads folder",
-            );
-            request.response
-              ..statusCode = HttpStatus.ok
-              ..write('Upload received and saved as $filename');
-          } else {
-            request.response
-              ..statusCode = HttpStatus.internalServerError
-              ..write('Failed to save file');
-          }
-        }
+      if (request.method == 'POST' && request.uri.path == '/upload-metadata') {
+        await _handleMetadata(request);
+      } else if (request.method == 'POST' && request.uri.path == '/upload') {
+        await _handleFileUpload(request);
       } else {
         request.response
           ..statusCode = HttpStatus.notFound
-          ..write('Not found');
+          ..write('Not found')
+          ..close();
+      }
+    }
+  }
+
+  Future _handleMetadata(HttpRequest request) async {
+    final String content = await utf8.decoder.bind(request).join();
+    final dynamic data = jsonDecode(content);
+    final String ip =
+        request.connectionInfo?.remoteAddress.address ?? 'unknown';
+
+    final int expected = data['fileCount'] ?? 1;
+    _expectedFiles[ip] = expected;
+    _receivedFiles[ip] = 0;
+
+    request.response
+      ..statusCode = HttpStatus.ok
+      ..write('Metadata received')
+      ..close();
+  }
+
+  Future _handleFileUpload(HttpRequest request) async {
+    final ip = request.connectionInfo?.remoteAddress.address ?? 'unknown';
+
+    try {
+      // Parse and save file as you do currently
+      final contentType = request.headers.contentType;
+      if (contentType == null ||
+          !contentType.mimeType.startsWith('multipart/form-data')) {
+        request.response
+          ..statusCode = HttpStatus.badRequest
+          ..write('Invalid content type')
+          ..close();
+        return;
+      }
+
+      final boundary = contentType.parameters['boundary']!;
+      final parts =
+          await MimeMultipartTransformer(boundary).bind(request).toList();
+
+      for (final part in parts) {
+        final headers = part.headers;
+        final match = RegExp(
+          r'filename="(.+)"',
+        ).firstMatch(headers['content-disposition'] ?? '');
+        final filename = match?.group(1) ?? 'received_file';
+
+        final tempDir = await getTemporaryDirectory();
+        final tempFilePath =
+            '${tempDir.path}/${DateTime.now().millisecondsSinceEpoch}_$filename';
+        final file = File(tempFilePath);
+        await file.writeAsBytes(
+          await part.toList().then((parts) => parts.expand((e) => e).toList()),
+        );
+
+        final bool? success = await copyFileIntoDownloadFolder(
+          tempFilePath,
+          filename,
+        );
+        if (!success!) {
+          request.response
+            ..statusCode = HttpStatus.internalServerError
+            ..write('Failed to save file')
+            ..close();
+          return;
+        }
+
+        // Update received count
+        _receivedFiles[ip] = (_receivedFiles[ip] ?? 0) + 1;
+      }
+
+      request.response
+        ..statusCode = HttpStatus.ok
+        ..write('File(s) uploaded successfully')
+        ..close();
+
+      // Notify only if all expected files are received
+      if (_receivedFiles[ip] == _expectedFiles[ip]) {
+        onFileReceived?.call("${_receivedFiles[ip]} file(s) received from $ip");
+        _expectedFiles.remove(ip);
+        _receivedFiles.remove(ip);
       }
     } catch (e) {
-      onFileReceived?.call("Error receiving file");
       request.response
         ..statusCode = HttpStatus.internalServerError
-        ..write('Error: $e');
-    } finally {
-      await request.response.close();
+        ..write('Error: $e')
+        ..close();
+      onFileReceived?.call("Error receiving file from $ip");
     }
   }
 }

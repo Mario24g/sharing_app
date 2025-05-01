@@ -12,6 +12,15 @@ class FileSender {
 
   FileSender({required this.port});
 
+  Future sendMetadata(String targetIp, int fileCount) async {
+    final Uri uri = Uri.parse('http://$targetIp:8889/upload-metadata');
+    await http.post(
+      uri,
+      headers: {'Content-Type': 'application/json'},
+      body: jsonEncode({'fileCount': fileCount}),
+    );
+  }
+
   void createTransferTask(
     List<Device> selectedDevices,
     List<File> selectedFiles,
@@ -20,6 +29,7 @@ class FileSender {
     final List<Future> uploadTasks = [];
 
     for (final Device device in selectedDevices) {
+      await sendMetadata(device.ip, selectedFiles.length);
       for (final File file in selectedFiles) {
         uploadTasks.add(
           sendFile(device.ip, file, (progress) {

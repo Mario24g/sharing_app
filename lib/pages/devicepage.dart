@@ -7,6 +7,7 @@ import 'package:sharing_app/main.dart';
 import 'package:sharing_app/model/device.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:sharing_app/services/filesender.dart';
+import 'package:sharing_app/services/transferservice.dart';
 import 'package:sharing_app/widgets/deviceview.dart';
 import 'package:sharing_app/widgets/fileview.dart';
 import 'package:sharing_app/widgets/notificationflushbar.dart';
@@ -19,6 +20,8 @@ class DevicePage extends StatefulWidget {
 }
 
 class _DevicePageState extends State<DevicePage> {
+  bool _isTransferring = false;
+
   Future _pickFile(AppState appState) async {
     FilePickerResult? result = await FilePicker.platform.pickFiles(
       dialogTitle: "Select file(s)",
@@ -53,6 +56,21 @@ class _DevicePageState extends State<DevicePage> {
     }
   }
 
+  void _startTransfer(
+    List<Device> selectedDevices,
+    List<File> selectedFiles,
+    TransferService transferService,
+  ) {
+    setState(() => _isTransferring = true);
+
+    transferService.createTransferTask(selectedDevices, selectedFiles, (
+      message,
+    ) {
+      setState(() => _isTransferring = false);
+      NotificationFlushbar.build(message).show(context);
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     final AppState appState = Provider.of<AppState>(context);
@@ -60,6 +78,7 @@ class _DevicePageState extends State<DevicePage> {
     final List<File> pickedFiles = appState.pickedFiles;
     final List<File> selectedFiles = appState.selectedFiles;
     final List<Device> selectedDevices = appState.selectedDevices;
+    final TransferService transferService = context.read<TransferService>();
 
     return SizedBox.expand(
       child: Column(
@@ -85,22 +104,33 @@ class _DevicePageState extends State<DevicePage> {
           ),
           ElevatedButton(
             onPressed:
-                selectedDevices.isEmpty || selectedFiles.isEmpty
+                (_isTransferring ||
+                        selectedDevices.isEmpty ||
+                        selectedFiles.isEmpty)
                     ? null
-                    : () {
-                      final FileSender fileSender = FileSender(port: 8889);
-                      fileSender.createTransferTask(
-                        selectedDevices,
-                        selectedFiles,
-                        (message) {
-                          NotificationFlushbar.build(message).show(context);
-                        },
-                      );
-                    },
-            child: Text("Transfer"),
+                    : () => _startTransfer(
+                      selectedDevices,
+                      selectedFiles,
+                      transferService,
+                    ),
+            child:
+                _isTransferring
+                    ? Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        SizedBox(
+                          height: 20,
+                          width: 20,
+                          child: CircularProgressIndicator(strokeWidth: 2),
+                        ),
+                        SizedBox(width: 8),
+                        Text("Transferring..."),
+                      ],
+                    )
+                    : Text("Transfer"),
           ),
           ElevatedButton(
-            onPressed: () => _pickFile(appState),
+            onPressed: _isTransferring ? null : () => _pickFile(appState),
             style: ElevatedButton.styleFrom(
               padding: EdgeInsets.symmetric(vertical: 12, horizontal: 16),
             ),
@@ -122,22 +152,26 @@ class _DevicePageState extends State<DevicePage> {
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 ElevatedButton(
-                  onPressed: () => appState.clearFiles(),
+                  onPressed:
+                      _isTransferring ? null : () => appState.clearFiles(),
                   child: Text("Remove all"),
                 ),
                 SizedBox(width: 30),
                 ElevatedButton(
-                  onPressed: () {
-                    if (selectedFiles.isEmpty) {
-                      for (var file in pickedFiles) {
-                        appState.toggleFileSelection(file);
-                      }
-                    } else {
-                      for (var file in List.from(selectedFiles)) {
-                        appState.toggleFileSelection(file);
-                      }
-                    }
-                  },
+                  onPressed:
+                      _isTransferring
+                          ? null
+                          : () {
+                            if (selectedFiles.isEmpty) {
+                              for (var file in pickedFiles) {
+                                appState.toggleFileSelection(file);
+                              }
+                            } else {
+                              for (var file in List.from(selectedFiles)) {
+                                appState.toggleFileSelection(file);
+                              }
+                            }
+                          },
                   child: Text(
                     selectedFiles.isEmpty ? "Select all" : "Deselect all",
                   ),

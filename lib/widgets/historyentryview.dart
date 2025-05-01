@@ -7,7 +7,7 @@ class HistoryEntryView extends StatefulWidget {
   final HistoryEntry historyEntry;
   final void Function()? onEntryDeleted;
 
-  int get totalDevices => historyEntry.targetDevices.length;
+  int get totalDevices => historyEntry.targetDevices!.length;
   int get totalFiles => historyEntry.files.length;
   /*int get totalSize =>
       files.map((f) => f.lengthSync()).fold(0, (a, b) => a + b);*/

@@ -8,6 +8,7 @@ import 'package:sharing_app/services/networking.dart' show NetworkService;
 import 'package:provider/provider.dart';
 import 'package:flutter/material.dart';
 import 'package:sharing_app/services/notificationservice.dart';
+import 'package:sharing_app/services/transferservice.dart';
 
 void main() {
   //TODO: remember to remove
@@ -33,6 +34,7 @@ class MainApp extends StatelessWidget {
     return MultiProvider(
       providers: [
         Provider<NetworkService>(create: (_) => NetworkService()),
+
         ChangeNotifierProxyProvider<NetworkService, AppState>(
           create: (context) => AppState(context.read<NetworkService>()),
           update: (context, networkService, appState) {
@@ -40,6 +42,10 @@ class MainApp extends StatelessWidget {
             appState.initialize();
             return appState;
           },
+        ),
+
+        ProxyProvider<AppState, TransferService>(
+          update: (context, appState, _) => TransferService(appState: appState),
         ),
       ],
       child: MaterialApp(
@@ -109,6 +115,11 @@ class AppState extends ChangeNotifier {
     } else {
       _selectedDevices.add(device);
     }
+    notifyListeners();
+  }
+
+  void addHistoryEntry(HistoryEntry entry) {
+    _historyEntries.insert(0, entry);
     notifyListeners();
   }
 
