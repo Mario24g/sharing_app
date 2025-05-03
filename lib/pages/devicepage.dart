@@ -31,7 +31,11 @@ class _DevicePageState extends State<DevicePage> {
     if (result != null) {
       final List<File> files =
           result.files
-              .where((file) => file.path != null)
+              .where(
+                (file) =>
+                    file.path != null &&
+                    FileSystemEntity.isFileSync(file.path!),
+              )
               .map((file) => File(file.path!))
               .toList();
 
@@ -86,7 +90,7 @@ class _DevicePageState extends State<DevicePage> {
             child:
                 deviceList.isEmpty
                     ? Text("No devices were found")
-                    : ListView.builder(
+                    : /*ListView.builder(
                       itemCount: deviceList.length,
                       itemBuilder: (context, index) {
                         final Device device = deviceList[index];
@@ -99,6 +103,19 @@ class _DevicePageState extends State<DevicePage> {
                           onTap: () => appState.toggleDeviceSelection(device),
                         );
                       },
+                    ),*/ GridView.count(
+                      crossAxisCount: 5,
+                      children: List.generate(deviceList.length, (index) {
+                        final Device device = deviceList[index];
+                        final bool isSelected = selectedDevices.contains(
+                          device,
+                        );
+                        return DeviceView(
+                          device: device,
+                          isSelected: isSelected,
+                          onTap: () => appState.toggleDeviceSelection(device),
+                        );
+                      }),
                     ),
           ),
           ElevatedButton(

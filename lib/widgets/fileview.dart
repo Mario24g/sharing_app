@@ -49,38 +49,75 @@ class FileView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      color: isSelected ? Colors.green : null,
-      child: ListTile(
-        title: Container(
-          padding: const EdgeInsets.only(right: 12.0),
-          constraints: BoxConstraints(
-            maxWidth: MediaQuery.of(context).size.width * 0.7,
-          ),
-          child: Text(
-            basename(file.path),
-            overflow: TextOverflow.ellipsis,
-            maxLines: 1,
-          ),
+    return Card(
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10.0)),
+      elevation: 8.0,
+      margin: EdgeInsets.symmetric(horizontal: 10.0, vertical: 6.0),
+      child: Container(
+        decoration: BoxDecoration(
+          color:
+              isSelected
+                  ? Color.fromRGBO(64, 75, 96, .9)
+                  : Color.fromRGBO(64, 75, 96, 0.288),
+          borderRadius: BorderRadius.circular(10.0),
         ),
-        leading: FaIcon(iconForMimeType(lookupMimeType(file.path))),
-        trailing: ElevatedButton(
-          onPressed: onFileRemoved,
-          style: ButtonStyle(
-            shape: WidgetStateProperty.all(CircleBorder()),
-            padding: WidgetStateProperty.all(EdgeInsets.all(20)),
-            backgroundColor: WidgetStateProperty.all(Colors.blue),
-            overlayColor: WidgetStateProperty.resolveWith<Color?>((states) {
-              if (states.contains(WidgetState.pressed)) {
-                return Colors.red;
-              }
-              return null;
-            }),
+        child: ListTile(
+          contentPadding: EdgeInsets.symmetric(
+            horizontal: 20.0,
+            vertical: 10.0,
           ),
-          child: Icon(Icons.delete),
+          leading: Container(
+            padding: EdgeInsets.only(right: 12.0),
+            decoration: BoxDecoration(
+              border: Border(
+                right: BorderSide(width: 1.0, color: Colors.white24),
+              ),
+            ),
+            child: FaIcon(iconForMimeType(lookupMimeType(file.path))),
+          ),
+          title: Container(
+            padding: const EdgeInsets.only(right: 12.0),
+            constraints: BoxConstraints(
+              maxWidth: MediaQuery.of(context).size.width * 0.7,
+            ),
+            child: Text(
+              basename(file.path),
+              overflow: TextOverflow.ellipsis,
+              maxLines: 1,
+              style: TextStyle(
+                color: Colors.white,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+          ),
+          subtitle: Row(
+            children: <Widget>[
+              Expanded(
+                flex: 4,
+                child: Text(
+                  formatBytes(file.lengthSync()),
+                  style: TextStyle(color: Colors.white),
+                ),
+              ),
+            ],
+          ),
+          trailing: ElevatedButton(
+            onPressed: onFileRemoved,
+            style: ButtonStyle(
+              shape: WidgetStateProperty.all(CircleBorder()),
+              padding: WidgetStateProperty.all(EdgeInsets.all(20)),
+              backgroundColor: WidgetStateProperty.all(Colors.blue),
+              overlayColor: WidgetStateProperty.resolveWith<Color?>((states) {
+                if (states.contains(WidgetState.pressed)) {
+                  return Colors.red;
+                }
+                return null;
+              }),
+            ),
+            child: Icon(Icons.delete),
+          ),
+          onTap: onTap,
         ),
-        subtitle: Text(formatBytes(file.lengthSync())),
-        onTap: onTap,
       ),
     );
   }

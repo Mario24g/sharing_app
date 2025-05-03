@@ -189,7 +189,7 @@ class _ApplicationPageState extends State<ApplicationPage> {
                 children: [
                   Expanded(
                     child: ColoredBox(
-                      color: Colors.red,
+                      color: Color.fromARGB(255, 245, 245, 245),
                       child: _buildCurrentPage(),
                     ),
                   ),
@@ -201,7 +201,7 @@ class _ApplicationPageState extends State<ApplicationPage> {
                   _buildNavigation(),
                   Expanded(
                     child: ColoredBox(
-                      color: Colors.blue,
+                      color: Color.fromARGB(255, 245, 245, 245),
                       child: _buildCurrentPage(),
                     ),
                   ),

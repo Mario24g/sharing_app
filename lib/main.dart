@@ -37,16 +37,20 @@ class MainApp extends StatelessWidget {
         Provider<NetworkService>(create: (_) => NetworkService()),
 
         ChangeNotifierProxyProvider<NetworkService, AppState>(
-          create: (context) => AppState(context.read<NetworkService>()),
-          update: (context, networkService, appState) {
-            appState ??= AppState(networkService);
+          create: (context) {
+            final AppState appState = AppState(context.read<NetworkService>());
             appState.initialize();
             return appState;
           },
+          update:
+              (context, networkService, appState) =>
+                  appState!..networkService = networkService,
         ),
 
         ProxyProvider<AppState, TransferService>(
-          update: (context, appState, _) => TransferService(appState: appState),
+          update:
+              (context, appState, previous) =>
+                  previous ?? TransferService(appState: appState),
         ),
       ],
       child: MaterialApp(
@@ -59,7 +63,7 @@ class MainApp extends StatelessWidget {
 }
 
 class AppState extends ChangeNotifier {
-  final NetworkService networkService;
+  NetworkService networkService;
   final List<Device> _devices = [];
   final List<Device> _selectedDevices = [];
   final List<File> _pickedFiles = [];
@@ -77,6 +81,18 @@ class AppState extends ChangeNotifier {
   AppState(this.networkService);
 
   void initialize() {
+    _devices.addAll(
+      List.of([
+        Device(ip: "123", name: "Test", devicePlatform: DevicePlatform.windows),
+        Device(ip: "123", name: "Test2", devicePlatform: DevicePlatform.macos),
+        Device(ip: "123", name: "Test2", devicePlatform: DevicePlatform.linux),
+        Device(
+          ip: "123",
+          name: "Test2",
+          devicePlatform: DevicePlatform.android,
+        ),
+      ]),
+    );
     _fetchDeviceInfo();
     networkService.initialize();
     networkService.discoveredDevices.listen(
