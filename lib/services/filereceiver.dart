@@ -15,7 +15,10 @@ class FileReceiver {
   FileReceiver({required this.port, required this.onFileReceived});
 
   void startReceiverServer() async {
-    final server = await HttpServer.bind(InternetAddress.anyIPv4, port);
+    final HttpServer server = await HttpServer.bind(
+      InternetAddress.anyIPv4,
+      port,
+    );
     print('Server running on http://${server.address.address}:${server.port}');
 
     await for (HttpRequest request in server) {
@@ -49,11 +52,11 @@ class FileReceiver {
   }
 
   Future _handleFileUpload(HttpRequest request) async {
-    final ip = request.connectionInfo?.remoteAddress.address ?? 'unknown';
+    final String ip =
+        request.connectionInfo?.remoteAddress.address ?? 'unknown';
 
     try {
-      // Parse and save file as you do currently
-      final contentType = request.headers.contentType;
+      final ContentType? contentType = request.headers.contentType;
       if (contentType == null ||
           !contentType.mimeType.startsWith('multipart/form-data')) {
         request.response
@@ -63,21 +66,21 @@ class FileReceiver {
         return;
       }
 
-      final boundary = contentType.parameters['boundary']!;
-      final parts =
+      final String boundary = contentType.parameters['boundary']!;
+      final List<MimeMultipart> parts =
           await MimeMultipartTransformer(boundary).bind(request).toList();
 
-      for (final part in parts) {
-        final headers = part.headers;
-        final match = RegExp(
+      for (final MimeMultipart part in parts) {
+        final Map<String, String> headers = part.headers;
+        final RegExpMatch? match = RegExp(
           r'filename="(.+)"',
         ).firstMatch(headers['content-disposition'] ?? '');
-        final filename = match?.group(1) ?? 'received_file';
+        final String filename = match?.group(1) ?? 'received_file';
 
-        final tempDir = await getTemporaryDirectory();
-        final tempFilePath =
+        final Directory tempDir = await getTemporaryDirectory();
+        final String tempFilePath =
             '${tempDir.path}/${DateTime.now().millisecondsSinceEpoch}_$filename';
-        final file = File(tempFilePath);
+        final File file = File(tempFilePath);
         await file.writeAsBytes(
           await part.toList().then((parts) => parts.expand((e) => e).toList()),
         );
@@ -94,7 +97,6 @@ class FileReceiver {
           return;
         }
 
-        // Update received count
         _receivedFiles[ip] = (_receivedFiles[ip] ?? 0) + 1;
       }
 
@@ -103,7 +105,6 @@ class FileReceiver {
         ..write('File(s) uploaded successfully')
         ..close();
 
-      // Notify only if all expected files are received
       if (_receivedFiles[ip] == _expectedFiles[ip]) {
         onFileReceived?.call("${_receivedFiles[ip]} file(s) received from $ip");
         _expectedFiles.remove(ip);
