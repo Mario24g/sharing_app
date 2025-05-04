@@ -1,5 +1,6 @@
 import 'dart:io';
 
+import 'package:desktop_drop/desktop_drop.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:sharing_app/main.dart';
@@ -82,6 +83,8 @@ class _DevicePageState extends State<DevicePage> {
     final List<Device> selectedDevices,
     final TransferService transferService,
   ) {
+    bool isDragging = false;
+
     return SizedBox.expand(
       child: Column(
         children: [
@@ -146,116 +149,141 @@ class _DevicePageState extends State<DevicePage> {
                 Expanded(
                   child: Padding(
                     padding: const EdgeInsets.all(8.0),
-                    child: Card(
-                      elevation: 6,
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(16),
-                      ),
-                      child: Container(
-                        padding: const EdgeInsets.all(16.0),
-                        child: Column(
-                          children: [
-                            Text(
-                              "Files",
-                              style: Theme.of(context).textTheme.bodyMedium,
-                            ),
-                            ElevatedButton(
-                              onPressed:
-                                  _isTransferring
-                                      ? null
-                                      : () => _pickFile(appState),
-                              style: ElevatedButton.styleFrom(
-                                padding: EdgeInsets.symmetric(
-                                  vertical: 12,
-                                  horizontal: 16,
-                                ),
-                              ),
-                              child: Row(
-                                mainAxisAlignment: MainAxisAlignment.center,
-                                mainAxisSize: MainAxisSize.min,
-                                children: [
-                                  Icon(Icons.file_upload),
-                                  SizedBox(width: 8),
-                                  Text("Pick files"),
-                                ],
-                              ),
-                            ),
-                            if (pickedFiles.isNotEmpty) ...[
-                              SizedBox(height: 16),
+                    child: DropTarget(
+                      onDragDone: (detail) {
+                        setState(() {
+                          for (final DropItem item in detail.files) {
+                            final String path = item.path;
+                            final File file = File(path);
+                            appState.addPickedFile(file);
+                          }
+                        });
+                      },
+                      onDragEntered: (detail) {
+                        setState(() {
+                          isDragging = true;
+                        });
+                      },
+                      onDragExited: (detail) {
+                        setState(() {
+                          isDragging = false;
+                        });
+                      },
+                      child: Card(
+                        elevation: 6,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(16),
+                        ),
+                        child: Container(
+                          padding: const EdgeInsets.all(16.0),
+                          child: Column(
+                            children: [
                               Text(
-                                "Files for transfer",
-                                textAlign: TextAlign.center,
+                                "Files",
+                                style: Theme.of(context).textTheme.bodyMedium,
                               ),
-                              SizedBox(height: 12),
-                              Row(
-                                mainAxisAlignment: MainAxisAlignment.center,
-                                children: [
-                                  ElevatedButton(
-                                    onPressed:
-                                        _isTransferring
-                                            ? null
-                                            : () => appState.clearFiles(),
-                                    child: Text("Remove all"),
+                              ElevatedButton(
+                                onPressed:
+                                    _isTransferring
+                                        ? null
+                                        : () => _pickFile(appState),
+                                style: ElevatedButton.styleFrom(
+                                  padding: EdgeInsets.symmetric(
+                                    vertical: 12,
+                                    horizontal: 16,
                                   ),
-                                  SizedBox(width: 30),
-                                  ElevatedButton(
-                                    onPressed:
-                                        _isTransferring
-                                            ? null
-                                            : () {
-                                              if (selectedFiles.isEmpty) {
-                                                for (var file in pickedFiles) {
-                                                  appState.toggleFileSelection(
-                                                    file,
-                                                  );
-                                                }
-                                              } else {
-                                                for (var file in List.from(
-                                                  selectedFiles,
-                                                )) {
-                                                  appState.toggleFileSelection(
-                                                    file,
-                                                  );
-                                                }
-                                              }
-                                            },
-                                    child: Text(
-                                      selectedFiles.isEmpty
-                                          ? "Select all"
-                                          : "Deselect all",
-                                    ),
-                                  ),
-                                ],
-                              ),
-                              SizedBox(height: 12),
-                              Expanded(
-                                child: ListView.builder(
-                                  itemCount: pickedFiles.length,
-                                  itemBuilder: (context, index) {
-                                    final File file = pickedFiles[index];
-                                    final bool isSelected = selectedFiles
-                                        .contains(file);
-                                    return FileView(
-                                      file: file,
-                                      isSelected: isSelected,
-                                      onTap:
-                                          () => appState.toggleFileSelection(
-                                            file,
-                                          ),
-                                      onFileRemoved: () {
-                                        appState.toggleFileSelection(file);
-                                        final updatedList = List<File>.from(
-                                          pickedFiles,
-                                        )..remove(file);
-                                        appState.clearFiles();
-                                        appState.addPickedFiles(updatedList);
-                                      },
-                                    );
-                                  },
+                                ),
+                                child: Row(
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [
+                                    Icon(Icons.file_upload),
+                                    SizedBox(width: 8),
+                                    Text("Pick files"),
+                                  ],
                                 ),
                               ),
+                              if (pickedFiles.isNotEmpty) ...[
+                                SizedBox(height: 16),
+                                Text(
+                                  "Files for transfer",
+                                  textAlign: TextAlign.center,
+                                ),
+                                SizedBox(height: 12),
+                                /* CONTROL BUTTONS */
+                                Row(
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  children: [
+                                    ElevatedButton(
+                                      onPressed:
+                                          _isTransferring
+                                              ? null
+                                              : () => appState.clearFiles(),
+                                      child: Text("Remove all"),
+                                    ),
+                                    SizedBox(width: 30),
+                                    ElevatedButton(
+                                      onPressed:
+                                          _isTransferring
+                                              ? null
+                                              : () {
+                                                if (selectedFiles.isEmpty) {
+                                                  for (var file
+                                                      in pickedFiles) {
+                                                    appState
+                                                        .toggleFileSelection(
+                                                          file,
+                                                        );
+                                                  }
+                                                } else {
+                                                  for (var file in List.from(
+                                                    selectedFiles,
+                                                  )) {
+                                                    appState
+                                                        .toggleFileSelection(
+                                                          file,
+                                                        );
+                                                  }
+                                                }
+                                              },
+                                      child: Text(
+                                        selectedFiles.isEmpty
+                                            ? "Select all"
+                                            : "Deselect all",
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                                SizedBox(height: 12),
+                                Expanded(
+                                  child: ListView.builder(
+                                    itemCount: pickedFiles.length,
+                                    itemBuilder: (context, index) {
+                                      final File file = pickedFiles[index];
+                                      final bool isSelected = selectedFiles
+                                          .contains(file);
+                                      return FileView(
+                                        file: file,
+                                        isSelected: isSelected,
+                                        onTap:
+                                            () => appState.toggleFileSelection(
+                                              file,
+                                            ),
+                                        onFileRemoved: () {
+                                          appState.toggleFileSelection(file);
+                                          final updatedList = List<File>.from(
+                                            pickedFiles,
+                                          )..remove(file);
+                                          appState.clearFiles();
+                                          appState.addPickedFiles(updatedList);
+                                        },
+                                      );
+                                    },
+                                  ),
+                                ),
+                              ],
                             ],
-                          ],
+                          ),
                         ),
                       ),
                     ),
