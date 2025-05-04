@@ -30,6 +30,11 @@ class FileView extends StatelessWidget {
     return FontAwesomeIcons.file;
   }
 
+  bool isImageFile(File file) {
+    final String? mime = lookupMimeType(file.path);
+    return mime != null && mime.startsWith('image/');
+  }
+
   static String formatBytes(int bytes, [int decimals = 2]) {
     if (bytes <= 0) return "0 B";
     const List<String> suffixes = [
@@ -44,7 +49,7 @@ class FileView extends StatelessWidget {
       "YB",
     ];
     int i = (log(bytes) / log(1024)).floor();
-    return '${(bytes / pow(1024, i)).toStringAsFixed(decimals)} ${suffixes[i]}';
+    return "${(bytes / pow(1024, i)).toStringAsFixed(decimals)} ${suffixes[i]}";
   }
 
   @override
@@ -66,7 +71,7 @@ class FileView extends StatelessWidget {
             horizontal: 20.0,
             vertical: 10.0,
           ),
-          leading: Container(
+          /*leading: Container(
             padding: EdgeInsets.only(right: 12.0),
             decoration: BoxDecoration(
               border: Border(
@@ -74,6 +79,28 @@ class FileView extends StatelessWidget {
               ),
             ),
             child: FaIcon(iconForMimeType(lookupMimeType(file.path))),
+          ),*/
+          leading: SizedBox(
+            width: 48,
+            height: 48,
+            child:
+                isImageFile(file)
+                    ? ClipRRect(
+                      borderRadius: BorderRadius.circular(8.0),
+                      child: Image.file(
+                        file,
+                        fit: BoxFit.cover,
+                        errorBuilder:
+                            (context, error, stackTrace) =>
+                                Icon(Icons.broken_image, color: Colors.white),
+                      ),
+                    )
+                    : Center(
+                      child: FaIcon(
+                        iconForMimeType(lookupMimeType(file.path)),
+                        color: Colors.white,
+                      ),
+                    ),
           ),
           title: Container(
             padding: const EdgeInsets.only(right: 12.0),

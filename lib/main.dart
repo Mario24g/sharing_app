@@ -81,7 +81,7 @@ class AppState extends ChangeNotifier {
   AppState(this.networkService);
 
   void initialize() {
-    _devices.addAll(
+    /*_devices.addAll(
       List.of([
         Device(ip: "123", name: "Test", devicePlatform: DevicePlatform.windows),
         Device(ip: "123", name: "Test2", devicePlatform: DevicePlatform.macos),
@@ -92,7 +92,7 @@ class AppState extends ChangeNotifier {
           devicePlatform: DevicePlatform.android,
         ),
       ]),
-    );
+    );*/
     _fetchDeviceInfo();
     networkService.initialize();
     networkService.discoveredDevices.listen(

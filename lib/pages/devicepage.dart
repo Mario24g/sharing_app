@@ -21,6 +21,7 @@ class DevicePage extends StatefulWidget {
 
 class _DevicePageState extends State<DevicePage> {
   bool _isTransferring = false;
+  bool _isDragging = false;
 
   Future _pickFile(AppState appState) async {
     FilePickerResult? result = await FilePicker.platform.pickFiles(
@@ -83,8 +84,6 @@ class _DevicePageState extends State<DevicePage> {
     final List<Device> selectedDevices,
     final TransferService transferService,
   ) {
-    bool isDragging = false;
-
     return SizedBox.expand(
       child: Column(
         children: [
@@ -128,6 +127,7 @@ class _DevicePageState extends State<DevicePage> {
                                             return DeviceView(
                                               device: device,
                                               isSelected: isSelected,
+                                              isMobile: widget.isMobile,
                                               onTap:
                                                   () => appState
                                                       .toggleDeviceSelection(
@@ -161,15 +161,19 @@ class _DevicePageState extends State<DevicePage> {
                       },
                       onDragEntered: (detail) {
                         setState(() {
-                          isDragging = true;
+                          _isDragging = true;
                         });
                       },
                       onDragExited: (detail) {
                         setState(() {
-                          isDragging = false;
+                          _isDragging = false;
                         });
                       },
                       child: Card(
+                        color:
+                            _isDragging
+                                ? Color.fromARGB(127, 29, 27, 32)
+                                : Color.fromARGB(255, 29, 27, 32),
                         elevation: 6,
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(16),
@@ -182,47 +186,49 @@ class _DevicePageState extends State<DevicePage> {
                                 "Files",
                                 style: Theme.of(context).textTheme.bodyMedium,
                               ),
-                              ElevatedButton(
-                                onPressed:
-                                    _isTransferring
-                                        ? null
-                                        : () => _pickFile(appState),
-                                style: ElevatedButton.styleFrom(
-                                  padding: EdgeInsets.symmetric(
-                                    vertical: 12,
-                                    horizontal: 16,
-                                  ),
-                                ),
-                                child: Row(
-                                  mainAxisAlignment: MainAxisAlignment.center,
-                                  mainAxisSize: MainAxisSize.min,
-                                  children: [
-                                    Icon(Icons.file_upload),
-                                    SizedBox(width: 8),
-                                    Text("Pick files"),
-                                  ],
-                                ),
-                              ),
-                              if (pickedFiles.isNotEmpty) ...[
-                                SizedBox(height: 16),
-                                Text(
-                                  "Files for transfer",
-                                  textAlign: TextAlign.center,
-                                ),
-                                SizedBox(height: 12),
-                                /* CONTROL BUTTONS */
-                                Row(
-                                  mainAxisAlignment: MainAxisAlignment.center,
-                                  children: [
-                                    ElevatedButton(
+
+                              SizedBox(height: 12),
+                              /* CONTROL BUTTONS */
+                              Row(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  Visibility(
+                                    visible: pickedFiles.isNotEmpty,
+                                    child: ElevatedButton(
                                       onPressed:
                                           _isTransferring
                                               ? null
                                               : () => appState.clearFiles(),
                                       child: Text("Remove all"),
                                     ),
-                                    SizedBox(width: 30),
-                                    ElevatedButton(
+                                  ),
+                                  SizedBox(width: 30),
+                                  ElevatedButton(
+                                    onPressed:
+                                        _isTransferring
+                                            ? null
+                                            : () => _pickFile(appState),
+                                    style: ElevatedButton.styleFrom(
+                                      padding: EdgeInsets.symmetric(
+                                        vertical: 12,
+                                        horizontal: 16,
+                                      ),
+                                    ),
+                                    child: Row(
+                                      mainAxisAlignment:
+                                          MainAxisAlignment.center,
+                                      mainAxisSize: MainAxisSize.min,
+                                      children: [
+                                        Icon(Icons.file_upload),
+                                        SizedBox(width: 8),
+                                        Text("Pick files"),
+                                      ],
+                                    ),
+                                  ),
+                                  SizedBox(width: 30),
+                                  Visibility(
+                                    visible: pickedFiles.isNotEmpty,
+                                    child: ElevatedButton(
                                       onPressed:
                                           _isTransferring
                                               ? null
@@ -252,36 +258,39 @@ class _DevicePageState extends State<DevicePage> {
                                             : "Deselect all",
                                       ),
                                     ),
-                                  ],
-                                ),
-                                SizedBox(height: 12),
-                                Expanded(
-                                  child: ListView.builder(
-                                    itemCount: pickedFiles.length,
-                                    itemBuilder: (context, index) {
-                                      final File file = pickedFiles[index];
-                                      final bool isSelected = selectedFiles
-                                          .contains(file);
-                                      return FileView(
-                                        file: file,
-                                        isSelected: isSelected,
-                                        onTap:
-                                            () => appState.toggleFileSelection(
-                                              file,
-                                            ),
-                                        onFileRemoved: () {
-                                          appState.toggleFileSelection(file);
-                                          final updatedList = List<File>.from(
-                                            pickedFiles,
-                                          )..remove(file);
-                                          appState.clearFiles();
-                                          appState.addPickedFiles(updatedList);
-                                        },
-                                      );
-                                    },
                                   ),
-                                ),
-                              ],
+                                ],
+                              ),
+                              SizedBox(height: 12),
+                              pickedFiles.isEmpty
+                                  ? Text("Pick or drop a file")
+                                  : Expanded(
+                                    child: ListView.builder(
+                                      itemCount: pickedFiles.length,
+                                      itemBuilder: (context, index) {
+                                        final File file = pickedFiles[index];
+                                        final bool isSelected = selectedFiles
+                                            .contains(file);
+                                        return FileView(
+                                          file: file,
+                                          isSelected: isSelected,
+                                          onTap:
+                                              () => appState
+                                                  .toggleFileSelection(file),
+                                          onFileRemoved: () {
+                                            appState.toggleFileSelection(file);
+                                            final updatedList = List<File>.from(
+                                              pickedFiles,
+                                            )..remove(file);
+                                            appState.clearFiles();
+                                            appState.addPickedFiles(
+                                              updatedList,
+                                            );
+                                          },
+                                        );
+                                      },
+                                    ),
+                                  ),
                             ],
                           ),
                         ),
@@ -356,6 +365,7 @@ class _DevicePageState extends State<DevicePage> {
                         return DeviceView(
                           device: device,
                           isSelected: isSelected,
+                          isMobile: widget.isMobile,
                           onTap: () => appState.toggleDeviceSelection(device),
                         );
                       },
@@ -428,8 +438,6 @@ class _DevicePageState extends State<DevicePage> {
                     ),
                   ),
                   if (pickedFiles.isNotEmpty) ...[
-                    SizedBox(height: 16),
-                    Text("Files for transfer", textAlign: TextAlign.center),
                     SizedBox(height: 12),
                     Row(
                       mainAxisAlignment: MainAxisAlignment.center,
