@@ -143,15 +143,15 @@ class _ApplicationPageState extends State<ApplicationPage> {
         );
   }
 
-  Widget _buildCurrentPage() {
+  Widget _buildCurrentPage(bool isMobile) {
     switch (_selectedIndex) {
       case 0:
-        return const DevicePage();
+        return DevicePage(isMobile: isMobile);
       case 1:
         return Scaffold();
-      //return const SettingsPage();
+      //return SettingsPage();
       case 2:
-        return const HistoryPage();
+        return HistoryPage();
       default:
         throw UnimplementedError('No page for index $_selectedIndex');
     }
@@ -190,7 +190,7 @@ class _ApplicationPageState extends State<ApplicationPage> {
                   Expanded(
                     child: ColoredBox(
                       color: Color.fromARGB(255, 245, 245, 245),
-                      child: _buildCurrentPage(),
+                      child: _buildCurrentPage(_isMobile),
                     ),
                   ),
                   _buildNavigation(),
@@ -202,7 +202,7 @@ class _ApplicationPageState extends State<ApplicationPage> {
                   Expanded(
                     child: ColoredBox(
                       color: Color.fromARGB(255, 245, 245, 245),
-                      child: _buildCurrentPage(),
+                      child: _buildCurrentPage(_isMobile),
                     ),
                   ),
                 ],
