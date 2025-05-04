@@ -155,7 +155,10 @@ class _DevicePageState extends State<DevicePage> {
                           for (final DropItem item in detail.files) {
                             final String path = item.path;
                             final File file = File(path);
-                            appState.addPickedFile(file);
+                            bool isFile = FileSystemEntity.isFileSync(
+                              file.path,
+                            );
+                            if (isFile) appState.addPickedFile(file);
                           }
                         });
                       },
