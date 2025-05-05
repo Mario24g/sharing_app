@@ -55,16 +55,16 @@ class FileView extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Card(
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10.0)),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12.0)),
       elevation: 8.0,
       margin: EdgeInsets.symmetric(horizontal: 10.0, vertical: 6.0),
       child: Container(
         decoration: BoxDecoration(
           color:
               isSelected
-                  ? Color.fromRGBO(64, 75, 96, .9)
-                  : Color.fromRGBO(64, 75, 96, 0.288),
-          borderRadius: BorderRadius.circular(10.0),
+                  ? Color.fromRGBO(64, 75, 96, 0.9)
+                  : Color.fromRGBO(64, 75, 96, 0.2),
+          borderRadius: BorderRadius.circular(12.0),
         ),
         child: ListTile(
           contentPadding: EdgeInsets.symmetric(

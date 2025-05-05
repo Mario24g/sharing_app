@@ -31,7 +31,7 @@ class DeviceView extends StatelessWidget {
                 isSelected
                     ? const Color.fromRGBO(64, 75, 96, 0.9)
                     : const Color.fromRGBO(64, 75, 96, 0.2),
-            borderRadius: BorderRadius.circular(10.0),
+            borderRadius: BorderRadius.circular(12.0),
           ),
           padding: const EdgeInsets.all(12.0),
           child: LayoutBuilder(
@@ -134,31 +134,45 @@ class DeviceView extends StatelessWidget {
   }
 
   Widget _mobileView(BuildContext context) {
-    return Container(
-      color: isSelected ? Colors.green : null,
-
-      child: ListTile(
-        title: Container(
-          padding: const EdgeInsets.only(right: 12.0),
-          constraints: BoxConstraints(
-            maxWidth: MediaQuery.of(context).size.width * 0.7,
-          ),
-          child: Text(
-            device.name,
-            overflow: TextOverflow.ellipsis,
-            maxLines: 1,
-          ),
+    return Card(
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12.0)),
+      elevation: 8.0,
+      margin: EdgeInsets.symmetric(horizontal: 10.0, vertical: 6.0),
+      child: Container(
+        decoration: BoxDecoration(
+          color:
+              isSelected
+                  ? const Color.fromRGBO(64, 75, 96, 0.9)
+                  : const Color.fromRGBO(64, 75, 96, 0.2),
+          borderRadius: BorderRadius.circular(12.0),
         ),
-        leading: FaIcon(switch (device.devicePlatform) {
-          DevicePlatform.windows => FontAwesomeIcons.windows,
-          DevicePlatform.linux => FontAwesomeIcons.linux,
-          DevicePlatform.macos => FontAwesomeIcons.apple,
-          DevicePlatform.android => FontAwesomeIcons.android,
-          DevicePlatform.ios => FontAwesomeIcons.apple,
-          DevicePlatform.unknown => FontAwesomeIcons.question,
-        }),
-        subtitle: Text(device.ip),
-        onTap: onTap,
+        child: ListTile(
+          contentPadding: EdgeInsets.symmetric(
+            horizontal: 20.0,
+            vertical: 10.0,
+          ),
+          title: Container(
+            padding: const EdgeInsets.only(right: 12.0),
+            constraints: BoxConstraints(
+              maxWidth: MediaQuery.of(context).size.width * 0.7,
+            ),
+            child: Text(
+              device.name,
+              overflow: TextOverflow.ellipsis,
+              maxLines: 1,
+            ),
+          ),
+          leading: FaIcon(switch (device.devicePlatform) {
+            DevicePlatform.windows => FontAwesomeIcons.windows,
+            DevicePlatform.linux => FontAwesomeIcons.linux,
+            DevicePlatform.macos => FontAwesomeIcons.apple,
+            DevicePlatform.android => FontAwesomeIcons.android,
+            DevicePlatform.ios => FontAwesomeIcons.apple,
+            DevicePlatform.unknown => FontAwesomeIcons.question,
+          }),
+          subtitle: Text(device.ip),
+          onTap: onTap,
+        ),
       ),
     );
   }

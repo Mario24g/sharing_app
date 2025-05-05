@@ -360,47 +360,54 @@ class _DevicePageState extends State<DevicePage> {
     final List<Device> selectedDevices,
     final TransferService transferService,
   ) {
+    const double minHeight = 150;
     return SingleChildScrollView(
       child: Padding(
         padding: const EdgeInsets.all(8.0),
         child: Column(
           children: [
-            /// === Devices Section ===
-            Card(
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(12),
-              ),
-              child: Padding(
-                padding: const EdgeInsets.all(12.0),
-                child: Column(
-                  children: [
-                    Text(
-                      "Devices",
-                      style: Theme.of(context).textTheme.titleMedium,
-                    ),
-                    const SizedBox(height: 8),
-                    deviceList.isEmpty
-                        ? const Text("No devices found")
-                        : Wrap(
-                          spacing: 8,
-                          runSpacing: 8,
-                          children:
-                              deviceList.map((device) {
-                                final isSelected = selectedDevices.contains(
-                                  device,
-                                );
-                                return DeviceView(
-                                  device: device,
-                                  isSelected: isSelected,
-                                  isMobile: true,
-                                  onTap:
-                                      () => appState.toggleDeviceSelection(
-                                        device,
-                                      ),
-                                );
-                              }).toList(),
+            /* DEVICES */
+            SizedBox(
+              width: double.infinity,
+              child: ConstrainedBox(
+                constraints: BoxConstraints(minHeight: minHeight),
+                child: Card(
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: Padding(
+                    padding: const EdgeInsets.all(12.0),
+                    child: Column(
+                      children: [
+                        Text(
+                          "Devices",
+                          style: Theme.of(context).textTheme.titleMedium,
                         ),
-                  ],
+                        const SizedBox(height: 8),
+                        deviceList.isEmpty
+                            ? const Text("No devices found")
+                            : Wrap(
+                              spacing: 8,
+                              runSpacing: 8,
+                              children:
+                                  deviceList.map((device) {
+                                    final isSelected = selectedDevices.contains(
+                                      device,
+                                    );
+                                    return DeviceView(
+                                      device: device,
+                                      isSelected: isSelected,
+                                      isMobile: true,
+                                      onTap:
+                                          () => appState.toggleDeviceSelection(
+                                            device,
+                                          ),
+                                    );
+                                  }).toList(),
+                            ),
+                      ],
+                    ),
+                  ),
                 ),
               ),
             ),
@@ -408,106 +415,118 @@ class _DevicePageState extends State<DevicePage> {
             const SizedBox(height: 12),
 
             /* FILES */
-            Card(
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(12),
-              ),
-              color:
-                  _isDragging
-                      ? const Color.fromARGB(127, 29, 27, 32)
-                      : const Color.fromARGB(255, 29, 27, 32),
-              child: Padding(
-                padding: const EdgeInsets.all(12.0),
-                child: Column(
-                  children: [
-                    Text(
-                      "Files",
-                      style: Theme.of(context).textTheme.titleMedium,
-                    ),
-                    /* CONTROL BUTTONS */
-                    const SizedBox(height: 8),
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+            SizedBox(
+              width: double.infinity,
+              child: ConstrainedBox(
+                constraints: BoxConstraints(minHeight: minHeight),
+                child: Card(
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  color:
+                      _isDragging
+                          ? const Color.fromARGB(127, 29, 27, 32)
+                          : const Color.fromARGB(255, 29, 27, 32),
+                  child: Padding(
+                    padding: const EdgeInsets.all(12.0),
+                    child: Column(
                       children: [
-                        if (pickedFiles.isNotEmpty)
-                          IconButton(
-                            icon: Icon(Icons.delete),
-                            tooltip: "Clear Files",
-                            onPressed:
-                                _isTransferring
-                                    ? null
-                                    : () => appState.clearFiles(),
-                          ),
-                        IconButton(
-                          icon: Icon(Icons.upload_file),
-                          tooltip: "Pick Files",
-                          onPressed:
-                              _isTransferring
-                                  ? null
-                                  : () => _pickFile(appState),
+                        Text(
+                          "Files",
+                          style: Theme.of(context).textTheme.titleMedium,
                         ),
-                        if (pickedFiles.isNotEmpty)
-                          IconButton(
-                            icon: Icon(
-                              selectedFiles.isEmpty
-                                  ? Icons.select_all
-                                  : Icons.deselect,
+                        /* CONTROL BUTTONS */
+                        const SizedBox(height: 8),
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                          children: [
+                            if (pickedFiles.isNotEmpty)
+                              IconButton(
+                                icon: Icon(Icons.delete),
+                                tooltip: "Clear Files",
+                                onPressed:
+                                    _isTransferring
+                                        ? null
+                                        : () => appState.clearFiles(),
+                              ),
+                            IconButton(
+                              icon: Icon(Icons.upload_file),
+                              tooltip: "Pick Files",
+                              onPressed:
+                                  _isTransferring
+                                      ? null
+                                      : () => _pickFile(appState),
                             ),
-                            tooltip:
-                                selectedFiles.isEmpty
-                                    ? "Select All"
-                                    : "Deselect All",
-                            onPressed:
-                                _isTransferring
-                                    ? null
-                                    : () {
-                                      if (selectedFiles.isEmpty) {
-                                        for (var file in pickedFiles) {
-                                          appState.toggleFileSelection(file);
-                                        }
-                                      } else {
-                                        for (var file in List.from(
-                                          selectedFiles,
-                                        )) {
-                                          appState.toggleFileSelection(file);
-                                        }
-                                      }
-                                    },
-                          ),
+                            if (pickedFiles.isNotEmpty)
+                              IconButton(
+                                icon: Icon(
+                                  selectedFiles.isEmpty
+                                      ? Icons.select_all
+                                      : Icons.deselect,
+                                ),
+                                tooltip:
+                                    selectedFiles.isEmpty
+                                        ? "Select All"
+                                        : "Deselect All",
+                                onPressed:
+                                    _isTransferring
+                                        ? null
+                                        : () {
+                                          if (selectedFiles.isEmpty) {
+                                            for (var file in pickedFiles) {
+                                              appState.toggleFileSelection(
+                                                file,
+                                              );
+                                            }
+                                          } else {
+                                            for (var file in List.from(
+                                              selectedFiles,
+                                            )) {
+                                              appState.toggleFileSelection(
+                                                file,
+                                              );
+                                            }
+                                          }
+                                        },
+                              ),
+                          ],
+                        ),
+                        const SizedBox(height: 8),
+                        pickedFiles.isEmpty
+                            ? const Text("No files selected")
+                            : ListView.builder(
+                              shrinkWrap: true,
+                              physics: const NeverScrollableScrollPhysics(),
+                              itemCount: pickedFiles.length,
+                              itemBuilder: (context, index) {
+                                final file = pickedFiles[index];
+                                final isSelected = selectedFiles.contains(file);
+                                return FileView(
+                                  file: file,
+                                  isSelected: isSelected,
+                                  onTap:
+                                      () => appState.toggleFileSelection(file),
+                                  onFileRemoved: () {
+                                    appState.toggleFileSelection(file);
+                                    final updatedList = List<File>.from(
+                                      pickedFiles,
+                                    )..remove(file);
+                                    appState.clearFiles();
+                                    appState.addPickedFiles(updatedList);
+                                  },
+                                );
+                              },
+                            ),
                       ],
                     ),
-                    const SizedBox(height: 8),
-                    pickedFiles.isEmpty
-                        ? const Text("No files selected")
-                        : ListView.builder(
-                          shrinkWrap: true,
-                          physics: const NeverScrollableScrollPhysics(),
-                          itemCount: pickedFiles.length,
-                          itemBuilder: (context, index) {
-                            final file = pickedFiles[index];
-                            final isSelected = selectedFiles.contains(file);
-                            return FileView(
-                              file: file,
-                              isSelected: isSelected,
-                              onTap: () => appState.toggleFileSelection(file),
-                              onFileRemoved: () {
-                                appState.toggleFileSelection(file);
-                                final updatedList = List<File>.from(pickedFiles)
-                                  ..remove(file);
-                                appState.clearFiles();
-                                appState.addPickedFiles(updatedList);
-                              },
-                            );
-                          },
-                        ),
-                  ],
+                  ),
                 ),
               ),
             ),
 
             const SizedBox(height: 16),
 
-            /// === Transfer Button ===
+            /* TRANSFER BUTTON */
             SizedBox(
               width: double.infinity,
               child: ElevatedButton.icon(
