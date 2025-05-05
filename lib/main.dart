@@ -104,6 +104,7 @@ class AppState extends ChangeNotifier {
       },
       onError: (disconnectedIp) {
         _devices.removeWhere((d) => d.ip == disconnectedIp);
+        _selectedDevices.removeWhere((d) => d.ip == disconnectedIp);
         notifyListeners();
       },
     );

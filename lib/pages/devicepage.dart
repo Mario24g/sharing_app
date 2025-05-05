@@ -22,6 +22,8 @@ class DevicePage extends StatefulWidget {
 class _DevicePageState extends State<DevicePage> {
   bool _isTransferring = false;
   bool _isDragging = false;
+  double _progress = 0.0;
+  String _statusMessage = "";
 
   Future _pickFile(AppState appState) async {
     FilePickerResult? result = await FilePicker.platform.pickFiles(
@@ -66,14 +68,48 @@ class _DevicePageState extends State<DevicePage> {
     List<File> selectedFiles,
     TransferService transferService,
   ) {
-    setState(() => _isTransferring = true);
-
-    transferService.createTransferTask(selectedDevices, selectedFiles, (
-      message,
-    ) {
-      setState(() => _isTransferring = false);
-      NotificationFlushbar.build(message).show(context);
+    setState(() {
+      _isTransferring = true;
+      _progress = 0.0;
+      _statusMessage = '';
     });
+
+    double lastProgress = 0.0;
+    DateTime lastUpdate = DateTime.now();
+
+    void onPerFileProgress(double newProgress) {
+      const threshold = 0.01;
+      final now = DateTime.now();
+
+      if ((newProgress - lastProgress).abs() >= threshold ||
+          now.difference(lastUpdate) > const Duration(milliseconds: 100)) {
+        lastProgress = newProgress;
+        lastUpdate = now;
+
+        setState(() {
+          _progress = newProgress;
+        });
+      }
+    }
+
+    transferService.createTransferTask(
+      selectedDevices,
+      selectedFiles,
+      (message) {
+        setState(() {
+          _isTransferring = false;
+          _progress = 0.0;
+          _statusMessage = '';
+        });
+        NotificationFlushbar.build(message).show(context);
+      },
+      onPerFileProgress,
+      (statusMessage) {
+        setState(() {
+          _statusMessage = statusMessage;
+        });
+      },
+    );
   }
 
   Widget _desktopPage(
@@ -89,7 +125,7 @@ class _DevicePageState extends State<DevicePage> {
         children: [
           /* PANELS */
           Expanded(
-            flex: 9,
+            flex: 8,
             child: Row(
               children: [
                 /* DEVICE PANEL */
@@ -315,35 +351,79 @@ class _DevicePageState extends State<DevicePage> {
           ),
 
           /* TRANSFER BUTTON */
+          //TODO
           Expanded(
-            flex: 1,
-            child: Center(
-              child: ElevatedButton(
-                onPressed:
-                    (_isTransferring ||
-                            selectedDevices.isEmpty ||
-                            selectedFiles.isEmpty)
-                        ? null
-                        : () => _startTransfer(
-                          selectedDevices,
-                          selectedFiles,
-                          transferService,
+            flex: 2,
+            child: Card(
+              elevation: 4,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: Padding(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 24,
+                  vertical: 16,
+                ),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Visibility(
+                      visible: _isTransferring,
+                      child: Text(
+                        _statusMessage,
+                        textAlign: TextAlign.center,
+                        style: Theme.of(
+                          context,
+                        ).textTheme.bodyMedium?.copyWith(color: Colors.white),
+                      ),
+                    ),
+                    Visibility(
+                      visible: _isTransferring,
+                      child: SizedBox(
+                        width: MediaQuery.of(context).size.width / 3,
+                        child: ClipRRect(
+                          borderRadius: BorderRadius.circular(8),
+                          child: LinearProgressIndicator(
+                            value: _progress,
+                            minHeight: 8,
+                            backgroundColor: Colors.grey[300],
+                            color: Colors.lightBlueAccent,
+                          ),
                         ),
-                child:
-                    _isTransferring
-                        ? Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            SizedBox(
-                              height: 20,
-                              width: 20,
-                              child: CircularProgressIndicator(strokeWidth: 2),
-                            ),
-                            SizedBox(width: 8),
-                            Text("Transferring..."),
-                          ],
-                        )
-                        : Text("Transfer"),
+                      ),
+                    ),
+                    ElevatedButton(
+                      onPressed:
+                          (_isTransferring ||
+                                  selectedDevices.isEmpty ||
+                                  selectedFiles.isEmpty)
+                              ? null
+                              : () => _startTransfer(
+                                selectedDevices,
+                                selectedFiles,
+                                transferService,
+                              ),
+                      child:
+                          _isTransferring
+                              ? Row(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  SizedBox(
+                                    height: 20,
+                                    width: 20,
+                                    child: CircularProgressIndicator(
+                                      strokeWidth: 2,
+                                    ),
+                                  ),
+                                  SizedBox(width: 8),
+                                  Text("Transferring..."),
+                                ],
+                              )
+                              : Text("Transfer"),
+                    ),
+                  ],
+                ),
               ),
             ),
           ),
@@ -527,6 +607,27 @@ class _DevicePageState extends State<DevicePage> {
             const SizedBox(height: 16),
 
             /* TRANSFER BUTTON */
+            Visibility(
+              visible: _isTransferring,
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    _statusMessage,
+                    style: Theme.of(
+                      context,
+                    ).textTheme.bodySmall?.copyWith(color: Colors.black),
+                  ),
+                  const SizedBox(height: 4),
+                  LinearProgressIndicator(
+                    value: _progress,
+                    minHeight: 6,
+                    backgroundColor: Colors.grey[700],
+                    color: Colors.blueAccent,
+                  ),
+                ],
+              ),
+            ),
             SizedBox(
               width: double.infinity,
               child: ElevatedButton.icon(

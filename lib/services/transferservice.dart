@@ -19,12 +19,16 @@ class TransferService {
     List<Device> selectedDevices,
     List<File> selectedFiles,
     void Function(String message)? onTransferComplete,
+    void Function(double progress)? onProgressUpdate,
+    void Function(String statusMessage)? onStatusUpdate,
   ) {
     final FileSender fileSender = FileSender(port: 8889);
     fileSender.createTransferTask(
       selectedDevices,
       selectedFiles,
       onTransferComplete,
+      onProgressUpdate,
+      onStatusUpdate,
     );
     appState.addHistoryEntry(
       HistoryEntry(

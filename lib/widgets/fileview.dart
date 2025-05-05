@@ -118,7 +118,7 @@ class FileView extends StatelessWidget {
             ),
           ),
           subtitle: Row(
-            children: <Widget>[
+            children: [
               Expanded(
                 flex: 4,
                 child: Text(
