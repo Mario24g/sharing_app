@@ -152,6 +152,15 @@ class _DevicePageState extends State<DevicePage> {
                     child: DropTarget(
                       onDragDone: (detail) {
                         setState(() {
+                          bool isAnyDirectory = detail.files.any((item) {
+                            return !FileSystemEntity.isFileSync(item.path);
+                          });
+                          if (isAnyDirectory) {
+                            NotificationFlushbar.build(
+                              "Folders aren't allowed for transfer",
+                            ).show(context);
+                          }
+
                           for (final DropItem item in detail.files) {
                             final String path = item.path;
                             final File file = File(path);
@@ -202,7 +211,7 @@ class _DevicePageState extends State<DevicePage> {
                                           _isTransferring
                                               ? null
                                               : () => appState.clearFiles(),
-                                      child: Text("Remove all"),
+                                      child: Text("Clear all"),
                                     ),
                                   ),
                                   SizedBox(width: 30),
@@ -351,162 +360,183 @@ class _DevicePageState extends State<DevicePage> {
     final List<Device> selectedDevices,
     final TransferService transferService,
   ) {
-    return SizedBox.expand(
-      child: Column(
-        children: [
-          Expanded(
-            child:
-                deviceList.isEmpty
-                    ? Text("No devices were found")
-                    : ListView.builder(
-                      itemCount: deviceList.length,
-                      itemBuilder: (context, index) {
-                        final Device device = deviceList[index];
-                        final bool isSelected = selectedDevices.contains(
-                          device,
-                        );
-                        return DeviceView(
-                          device: device,
-                          isSelected: isSelected,
-                          isMobile: widget.isMobile,
-                          onTap: () => appState.toggleDeviceSelection(device),
-                        );
-                      },
-                    ),
-          ),
-          ElevatedButton(
-            onPressed:
-                (_isTransferring ||
-                        selectedDevices.isEmpty ||
-                        selectedFiles.isEmpty)
-                    ? null
-                    : () => _startTransfer(
-                      selectedDevices,
-                      selectedFiles,
-                      transferService,
-                    ),
-            child:
-                _isTransferring
-                    ? Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        SizedBox(
-                          height: 20,
-                          width: 20,
-                          child: CircularProgressIndicator(strokeWidth: 2),
-                        ),
-                        SizedBox(width: 8),
-                        Text("Transferring..."),
-                      ],
-                    )
-                    : Text("Transfer"),
-          ),
-
-          /* FILES */
-          Padding(
-            padding: const EdgeInsets.all(12.0),
-            child: Container(
-              decoration: BoxDecoration(
-                color: Colors.red,
-                borderRadius: BorderRadius.circular(12.0),
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.black26,
-                    blurRadius: 8.0,
-                    offset: Offset(0, 2),
-                  ),
-                ],
+    return SingleChildScrollView(
+      child: Padding(
+        padding: const EdgeInsets.all(8.0),
+        child: Column(
+          children: [
+            /// === Devices Section ===
+            Card(
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(12),
               ),
-              padding: const EdgeInsets.all(16.0),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: [
-                  ElevatedButton(
-                    onPressed:
-                        _isTransferring ? null : () => _pickFile(appState),
-                    style: ElevatedButton.styleFrom(
-                      padding: EdgeInsets.symmetric(
-                        vertical: 12,
-                        horizontal: 16,
-                      ),
+              child: Padding(
+                padding: const EdgeInsets.all(12.0),
+                child: Column(
+                  children: [
+                    Text(
+                      "Devices",
+                      style: Theme.of(context).textTheme.titleMedium,
                     ),
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Icon(Icons.file_upload),
-                        SizedBox(width: 8),
-                        Text("Pick files"),
-                      ],
-                    ),
-                  ),
-                  if (pickedFiles.isNotEmpty) ...[
-                    SizedBox(height: 12),
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        ElevatedButton(
-                          onPressed:
-                              _isTransferring
-                                  ? null
-                                  : () => appState.clearFiles(),
-                          child: Text("Remove all"),
+                    const SizedBox(height: 8),
+                    deviceList.isEmpty
+                        ? const Text("No devices found")
+                        : Wrap(
+                          spacing: 8,
+                          runSpacing: 8,
+                          children:
+                              deviceList.map((device) {
+                                final isSelected = selectedDevices.contains(
+                                  device,
+                                );
+                                return DeviceView(
+                                  device: device,
+                                  isSelected: isSelected,
+                                  isMobile: true,
+                                  onTap:
+                                      () => appState.toggleDeviceSelection(
+                                        device,
+                                      ),
+                                );
+                              }).toList(),
                         ),
-                        SizedBox(width: 30),
-                        ElevatedButton(
-                          onPressed:
-                              _isTransferring
-                                  ? null
-                                  : () {
-                                    if (selectedFiles.isEmpty) {
-                                      for (var file in pickedFiles) {
-                                        appState.toggleFileSelection(file);
-                                      }
-                                    } else {
-                                      for (var file in List.from(
-                                        selectedFiles,
-                                      )) {
-                                        appState.toggleFileSelection(file);
-                                      }
-                                    }
-                                  },
-                          child: Text(
-                            selectedFiles.isEmpty
-                                ? "Select all"
-                                : "Deselect all",
-                          ),
-                        ),
-                      ],
-                    ),
-                    SizedBox(height: 12),
-                    SizedBox(
-                      height: 300,
-                      child: ListView.builder(
-                        itemCount: pickedFiles.length,
-                        itemBuilder: (context, index) {
-                          final File file = pickedFiles[index];
-                          final bool isSelected = selectedFiles.contains(file);
-                          return FileView(
-                            file: file,
-                            isSelected: isSelected,
-                            onTap: () => appState.toggleFileSelection(file),
-                            onFileRemoved: () {
-                              appState.toggleFileSelection(file);
-                              final updatedList = List<File>.from(pickedFiles)
-                                ..remove(file);
-                              appState.clearFiles();
-                              appState.addPickedFiles(updatedList);
-                            },
-                          );
-                        },
-                      ),
-                    ),
                   ],
-                ],
+                ),
               ),
             ),
-          ),
-        ],
+
+            const SizedBox(height: 12),
+
+            /* FILES */
+            Card(
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(12),
+              ),
+              color:
+                  _isDragging
+                      ? const Color.fromARGB(127, 29, 27, 32)
+                      : const Color.fromARGB(255, 29, 27, 32),
+              child: Padding(
+                padding: const EdgeInsets.all(12.0),
+                child: Column(
+                  children: [
+                    Text(
+                      "Files",
+                      style: Theme.of(context).textTheme.titleMedium,
+                    ),
+                    /* CONTROL BUTTONS */
+                    const SizedBox(height: 8),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                      children: [
+                        if (pickedFiles.isNotEmpty)
+                          IconButton(
+                            icon: Icon(Icons.delete),
+                            tooltip: "Clear Files",
+                            onPressed:
+                                _isTransferring
+                                    ? null
+                                    : () => appState.clearFiles(),
+                          ),
+                        IconButton(
+                          icon: Icon(Icons.upload_file),
+                          tooltip: "Pick Files",
+                          onPressed:
+                              _isTransferring
+                                  ? null
+                                  : () => _pickFile(appState),
+                        ),
+                        if (pickedFiles.isNotEmpty)
+                          IconButton(
+                            icon: Icon(
+                              selectedFiles.isEmpty
+                                  ? Icons.select_all
+                                  : Icons.deselect,
+                            ),
+                            tooltip:
+                                selectedFiles.isEmpty
+                                    ? "Select All"
+                                    : "Deselect All",
+                            onPressed:
+                                _isTransferring
+                                    ? null
+                                    : () {
+                                      if (selectedFiles.isEmpty) {
+                                        for (var file in pickedFiles) {
+                                          appState.toggleFileSelection(file);
+                                        }
+                                      } else {
+                                        for (var file in List.from(
+                                          selectedFiles,
+                                        )) {
+                                          appState.toggleFileSelection(file);
+                                        }
+                                      }
+                                    },
+                          ),
+                      ],
+                    ),
+                    const SizedBox(height: 8),
+                    pickedFiles.isEmpty
+                        ? const Text("No files selected")
+                        : ListView.builder(
+                          shrinkWrap: true,
+                          physics: const NeverScrollableScrollPhysics(),
+                          itemCount: pickedFiles.length,
+                          itemBuilder: (context, index) {
+                            final file = pickedFiles[index];
+                            final isSelected = selectedFiles.contains(file);
+                            return FileView(
+                              file: file,
+                              isSelected: isSelected,
+                              onTap: () => appState.toggleFileSelection(file),
+                              onFileRemoved: () {
+                                appState.toggleFileSelection(file);
+                                final updatedList = List<File>.from(pickedFiles)
+                                  ..remove(file);
+                                appState.clearFiles();
+                                appState.addPickedFiles(updatedList);
+                              },
+                            );
+                          },
+                        ),
+                  ],
+                ),
+              ),
+            ),
+
+            const SizedBox(height: 16),
+
+            /// === Transfer Button ===
+            SizedBox(
+              width: double.infinity,
+              child: ElevatedButton.icon(
+                onPressed:
+                    (_isTransferring ||
+                            selectedDevices.isEmpty ||
+                            selectedFiles.isEmpty)
+                        ? null
+                        : () => _startTransfer(
+                          selectedDevices,
+                          selectedFiles,
+                          transferService,
+                        ),
+                icon:
+                    _isTransferring
+                        ? const SizedBox(
+                          width: 18,
+                          height: 18,
+                          child: CircularProgressIndicator(strokeWidth: 2),
+                        )
+                        : const Icon(Icons.send),
+                label: Text(_isTransferring ? "Transferring..." : "Send"),
+                style: ElevatedButton.styleFrom(
+                  padding: const EdgeInsets.all(14),
+                ),
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }

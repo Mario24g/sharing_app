@@ -116,11 +116,13 @@ class AppState extends ChangeNotifier {
 
   void addPickedFile(File file) {
     _pickedFiles.add(file);
+    _selectedFiles.add(file);
     notifyListeners();
   }
 
   void addPickedFiles(List<File> files) {
     _pickedFiles.addAll(files);
+    _selectedFiles.addAll(files);
     notifyListeners();
   }
 
