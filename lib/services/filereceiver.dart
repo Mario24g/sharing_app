@@ -53,20 +53,20 @@ class FileReceiver {
 
   Future _handleFileUpload(HttpRequest request) async {
     final String ip =
-        request.connectionInfo?.remoteAddress.address ?? 'unknown';
+        request.connectionInfo?.remoteAddress.address ?? "unknown";
 
     try {
       final ContentType? contentType = request.headers.contentType;
       if (contentType == null ||
-          !contentType.mimeType.startsWith('multipart/form-data')) {
+          !contentType.mimeType.startsWith("multipart/form-data")) {
         request.response
           ..statusCode = HttpStatus.badRequest
-          ..write('Invalid content type')
+          ..write("Invalid content type")
           ..close();
         return;
       }
 
-      final String boundary = contentType.parameters['boundary']!;
+      final String boundary = contentType.parameters["boundary"]!;
       final List<MimeMultipart> parts =
           await MimeMultipartTransformer(boundary).bind(request).toList();
 
@@ -74,12 +74,12 @@ class FileReceiver {
         final Map<String, String> headers = part.headers;
         final RegExpMatch? match = RegExp(
           r'filename="(.+)"',
-        ).firstMatch(headers['content-disposition'] ?? '');
-        final String filename = match?.group(1) ?? 'received_file';
+        ).firstMatch(headers["content-disposition"] ?? "");
+        final String filename = match?.group(1) ?? "received_file";
 
         final Directory tempDir = await getTemporaryDirectory();
         final String tempFilePath =
-            '${tempDir.path}/${DateTime.now().millisecondsSinceEpoch}_$filename';
+            "${tempDir.path}/${DateTime.now().millisecondsSinceEpoch}_$filename";
         final File file = File(tempFilePath);
         await file.writeAsBytes(
           await part.toList().then((parts) => parts.expand((e) => e).toList()),
@@ -92,7 +92,7 @@ class FileReceiver {
         if (!success!) {
           request.response
             ..statusCode = HttpStatus.internalServerError
-            ..write('Failed to save file')
+            ..write("Failed to save file")
             ..close();
           return;
         }
@@ -102,7 +102,7 @@ class FileReceiver {
 
       request.response
         ..statusCode = HttpStatus.ok
-        ..write('File(s) uploaded successfully')
+        ..write("File(s) uploaded successfully")
         ..close();
 
       if (_receivedFiles[ip] == _expectedFiles[ip]) {
@@ -113,7 +113,7 @@ class FileReceiver {
     } catch (e) {
       request.response
         ..statusCode = HttpStatus.internalServerError
-        ..write('Error: $e')
+        ..write("Error: $e")
         ..close();
       onFileReceived?.call("Error receiving file from $ip");
     }

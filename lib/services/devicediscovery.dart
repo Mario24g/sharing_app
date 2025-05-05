@@ -113,10 +113,10 @@ class DeviceDiscoverer {
 
       final Stopwatch stopwatch = Stopwatch()..start();
       while (stopwatch.elapsedMilliseconds < 3000) {
-        final datagram = socket.receive();
+        final Datagram? datagram = socket.receive();
         if (datagram != null) {
-          final senderIp = datagram.address.address;
-          final responseMessage = utf8.decode(datagram.data);
+          final String senderIp = datagram.address.address;
+          final String responseMessage = utf8.decode(datagram.data);
 
           if (responseMessage.startsWith("RESPONSE:")) {
             final String identification = responseMessage.substring(9);

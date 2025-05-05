@@ -13,7 +13,7 @@ class NotificationService {
 
   Future init() async {
     const AndroidInitializationSettings androidInitializationSettings =
-        AndroidInitializationSettings('@mipmap/ic_launcher');
+        AndroidInitializationSettings("@mipmap/ic_launcher");
 
     const DarwinInitializationSettings iOSInitializationSettings =
         DarwinInitializationSettings();
@@ -33,9 +33,9 @@ class NotificationService {
 
     const AndroidNotificationDetails androidDetails =
         AndroidNotificationDetails(
-          'file_channel_id',
-          'File Transfers',
-          channelDescription: 'Notifications for file transfer events',
+          "file_channel_id",
+          "File Transfers",
+          channelDescription: "Notifications for file transfer events",
           importance: Importance.max,
           priority: Priority.high,
         );
