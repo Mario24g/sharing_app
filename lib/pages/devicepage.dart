@@ -64,6 +64,7 @@ class _DevicePageState extends State<DevicePage> {
   }*/
 
   void _startTransfer(
+    AppState appState,
     List<Device> selectedDevices,
     List<File> selectedFiles,
     TransferService transferService,
@@ -110,6 +111,9 @@ class _DevicePageState extends State<DevicePage> {
         });
       },
     );
+    for (File file in List.from(selectedFiles)) {
+      appState.toggleFileSelection(file);
+    }
   }
 
   Widget _desktopPage(
@@ -247,7 +251,16 @@ class _DevicePageState extends State<DevicePage> {
                                           _isTransferring
                                               ? null
                                               : () => appState.clearFiles(),
-                                      child: Text("Clear all"),
+                                      child: Row(
+                                        mainAxisAlignment:
+                                            MainAxisAlignment.center,
+                                        mainAxisSize: MainAxisSize.min,
+                                        children: [
+                                          Icon(Icons.delete),
+                                          SizedBox(width: 8),
+                                          Text("Clear all"),
+                                        ],
+                                      ),
                                     ),
                                   ),
                                   SizedBox(width: 30),
@@ -267,7 +280,7 @@ class _DevicePageState extends State<DevicePage> {
                                           MainAxisAlignment.center,
                                       mainAxisSize: MainAxisSize.min,
                                       children: [
-                                        Icon(Icons.file_upload),
+                                        Icon(Icons.upload_file),
                                         SizedBox(width: 8),
                                         Text("Pick files"),
                                       ],
@@ -282,7 +295,7 @@ class _DevicePageState extends State<DevicePage> {
                                               ? null
                                               : () {
                                                 if (selectedFiles.isEmpty) {
-                                                  for (var file
+                                                  for (File file
                                                       in pickedFiles) {
                                                     appState
                                                         .toggleFileSelection(
@@ -290,7 +303,7 @@ class _DevicePageState extends State<DevicePage> {
                                                         );
                                                   }
                                                 } else {
-                                                  for (var file in List.from(
+                                                  for (File file in List.from(
                                                     selectedFiles,
                                                   )) {
                                                     appState
@@ -300,10 +313,23 @@ class _DevicePageState extends State<DevicePage> {
                                                   }
                                                 }
                                               },
-                                      child: Text(
-                                        selectedFiles.isEmpty
-                                            ? "Select all"
-                                            : "Deselect all",
+                                      child: Row(
+                                        mainAxisAlignment:
+                                            MainAxisAlignment.center,
+                                        mainAxisSize: MainAxisSize.min,
+                                        children: [
+                                          Icon(
+                                            selectedFiles.isEmpty
+                                                ? Icons.select_all
+                                                : Icons.deselect,
+                                          ),
+                                          SizedBox(width: 8),
+                                          Text(
+                                            selectedFiles.isEmpty
+                                                ? "Select all"
+                                                : "Deselect all",
+                                          ),
+                                        ],
                                       ),
                                     ),
                                   ),
@@ -393,6 +419,7 @@ class _DevicePageState extends State<DevicePage> {
                         ),
                       ),
                     ),
+                    SizedBox(height: 8.0),
                     ElevatedButton(
                       onPressed:
                           (_isTransferring ||
@@ -400,6 +427,7 @@ class _DevicePageState extends State<DevicePage> {
                                   selectedFiles.isEmpty)
                               ? null
                               : () => _startTransfer(
+                                appState,
                                 selectedDevices,
                                 selectedFiles,
                                 transferService,
@@ -553,13 +581,13 @@ class _DevicePageState extends State<DevicePage> {
                                         ? null
                                         : () {
                                           if (selectedFiles.isEmpty) {
-                                            for (var file in pickedFiles) {
+                                            for (File file in pickedFiles) {
                                               appState.toggleFileSelection(
                                                 file,
                                               );
                                             }
                                           } else {
-                                            for (var file in List.from(
+                                            for (File file in List.from(
                                               selectedFiles,
                                             )) {
                                               appState.toggleFileSelection(
@@ -637,6 +665,7 @@ class _DevicePageState extends State<DevicePage> {
                             selectedFiles.isEmpty)
                         ? null
                         : () => _startTransfer(
+                          appState,
                           selectedDevices,
                           selectedFiles,
                           transferService,

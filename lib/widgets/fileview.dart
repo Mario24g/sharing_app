@@ -58,92 +58,102 @@ class FileView extends StatelessWidget {
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12.0)),
       elevation: 8.0,
       margin: EdgeInsets.symmetric(horizontal: 10.0, vertical: 6.0),
-      child: Container(
-        decoration: BoxDecoration(
-          color:
-              isSelected
-                  ? Color.fromRGBO(64, 75, 96, 0.9)
-                  : Color.fromRGBO(64, 75, 96, 0.2),
-          borderRadius: BorderRadius.circular(12.0),
-        ),
-        child: ListTile(
-          contentPadding: EdgeInsets.symmetric(
-            horizontal: 20.0,
-            vertical: 10.0,
-          ),
-          /*leading: Container(
-            padding: EdgeInsets.only(right: 12.0),
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(12.0),
+        child: Material(
+          color: Colors.transparent,
+          child: Container(
             decoration: BoxDecoration(
-              border: Border(
-                right: BorderSide(width: 1.0, color: Colors.white24),
+              color:
+                  isSelected
+                      ? Color.fromRGBO(64, 75, 96, 0.9)
+                      : Color.fromRGBO(64, 75, 96, 0.2),
+              borderRadius: BorderRadius.circular(12.0),
+            ),
+            child: ListTile(
+              contentPadding: EdgeInsets.symmetric(
+                horizontal: 20.0,
+                vertical: 10.0,
               ),
-            ),
-            child: FaIcon(iconForMimeType(lookupMimeType(file.path))),
-          ),*/
-          leading: SizedBox(
-            width: 48,
-            height: 48,
-            child:
-                isImageFile(file)
-                    ? ClipRRect(
-                      borderRadius: BorderRadius.circular(8.0),
-                      child: Image.file(
-                        file,
-                        fit: BoxFit.cover,
-                        errorBuilder:
-                            (context, error, stackTrace) =>
-                                Icon(Icons.broken_image, color: Colors.white),
-                      ),
-                    )
-                    : Center(
-                      child: FaIcon(
-                        iconForMimeType(lookupMimeType(file.path)),
-                        color: Colors.white,
-                      ),
-                    ),
-          ),
-          title: Container(
-            padding: const EdgeInsets.only(right: 12.0),
-            constraints: BoxConstraints(
-              maxWidth: MediaQuery.of(context).size.width * 0.7,
-            ),
-            child: Text(
-              basename(file.path),
-              overflow: TextOverflow.ellipsis,
-              maxLines: 1,
-              style: TextStyle(
-                color: Colors.white,
-                fontWeight: FontWeight.bold,
+              /*leading: Container(
+                padding: EdgeInsets.only(right: 12.0),
+                decoration: BoxDecoration(
+                  border: Border(
+                    right: BorderSide(width: 1.0, color: Colors.white24),
+                  ),
+                ),
+                child: FaIcon(iconForMimeType(lookupMimeType(file.path))),
+              ),*/
+              leading: SizedBox(
+                width: 48,
+                height: 48,
+                child:
+                    isImageFile(file)
+                        ? ClipRRect(
+                          borderRadius: BorderRadius.circular(8.0),
+                          child: Image.file(
+                            file,
+                            fit: BoxFit.cover,
+                            errorBuilder:
+                                (context, error, stackTrace) => Icon(
+                                  Icons.broken_image,
+                                  color: Colors.white,
+                                ),
+                          ),
+                        )
+                        : Center(
+                          child: FaIcon(
+                            iconForMimeType(lookupMimeType(file.path)),
+                            color: Colors.white,
+                          ),
+                        ),
               ),
-            ),
-          ),
-          subtitle: Row(
-            children: [
-              Expanded(
-                flex: 4,
+              title: Container(
+                padding: const EdgeInsets.only(right: 12.0),
+                constraints: BoxConstraints(
+                  maxWidth: MediaQuery.of(context).size.width * 0.7,
+                ),
                 child: Text(
-                  formatBytes(file.lengthSync()),
-                  style: TextStyle(color: Colors.white),
+                  basename(file.path),
+                  overflow: TextOverflow.ellipsis,
+                  maxLines: 1,
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontWeight: FontWeight.bold,
+                  ),
                 ),
               ),
-            ],
-          ),
-          trailing: ElevatedButton(
-            onPressed: onFileRemoved,
-            style: ButtonStyle(
-              shape: WidgetStateProperty.all(CircleBorder()),
-              padding: WidgetStateProperty.all(EdgeInsets.all(20)),
-              backgroundColor: WidgetStateProperty.all(Colors.blue),
-              overlayColor: WidgetStateProperty.resolveWith<Color?>((states) {
-                if (states.contains(WidgetState.pressed)) {
-                  return Colors.red;
-                }
-                return null;
-              }),
+              subtitle: Row(
+                children: [
+                  Expanded(
+                    flex: 4,
+                    child: Text(
+                      formatBytes(file.lengthSync()),
+                      style: TextStyle(color: Colors.white),
+                    ),
+                  ),
+                ],
+              ),
+              trailing: ElevatedButton(
+                onPressed: onFileRemoved,
+                style: ButtonStyle(
+                  shape: WidgetStateProperty.all(CircleBorder()),
+                  padding: WidgetStateProperty.all(EdgeInsets.all(20)),
+                  backgroundColor: WidgetStateProperty.all(Colors.blue),
+                  overlayColor: WidgetStateProperty.resolveWith<Color?>((
+                    states,
+                  ) {
+                    if (states.contains(WidgetState.pressed)) {
+                      return Colors.red;
+                    }
+                    return null;
+                  }),
+                ),
+                child: Icon(Icons.delete),
+              ),
+              onTap: onTap,
             ),
-            child: Icon(Icons.delete),
           ),
-          onTap: onTap,
         ),
       ),
     );

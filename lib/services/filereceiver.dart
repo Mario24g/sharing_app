@@ -81,9 +81,13 @@ class FileReceiver {
         final String tempFilePath =
             "${tempDir.path}/${DateTime.now().millisecondsSinceEpoch}_$filename";
         final File file = File(tempFilePath);
-        await file.writeAsBytes(
+        /*await file.writeAsBytes(
           await part.toList().then((parts) => parts.expand((e) => e).toList()),
-        );
+        );*/
+        final IOSink sink = file.openWrite();
+        await part.pipe(sink);
+        await sink.flush();
+        await sink.close();
 
         final bool? success = await copyFileIntoDownloadFolder(
           tempFilePath,

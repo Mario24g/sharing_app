@@ -37,16 +37,25 @@ class FileSender {
 
       for (final File file in selectedFiles) {
         uploadTasks.add(
-          sendFile(device.ip, file, (progress) {
-            onProgressUpdate?.call(progress);
-
-            if (progress >= 1.0) {
-              completedFiles++;
+          sendFile(
+            device.ip,
+            file,
+            () {
               onStatusUpdate?.call(
-                'Transferred ${basename(file.path)} to ${device.name} ($completedFiles/$totalFiles)',
+                "Transfering ${basename(file.path)} to ${device.name}",
               );
-            }
-          }),
+            },
+            (progress) {
+              onProgressUpdate?.call(progress);
+
+              if (progress >= 1.0) {
+                completedFiles++;
+                onStatusUpdate?.call(
+                  "Transferred ${basename(file.path)} to ${device.name} ($completedFiles/$totalFiles)",
+                );
+              }
+            },
+          ),
         );
       }
     }
@@ -61,13 +70,15 @@ class FileSender {
   Future sendFile(
     String targetIp,
     File file,
-    void Function(double progress) onProgress,
+    void Function()? onTransferStarted,
+    void Function(double progress)? onProgress,
   ) async {
+    onTransferStarted?.call();
     Uri uri = Uri.parse('http://$targetIp:8889/upload');
     int length = await file.length();
     //ByteStream stream = http.ByteStream(file.openRead());
     ByteStream stream = http.ByteStream(
-      _ProgressStream(file.openRead(), length, onProgress),
+      _ProgressStream(file.openRead(), length, onProgress!),
     );
     stream.cast();
 
