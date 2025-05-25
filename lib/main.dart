@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:io';
 
+import 'package:hive_flutter/hive_flutter.dart';
 import 'package:sharing_app/model/historyentry.dart';
 import 'package:sharing_app/pages/applicationpage.dart';
 import 'package:sharing_app/model/device.dart';
@@ -19,6 +20,13 @@ void main() {
       if (Platform.isAndroid || Platform.isIOS) {
         await NotificationService().init();
       }
+
+      await Hive.initFlutter();
+      Hive.registerAdapter(DeviceAdapter());
+      Hive.registerAdapter(DevicePlatformAdapter());
+      Hive.registerAdapter(HistoryEntryAdapter());
+      await Hive.openBox<HistoryEntry>("history");
+
       runApp(const MainApp());
     },
     (error, stack) {
@@ -59,6 +67,7 @@ class AppState extends ChangeNotifier {
   final List<File> _pickedFiles = [];
   final List<File> _selectedFiles = [];
   final List<HistoryEntry> _historyEntries = [];
+  final Box<HistoryEntry> _historyBox = Hive.box<HistoryEntry>("history");
   String? _deviceInfo;
 
   List<Device> get devices => List.unmodifiable(_devices);
@@ -72,6 +81,7 @@ class AppState extends ChangeNotifier {
 
   void initialize() {
     _fetchDeviceInfo();
+    _fetchHistoryEntries();
     networkService.initialize();
     networkService.discoveredDevices.listen(
       (device) {
@@ -129,14 +139,22 @@ class AppState extends ChangeNotifier {
     notifyListeners();
   }
 
+  void _fetchHistoryEntries() {
+    _historyEntries.addAll(_historyBox.values);
+    notifyListeners();
+  }
+
   void addHistoryEntry(HistoryEntry entry) {
     _historyEntries.insert(0, entry);
+    _historyBox.add(entry);
     notifyListeners();
   }
 
   void updateHistoryEntries(List<HistoryEntry> entries) {
     _historyEntries.clear();
+    _historyBox.clear();
     _historyEntries.addAll(entries);
+    _historyBox.addAll(entries);
     notifyListeners();
   }
 

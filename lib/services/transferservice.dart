@@ -24,7 +24,7 @@ class TransferService {
   ) {
     final FileSender fileSender = FileSender(port: 8889);
     fileSender.createTransferTask(selectedDevices, selectedFiles, onTransferComplete, onProgressUpdate, onStatusUpdate);
-    appState.addHistoryEntry(HistoryEntry(isUpload: true, files: selectedFiles, targetDevices: selectedDevices));
+    appState.addHistoryEntry(HistoryEntry(isUpload: true, filePaths: selectedFiles.map((f) => f.path).toList(), targetDevices: selectedDevices));
   }
 
   void startFileReceiver() {
@@ -34,7 +34,7 @@ class TransferService {
       onFileReceived: (String message, Device senderDevice, List<File> files) {
         print("Received ${files.length} file(s) from ${senderDevice.name}");
 
-        appState.addHistoryEntry(HistoryEntry(isUpload: false, files: files, senderDevice: senderDevice));
+        appState.addHistoryEntry(HistoryEntry(isUpload: false, filePaths: files.map((f) => f.path).toList(), senderDevice: senderDevice));
 
         onFileReceived?.call("Files received from ${senderDevice.name}");
       },

@@ -1,15 +1,18 @@
 import 'dart:math';
 
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
 import 'package:sharing_app/model/historyentry.dart';
 
 class HistoryEntryView extends StatefulWidget {
   final HistoryEntry historyEntry;
+  final DateFormat format = DateFormat('dd/MM/yyyy HH:mm');
   final void Function()? onEntryDeleted;
 
   int get totalDevices => historyEntry.targetDevices?.length ?? 0;
   int get totalFiles => historyEntry.files.length;
   String get senderDevice => historyEntry.senderDevice?.name ?? "unknown";
+  String get timestamp => format.format(DateTime.parse(historyEntry.timestamp));
   /*int get totalSize =>
       files.map((f) => f.lengthSync()).fold(0, (a, b) => a + b);*/
   Future<int> getTotalSize() {
@@ -23,7 +26,7 @@ class HistoryEntryView extends StatefulWidget {
     return '${(bytes / pow(1024, i)).toStringAsFixed(decimals)} ${suffixes[i]}';
   }
 
-  const HistoryEntryView({super.key, required this.historyEntry, required this.onEntryDeleted});
+  HistoryEntryView({super.key, required this.historyEntry, required this.onEntryDeleted});
 
   @override
   State<StatefulWidget> createState() => _HistoryEntryViewState();
@@ -50,7 +53,7 @@ class _HistoryEntryViewState extends State<HistoryEntryView> {
                 padding: const EdgeInsets.only(right: 12.0),
                 constraints: BoxConstraints(maxWidth: MediaQuery.of(context).size.width * 0.7),
                 child: Text(
-                  isUpload ? "Sent" : "Received",
+                  isUpload ? "Sent ${widget.timestamp}" : "Received ${widget.timestamp}",
                   overflow: TextOverflow.ellipsis,
                   maxLines: 1,
                   style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
@@ -62,7 +65,7 @@ class _HistoryEntryViewState extends State<HistoryEntryView> {
                     flex: 4,
                     child: Text(
                       isUpload
-                          ? "Sent ${widget.totalFiles} to ${widget.totalDevices} devices"
+                          ? "Sent ${widget.totalFiles} files to ${widget.totalDevices} devices"
                           : "Received ${widget.totalFiles} files from ${widget.senderDevice}",
                       style: TextStyle(color: Colors.white),
                     ),
