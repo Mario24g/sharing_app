@@ -23,32 +23,21 @@ class TransferService {
     void Function(String statusMessage)? onStatusUpdate,
   ) {
     final FileSender fileSender = FileSender(port: 8889);
-    fileSender.createTransferTask(
-      selectedDevices,
-      selectedFiles,
-      onTransferComplete,
-      onProgressUpdate,
-      onStatusUpdate,
-    );
-    appState.addHistoryEntry(
-      HistoryEntry(
-        isUpload: true,
-        files: selectedFiles,
-        targetDevices: selectedDevices,
-      ),
-    );
+    fileSender.createTransferTask(selectedDevices, selectedFiles, onTransferComplete, onProgressUpdate, onStatusUpdate);
+    appState.addHistoryEntry(HistoryEntry(isUpload: true, files: selectedFiles, targetDevices: selectedDevices));
   }
 
   void startFileReceiver() {
     FileReceiver(
       port: 8889,
-      onFileReceived: onFileReceived,
-    ).startReceiverServer();
-  }
+      appState: appState,
+      onFileReceived: (String message, Device senderDevice, List<File> files) {
+        print("Received ${files.length} file(s) from ${senderDevice.name}");
 
-  void receiveFiles({required List<File> files, required Device senderDevice}) {
-    appState.addHistoryEntry(
-      HistoryEntry(isUpload: false, files: files, senderDevice: senderDevice),
-    );
+        appState.addHistoryEntry(HistoryEntry(isUpload: false, files: files, senderDevice: senderDevice));
+
+        onFileReceived?.call("Files received from ${senderDevice.name}");
+      },
+    ).startReceiverServer();
   }
 }

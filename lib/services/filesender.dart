@@ -14,11 +14,7 @@ class FileSender {
 
   Future sendMetadata(String targetIp, int fileCount) async {
     final Uri uri = Uri.parse('http://$targetIp:8889/upload-metadata');
-    await http.post(
-      uri,
-      headers: {'Content-Type': 'application/json'},
-      body: jsonEncode({'fileCount': fileCount}),
-    );
+    await http.post(uri, headers: {'Content-Type': 'application/json'}, body: jsonEncode({'fileCount': fileCount}));
   }
 
   void createTransferTask(
@@ -28,7 +24,7 @@ class FileSender {
     void Function(double progress)? onProgressUpdate,
     void Function(String statusMessage)? onStatusUpdate,
   ) async {
-    final List<Future> uploadTasks = [];
+    //final List<Future> uploadTasks = [];
     final int totalFiles = selectedDevices.length * selectedFiles.length;
     int completedFiles = 0;
 
@@ -36,60 +32,43 @@ class FileSender {
       await sendMetadata(device.ip, selectedFiles.length);
 
       for (final File file in selectedFiles) {
-        uploadTasks.add(
-          sendFile(
-            device.ip,
-            file,
-            () {
-              onStatusUpdate?.call(
-                "Transfering ${basename(file.path)} to ${device.name}",
-              );
-            },
-            (progress) {
-              onProgressUpdate?.call(progress);
+        await sendFile(
+          device.ip,
+          file,
+          () {
+            onStatusUpdate?.call("Transfering ${basename(file.path)} to ${device.name}");
+          },
+          (progress) {
+            onProgressUpdate?.call(progress);
 
-              if (progress >= 1.0) {
-                completedFiles++;
-                onStatusUpdate?.call(
-                  "Transferred ${basename(file.path)} to ${device.name} ($completedFiles/$totalFiles)",
-                );
-              }
-            },
-          ),
+            if (progress >= 1.0) {
+              completedFiles++;
+              onStatusUpdate?.call("Transferred ${basename(file.path)} to ${device.name} ($completedFiles/$totalFiles)");
+            }
+          },
         );
+        /*uploadTasks.add(
+          await sendFile...
+        );*/
       }
     }
 
-    await Future.wait(uploadTasks);
+    //await Future.wait(uploadTasks);
 
-    onTransferComplete?.call(
-      "Transferred ${selectedFiles.length} file(s) to ${selectedDevices.length} device(s)",
-    );
+    onTransferComplete?.call("Transferred ${selectedFiles.length} file(s) to ${selectedDevices.length} device(s)");
   }
 
-  Future sendFile(
-    String targetIp,
-    File file,
-    void Function()? onTransferStarted,
-    void Function(double progress)? onProgress,
-  ) async {
+  Future sendFile(String targetIp, File file, void Function()? onTransferStarted, void Function(double progress)? onProgress) async {
     onTransferStarted?.call();
     Uri uri = Uri.parse('http://$targetIp:8889/upload');
     int length = await file.length();
     //ByteStream stream = http.ByteStream(file.openRead());
-    ByteStream stream = http.ByteStream(
-      _ProgressStream(file.openRead(), length, onProgress!),
-    );
+    ByteStream stream = http.ByteStream(_ProgressStream(file.openRead(), length, onProgress!));
     stream.cast();
 
     MultipartRequest request = http.MultipartRequest("POST", uri);
 
-    MultipartFile multipartFile = http.MultipartFile(
-      "file",
-      stream,
-      length,
-      filename: basename(file.path),
-    );
+    MultipartFile multipartFile = http.MultipartFile("file", stream, length, filename: basename(file.path));
 
     request.files.add(multipartFile);
 
@@ -115,12 +94,7 @@ class _ProgressStream extends Stream<List<int>> {
   _ProgressStream(this._stream, this._total, this._onProgress);
 
   @override
-  StreamSubscription<List<int>> listen(
-    void Function(List<int>)? onData, {
-    Function? onError,
-    void Function()? onDone,
-    bool? cancelOnError,
-  }) {
+  StreamSubscription<List<int>> listen(void Function(List<int>)? onData, {Function? onError, void Function()? onDone, bool? cancelOnError}) {
     return _stream.listen(
       (chunk) {
         _bytesSent += chunk.length;

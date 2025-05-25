@@ -30,7 +30,10 @@ class _HistoryPageState extends State<HistoryPage> {
                         final HistoryEntry entry = historyEntries[index];
                         return HistoryEntryView(
                           historyEntry: entry,
-                          onEntryDeleted: () {},
+                          onEntryDeleted: () {
+                            final updatedList = List<HistoryEntry>.from(historyEntries)..remove(entry);
+                            appState.updateHistoryEntries(updatedList);
+                          },
                         );
                       },
                     ),

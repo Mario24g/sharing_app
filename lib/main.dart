@@ -42,22 +42,12 @@ class MainApp extends StatelessWidget {
             appState.initialize();
             return appState;
           },
-          update:
-              (context, networkService, appState) =>
-                  appState!..networkService = networkService,
+          update: (context, networkService, appState) => appState!..networkService = networkService,
         ),
 
-        ProxyProvider<AppState, TransferService>(
-          update:
-              (context, appState, previous) =>
-                  previous ?? TransferService(appState: appState),
-        ),
+        ProxyProvider<AppState, TransferService>(update: (context, appState, previous) => previous ?? TransferService(appState: appState)),
       ],
-      child: MaterialApp(
-        title: 'BlitzShare',
-        darkTheme: ThemeData.dark(),
-        home: const ApplicationPage(),
-      ),
+      child: MaterialApp(title: 'BlitzShare', darkTheme: ThemeData.dark(), home: const ApplicationPage()),
     );
   }
 }
@@ -81,18 +71,6 @@ class AppState extends ChangeNotifier {
   AppState(this.networkService);
 
   void initialize() {
-    /*_devices.addAll(
-      List.of([
-        Device(ip: "123", name: "Test", devicePlatform: DevicePlatform.windows),
-        Device(ip: "123", name: "Test2", devicePlatform: DevicePlatform.macos),
-        Device(ip: "123", name: "Test2", devicePlatform: DevicePlatform.linux),
-        Device(
-          ip: "123",
-          name: "Test2",
-          devicePlatform: DevicePlatform.android,
-        ),
-      ]),
-    );*/
     _fetchDeviceInfo();
     networkService.initialize();
     networkService.discoveredDevices.listen(
@@ -153,6 +131,12 @@ class AppState extends ChangeNotifier {
 
   void addHistoryEntry(HistoryEntry entry) {
     _historyEntries.insert(0, entry);
+    notifyListeners();
+  }
+
+  void updateHistoryEntries(List<HistoryEntry> entries) {
+    _historyEntries.clear();
+    _historyEntries.addAll(entries);
     notifyListeners();
   }
 

@@ -12,13 +12,7 @@ class FileView extends StatelessWidget {
   final VoidCallback onTap;
   final void Function()? onFileRemoved;
 
-  const FileView({
-    super.key,
-    required this.file,
-    required this.isSelected,
-    required this.onTap,
-    required this.onFileRemoved,
-  });
+  const FileView({super.key, required this.file, required this.isSelected, required this.onTap, required this.onFileRemoved});
 
   IconData iconForMimeType(String? mime) {
     if (mime == null) return FontAwesomeIcons.question;
@@ -37,17 +31,7 @@ class FileView extends StatelessWidget {
 
   static String formatBytes(int bytes, [int decimals = 2]) {
     if (bytes <= 0) return "0 B";
-    const List<String> suffixes = [
-      "B",
-      "KB",
-      "MB",
-      "GB",
-      "TB",
-      "PB",
-      "EB",
-      "ZB",
-      "YB",
-    ];
+    const List<String> suffixes = ["B", "KB", "MB", "GB", "TB", "PB", "EB", "ZB", "YB"];
     int i = (log(bytes) / log(1024)).floor();
     return "${(bytes / pow(1024, i)).toStringAsFixed(decimals)} ${suffixes[i]}";
   }
@@ -64,17 +48,11 @@ class FileView extends StatelessWidget {
           color: Colors.transparent,
           child: Container(
             decoration: BoxDecoration(
-              color:
-                  isSelected
-                      ? Color.fromRGBO(64, 75, 96, 0.9)
-                      : Color.fromRGBO(64, 75, 96, 0.2),
+              color: isSelected ? Color.fromRGBO(64, 75, 96, 0.9) : Color.fromRGBO(64, 75, 96, 0.2),
               borderRadius: BorderRadius.circular(12.0),
             ),
             child: ListTile(
-              contentPadding: EdgeInsets.symmetric(
-                horizontal: 20.0,
-                vertical: 10.0,
-              ),
+              contentPadding: EdgeInsets.symmetric(horizontal: 20.0, vertical: 10.0),
               /*leading: Container(
                 padding: EdgeInsets.only(right: 12.0),
                 decoration: BoxDecoration(
@@ -94,55 +72,29 @@ class FileView extends StatelessWidget {
                           child: Image.file(
                             file,
                             fit: BoxFit.cover,
-                            errorBuilder:
-                                (context, error, stackTrace) => Icon(
-                                  Icons.broken_image,
-                                  color: Colors.white,
-                                ),
+                            errorBuilder: (context, error, stackTrace) => Icon(Icons.broken_image, color: Colors.white),
                           ),
                         )
-                        : Center(
-                          child: FaIcon(
-                            iconForMimeType(lookupMimeType(file.path)),
-                            color: Colors.white,
-                          ),
-                        ),
+                        : Center(child: FaIcon(iconForMimeType(lookupMimeType(file.path)), color: Colors.white)),
               ),
               title: Container(
                 padding: const EdgeInsets.only(right: 12.0),
-                constraints: BoxConstraints(
-                  maxWidth: MediaQuery.of(context).size.width * 0.7,
-                ),
+                constraints: BoxConstraints(maxWidth: MediaQuery.of(context).size.width * 0.7),
                 child: Text(
                   basename(file.path),
                   overflow: TextOverflow.ellipsis,
                   maxLines: 1,
-                  style: TextStyle(
-                    color: Colors.white,
-                    fontWeight: FontWeight.bold,
-                  ),
+                  style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
                 ),
               ),
-              subtitle: Row(
-                children: [
-                  Expanded(
-                    flex: 4,
-                    child: Text(
-                      formatBytes(file.lengthSync()),
-                      style: TextStyle(color: Colors.white),
-                    ),
-                  ),
-                ],
-              ),
+              subtitle: Row(children: [Expanded(flex: 4, child: Text(formatBytes(file.lengthSync()), style: TextStyle(color: Colors.white)))]),
               trailing: ElevatedButton(
                 onPressed: onFileRemoved,
                 style: ButtonStyle(
                   shape: WidgetStateProperty.all(CircleBorder()),
                   padding: WidgetStateProperty.all(EdgeInsets.all(20)),
                   backgroundColor: WidgetStateProperty.all(Colors.blue),
-                  overlayColor: WidgetStateProperty.resolveWith<Color?>((
-                    states,
-                  ) {
+                  overlayColor: WidgetStateProperty.resolveWith<Color?>((states) {
                     if (states.contains(WidgetState.pressed)) {
                       return Colors.red;
                     }

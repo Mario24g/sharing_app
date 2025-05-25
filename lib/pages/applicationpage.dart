@@ -35,11 +35,7 @@ class _ApplicationPageState extends State<ApplicationPage> {
         NotificationFlushbar.build(message).show(context);
       };
       transferService.onFileReceived = (message) {
-        NotificationService().showNotification(
-          title: "File Received",
-          body: message,
-        );
-        print("asd");
+        NotificationService().showNotification(title: "File Received", body: message);
         NotificationFlushbar.build(message).show(context);
       };
       /*appState.networkService.onFileReceived = (message) {
@@ -58,9 +54,7 @@ class _ApplicationPageState extends State<ApplicationPage> {
     for (Device device in appState.devices) {
       print("Device in devices: ${device.ip}");
     }
-    final Device requestingDevice = appState.devices.firstWhere(
-      (d) => d.ip.trim() == ip.trim(),
-    );
+    final Device requestingDevice = appState.devices.firstWhere((d) => d.ip.trim() == ip.trim());
     showDialog(
       context: context,
       builder:
@@ -68,19 +62,13 @@ class _ApplicationPageState extends State<ApplicationPage> {
             title: Text("Incoming File Transfer"),
             content: Text("${requestingDevice.name} wants to send you a file."),
             actions: [
-              TextButton(
-                onPressed: () => Navigator.of(context).pop(),
-                child: Text("Deny"),
-              ),
+              TextButton(onPressed: () => Navigator.of(context).pop(), child: Text("Deny")),
               TextButton(
                 onPressed: () async {
                   Navigator.of(context).pop();
 
                   try {
-                    final Socket socket = await Socket.connect(
-                      requestingDevice.ip,
-                      8890,
-                    );
+                    final Socket socket = await Socket.connect(requestingDevice.ip, 8890);
 
                     socket.writeln("ACCEPT");
                     await socket.flush();
@@ -101,18 +89,9 @@ class _ApplicationPageState extends State<ApplicationPage> {
         ? SafeArea(
           child: BottomNavigationBar(
             items: const [
-              BottomNavigationBarItem(
-                icon: Icon(Icons.settings_remote_rounded),
-                label: 'Devices',
-              ),
-              BottomNavigationBarItem(
-                icon: Icon(Icons.settings),
-                label: 'Settings',
-              ),
-              BottomNavigationBarItem(
-                icon: Icon(Icons.history),
-                label: 'History',
-              ),
+              BottomNavigationBarItem(icon: Icon(Icons.settings_remote_rounded), label: 'Devices'),
+              BottomNavigationBarItem(icon: Icon(Icons.settings), label: 'Settings'),
+              BottomNavigationBarItem(icon: Icon(Icons.history), label: 'History'),
             ],
             currentIndex: _selectedIndex,
             onTap: _onItemTapped,
@@ -124,18 +103,9 @@ class _ApplicationPageState extends State<ApplicationPage> {
             labelType: NavigationRailLabelType.none,
             minWidth: 80,
             destinations: const [
-              NavigationRailDestination(
-                icon: Icon(Icons.settings_remote_rounded),
-                label: Text('Devices'),
-              ),
-              NavigationRailDestination(
-                icon: Icon(Icons.settings),
-                label: Text('Settings'),
-              ),
-              NavigationRailDestination(
-                icon: Icon(Icons.history),
-                label: Text('History'),
-              ),
+              NavigationRailDestination(icon: Icon(Icons.settings_remote_rounded), label: Text('Devices')),
+              NavigationRailDestination(icon: Icon(Icons.settings), label: Text('Settings')),
+              NavigationRailDestination(icon: Icon(Icons.history), label: Text('History')),
             ],
             selectedIndex: _selectedIndex,
             onDestinationSelected: _onItemTapped,
@@ -186,26 +156,10 @@ class _ApplicationPageState extends State<ApplicationPage> {
       body:
           _isMobile
               ? Column(
-                children: [
-                  Expanded(
-                    child: ColoredBox(
-                      color: Color.fromARGB(255, 245, 245, 245),
-                      child: _buildCurrentPage(_isMobile),
-                    ),
-                  ),
-                  _buildNavigation(),
-                ],
+                children: [Expanded(child: ColoredBox(color: Color.fromARGB(255, 245, 245, 245), child: _buildCurrentPage(_isMobile))), _buildNavigation()],
               )
               : Row(
-                children: [
-                  _buildNavigation(),
-                  Expanded(
-                    child: ColoredBox(
-                      color: Color.fromARGB(255, 245, 245, 245),
-                      child: _buildCurrentPage(_isMobile),
-                    ),
-                  ),
-                ],
+                children: [_buildNavigation(), Expanded(child: ColoredBox(color: Color.fromARGB(255, 245, 245, 245), child: _buildCurrentPage(_isMobile)))],
               ),
     );
   }
