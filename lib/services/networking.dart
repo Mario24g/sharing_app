@@ -23,12 +23,10 @@ class NetworkService {
 
   final Map<String, DateTime> _deviceLastSeen = {};
   final Set<String> _knownIps = {};
-  final StreamController<Device> _discoveryController =
-      StreamController.broadcast();
+  final Map<String, Socket> _tcpSockets = {};
+  final StreamController<Device> _discoveryController = StreamController.broadcast();
 
   Stream<Device> get discoveredDevices => _discoveryController.stream;
-
-  final Map<String, Socket> _tcpSockets = {};
 
   Future initialize() async {
     _localIp = await _networkInfo.getWifiIP();
@@ -55,11 +53,6 @@ class NetworkService {
       deviceLastSeen: _deviceLastSeen,
     ).initialize();
 
-    /*FileReceiver(
-      port: 8889,
-      onFileReceived: onFileReceived,
-    ).startReceiverServer();*/
-
     _monitorDevices();
   }
 
@@ -68,11 +61,7 @@ class NetworkService {
     Timer.periodic(Duration(seconds: 5), (timer) {
       DateTime now = DateTime.now();
 
-      final toRemove =
-          _deviceLastSeen.entries
-              .where((e) => now.difference(e.value).inSeconds > 6)
-              .map((e) => e.key)
-              .toList();
+      final toRemove = _deviceLastSeen.entries.where((e) => now.difference(e.value).inSeconds > 6).map((e) => e.key).toList();
 
       for (String ip in toRemove) {
         _removeDevice(ip);

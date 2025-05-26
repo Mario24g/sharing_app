@@ -5,6 +5,7 @@ import 'package:hive_flutter/hive_flutter.dart';
 import 'package:sharing_app/model/historyentry.dart';
 import 'package:sharing_app/pages/applicationpage.dart';
 import 'package:sharing_app/model/device.dart';
+import 'package:sharing_app/services/connectivityservice.dart';
 import 'package:sharing_app/services/networking.dart' show NetworkService;
 import 'package:provider/provider.dart';
 import 'package:flutter/material.dart';
@@ -43,6 +44,9 @@ class MainApp extends StatelessWidget {
     return MultiProvider(
       providers: [
         Provider<NetworkService>(create: (_) => NetworkService()),
+
+        //TODO: service starts only with lazy: false
+        ChangeNotifierProvider<ConnectivityService>(create: (_) => ConnectivityService(), lazy: false),
 
         ChangeNotifierProxyProvider<NetworkService, AppState>(
           create: (context) {

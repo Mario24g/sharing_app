@@ -1,11 +1,13 @@
 import 'dart:io';
 
+import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:sharing_app/pages/devicepage.dart';
 import 'package:sharing_app/main.dart';
 import 'package:sharing_app/model/device.dart';
 import 'package:sharing_app/pages/historypage.dart';
+import 'package:sharing_app/services/connectivityservice.dart';
 import 'package:sharing_app/services/notificationservice.dart';
 import 'package:sharing_app/services/transferservice.dart';
 import 'package:sharing_app/widgets/notificationflushbar.dart';
@@ -29,11 +31,24 @@ class _ApplicationPageState extends State<ApplicationPage> {
 
     WidgetsBinding.instance.addPostFrameCallback((_) {
       final AppState appState = context.read<AppState>();
+      final ConnectivityService connectivityService = context.read<ConnectivityService>();
       final TransferService transferService = context.read<TransferService>();
+
       appState.setOnTransferRequestHandler(_handleIncomingRequest);
       appState.networkService.onDeviceDisconnected = (message) {
         NotificationFlushbar.build(message).show(context);
       };
+      connectivityService.addListener(() {
+        final ConnectivityResult newStatus = connectivityService.currentStatus;
+        final String message = switch (newStatus) {
+          ConnectivityResult.mobile => "Connected via Mobile Data",
+          ConnectivityResult.wifi => "Connected via Wi-Fi",
+          ConnectivityResult.none => "Disconnected from Network",
+          _ => "Connectivity changed",
+        };
+
+        NotificationFlushbar.build(message).show(context);
+      });
       transferService.onFileReceived = (message) {
         NotificationService().showNotification(title: "File Received", body: message);
         NotificationFlushbar.build(message).show(context);
