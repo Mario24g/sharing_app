@@ -1,0 +1,8 @@
+[Desktop Entry]
+Name=BlitzShare
+Exec=blitzshare
+Icon=blitzshare
+Type=Application
+StartupNotify=true
+Categories=Utility;
+StartupWMClass=BlitzShare

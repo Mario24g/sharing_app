@@ -1,7 +1,6 @@
 import 'dart:async';
 import 'dart:io';
 
-import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:sharing_app/model/historyentry.dart';
 import 'package:sharing_app/pages/applicationpage.dart';
