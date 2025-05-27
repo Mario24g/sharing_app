@@ -10,7 +10,6 @@ class ConnectivityService with ChangeNotifier {
   ConnectivityResult _currentStatus = ConnectivityResult.none;
   ConnectivityResult get currentStatus => _currentStatus;
 
-  bool get isConnected => _currentStatus != ConnectivityResult.none;
   bool get isMobileData => _currentStatus == ConnectivityResult.mobile;
   bool get isWifi => _currentStatus == ConnectivityResult.wifi;
 
@@ -19,7 +18,6 @@ class ConnectivityService with ChangeNotifier {
   }
 
   void _initialize() async {
-    print("Initializing ConnectivityService");
     final List<ConnectivityResult> resultList = await _connectivity.checkConnectivity();
     _currentStatus = resultList.firstOrNull ?? ConnectivityResult.none;
     notifyListeners();

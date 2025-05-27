@@ -41,9 +41,9 @@ class _ApplicationPageState extends State<ApplicationPage> {
       connectivityService.addListener(() {
         final ConnectivityResult newStatus = connectivityService.currentStatus;
         final String message = switch (newStatus) {
-          ConnectivityResult.mobile => "Connected via Mobile Data",
+          ConnectivityResult.mobile => "Connected via mobile data",
           ConnectivityResult.wifi => "Connected via Wi-Fi",
-          ConnectivityResult.none => "Disconnected from Network",
+          ConnectivityResult.none => "Disconnected from network",
           _ => "Connectivity changed",
         };
 

@@ -15,6 +15,8 @@ class DeviceDiscoverer {
   final StreamController<Device> discoveryController;
   final void Function(String ip)? onDeviceDiscovered;
 
+  late final Set<String> _localIps;
+
   RawDatagramSocket? _listeningSocket;
 
   final bool _shouldContinueDiscovery = true;
@@ -30,38 +32,32 @@ class DeviceDiscoverer {
     required this.deviceLastSeen,
   });
 
-  void initialize() {
+  void initialize() async {
+    _localIps = await _getLocalIps();
     _startListeningBroadcast();
     _startDiscoveryLoop();
   }
 
   /* BROADCAST DISCOVERY */
   void _startListeningBroadcast() async {
-    _listeningSocket = await RawDatagramSocket.bind(
-      InternetAddress.anyIPv4,
-      port,
-    );
+    _listeningSocket = await RawDatagramSocket.bind(InternetAddress.anyIPv4, port);
     _listeningSocket!.broadcastEnabled = true;
 
     _listeningSocket!.listen((event) {
       if (event == RawSocketEvent.read) {
-        final datagram = _listeningSocket!.receive();
+        final Datagram? datagram = _listeningSocket!.receive();
         if (datagram != null) {
-          final senderIp = datagram.address.address;
-          final message = utf8.decode(datagram.data);
+          final String senderIp = datagram.address.address;
+          final String message = utf8.decode(datagram.data);
 
           //Si recibe un mensaje DISCOVER, responde a su remitente para anunciar su presencia
           if (message.startsWith("DISCOVER:")) {
-            final responseMessage = "RESPONSE:$deviceId";
-            _listeningSocket!.send(
-              utf8.encode(responseMessage),
-              datagram.address,
-              port,
-            );
+            final String responseMessage = "RESPONSE:$deviceId";
+            _listeningSocket!.send(utf8.encode(responseMessage), datagram.address, port);
           }
           //Si recibe un mensaje RESPONSE, añade el dispositivo que ha anunciado su presencia
           else if (message.startsWith("RESPONSE:")) {
-            if (senderIp == ip) return;
+            if (_localIps.contains(senderIp)) return;
             if (!knownIps.contains(senderIp)) {
               final String identification = message.substring(9);
               final List<String> components = identification.split("|");
@@ -70,9 +66,7 @@ class DeviceDiscoverer {
                 Device(
                   ip: senderIp,
                   name: components[0],
-                  devicePlatform: DevicePlatform.values.firstWhere(
-                    (v) => v.toString() == 'DevicePlatform.${components[1]}',
-                  ),
+                  devicePlatform: DevicePlatform.values.firstWhere((v) => v.toString() == 'DevicePlatform.${components[1]}'),
                 ),
               );
 
@@ -93,22 +87,14 @@ class DeviceDiscoverer {
 
   Future sendDiscoveryBroadcast() async {
     try {
-      final String broadcastAddress =
-          await networkInfo.getWifiBroadcast() ?? '255.255.255.255';
-      final RawDatagramSocket socket = await RawDatagramSocket.bind(
-        InternetAddress.anyIPv4,
-        0,
-      );
+      final String broadcastAddress = await networkInfo.getWifiBroadcast() ?? '255.255.255.255';
+      final RawDatagramSocket socket = await RawDatagramSocket.bind(InternetAddress.anyIPv4, 0);
       socket.broadcastEnabled = true;
 
       final String message = "DISCOVER:$deviceId";
 
       for (int i = 0; i < 5; i++) {
-        socket.send(
-          utf8.encode(message),
-          InternetAddress(broadcastAddress),
-          port,
-        );
+        socket.send(utf8.encode(message), InternetAddress(broadcastAddress), port);
       }
 
       final Stopwatch stopwatch = Stopwatch()..start();
@@ -126,10 +112,7 @@ class DeviceDiscoverer {
               Device(
                 ip: senderIp,
                 name: components[0],
-                devicePlatform: DevicePlatform.values.firstWhere(
-                  (v) => v.toString() == 'DeviceType.${components[1]}',
-                  orElse: () => DevicePlatform.unknown,
-                ),
+                devicePlatform: DevicePlatform.values.firstWhere((v) => v.toString() == 'DeviceType.${components[1]}', orElse: () => DevicePlatform.unknown),
               ),
             );
           }
@@ -141,5 +124,13 @@ class DeviceDiscoverer {
     } catch (e) {
       print("Discovery error: $e");
     }
+  }
+
+  /// Finds all [NetworkInterface]s (eth0, wlan0, etc.) of the device and extracts the IPs.
+  ///
+  /// Returns a set of IPs.
+  Future<Set<String>> _getLocalIps() async {
+    final List<NetworkInterface> interfaces = await NetworkInterface.list(includeLoopback: false, type: InternetAddressType.IPv4);
+    return interfaces.expand((interface) => interface.addresses).map((addr) => addr.address).toSet();
   }
 }

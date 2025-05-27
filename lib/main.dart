@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:io';
 
+import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:sharing_app/model/historyentry.dart';
 import 'package:sharing_app/pages/applicationpage.dart';
@@ -48,6 +49,18 @@ class MainApp extends StatelessWidget {
         //TODO: service starts only with lazy: false
         ChangeNotifierProvider<ConnectivityService>(create: (_) => ConnectivityService(), lazy: false),
 
+        ChangeNotifierProxyProvider2<NetworkService, ConnectivityService, AppState>(
+          create: (context) {
+            final networkService = context.read<NetworkService>();
+            final connectivityService = context.read<ConnectivityService>();
+            final appState = AppState(networkService, connectivityService);
+            appState.initialize();
+            return appState;
+          },
+          update: (context, networkService, connectivityService, appState) => appState!..networkService = networkService,
+        ),
+
+        /*
         ChangeNotifierProxyProvider<NetworkService, AppState>(
           create: (context) {
             final AppState appState = AppState(context.read<NetworkService>());
@@ -56,7 +69,7 @@ class MainApp extends StatelessWidget {
           },
           update: (context, networkService, appState) => appState!..networkService = networkService,
         ),
-
+        */
         ProxyProvider<AppState, TransferService>(update: (context, appState, previous) => previous ?? TransferService(appState: appState)),
       ],
       child: MaterialApp(title: 'BlitzShare', darkTheme: ThemeData.dark(), home: const ApplicationPage()),
@@ -66,6 +79,7 @@ class MainApp extends StatelessWidget {
 
 class AppState extends ChangeNotifier {
   NetworkService networkService;
+  ConnectivityService connectivityService;
   final List<Device> _devices = [];
   final List<Device> _selectedDevices = [];
   final List<File> _pickedFiles = [];
@@ -81,11 +95,15 @@ class AppState extends ChangeNotifier {
   List<HistoryEntry> get historyEntries => List.unmodifiable(_historyEntries);
   String? get deviceInfo => _deviceInfo;
 
-  AppState(this.networkService);
+  AppState(this.networkService, this.connectivityService);
 
   void initialize() {
     _fetchDeviceInfo();
     _fetchHistoryEntries();
+    _initializeNetworking();
+  }
+
+  void _initializeNetworking() {
     networkService.initialize();
     networkService.discoveredDevices.listen(
       (device) {
@@ -103,7 +121,18 @@ class AppState extends ChangeNotifier {
   }
 
   Future _fetchDeviceInfo() async {
-    _deviceInfo = await DeviceInfo.getMyDeviceInfo();
+    await _updateNetworking();
+
+    connectivityService.addListener(_updateNetworking);
+  }
+
+  Future _updateNetworking() async {
+    if (connectivityService.isWifi) {
+      _deviceInfo = await DeviceInfo.getMyDeviceInfo();
+      //_initializeNetworking();
+    } else {
+      _deviceInfo = "Unavailable";
+    }
     notifyListeners();
   }
 
