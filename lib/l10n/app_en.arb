@@ -4,5 +4,15 @@
     "@language": {
         "description": "Selected language"
     },
-    "helloWorld": "Hello World!"
+    "connectedMobile": "Connected via mobile data",
+    "@connectedMobile": {
+        "description": "Device using mobile data"
+    },
+    "connectedWifi": "Connected via Wi-Fi",
+    "disconnected": "Disconnected from network",
+    "fileReceived": "File received",
+    "navigationItemDevices": "Devices",
+    "navigationItemSettings": "Settings",
+    "navigationItemHistory": "History"
+
 }

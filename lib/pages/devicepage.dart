@@ -85,7 +85,7 @@ class _DevicePageState extends State<DevicePage> {
           _progress = 0.0;
           _statusMessage = '';
         });
-        NotificationFlushbar.build(message).show(context);
+        NotificationFlushbar.buildInformation(message).show(context);
       },
       onPerFileProgress,
       (statusMessage) {
@@ -163,7 +163,7 @@ class _DevicePageState extends State<DevicePage> {
                             return !FileSystemEntity.isFileSync(item.path);
                           });
                           if (isAnyDirectory) {
-                            NotificationFlushbar.build("Folders aren't allowed for transfer").show(context);
+                            NotificationFlushbar.buildInformation("Folders aren't allowed for transfer").show(context);
                           }
 
                           for (final DropItem item in detail.files) {

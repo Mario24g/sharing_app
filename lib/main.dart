@@ -13,6 +13,7 @@ import 'package:sharing_app/services/notificationservice.dart';
 import 'package:sharing_app/services/transferservice.dart';
 import 'package:sharing_app/data/deviceinfo.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
+import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 
 void main() {
   //TODO: remember to remove
@@ -73,8 +74,13 @@ class MainApp extends StatelessWidget {
         ProxyProvider<AppState, TransferService>(update: (context, appState, previous) => previous ?? TransferService(appState: appState)),
       ],
       child: MaterialApp(
-        localizationsDelegates: [GlobalMaterialLocalizations.delegate, GlobalWidgetsLocalizations.delegate, GlobalCupertinoLocalizations.delegate],
-        supportedLocales: [Locale('en'), Locale('es'), Locale('ru'), Locale('zh')],
+        localizationsDelegates: [
+          AppLocalizations.delegate,
+          GlobalMaterialLocalizations.delegate,
+          GlobalWidgetsLocalizations.delegate,
+          GlobalCupertinoLocalizations.delegate,
+        ],
+        supportedLocales: AppLocalizations.supportedLocales,
         title: 'BlitzShare',
         darkTheme: ThemeData.dark(),
         home: const ApplicationPage(),

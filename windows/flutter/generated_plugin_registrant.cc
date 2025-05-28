@@ -9,7 +9,6 @@
 #include <connectivity_plus/connectivity_plus_windows_plugin.h>
 #include <desktop_drop/desktop_drop_plugin.h>
 #include <downloadsfolder/downloadsfolder_plugin_c_api.h>
-#include <flutter_localization/flutter_localization_plugin_c_api.h>
 
 void RegisterPlugins(flutter::PluginRegistry* registry) {
   ConnectivityPlusWindowsPluginRegisterWithRegistrar(
@@ -18,6 +17,4 @@ void RegisterPlugins(flutter::PluginRegistry* registry) {
       registry->GetRegistrarForPlugin("DesktopDropPlugin"));
   DownloadsfolderPluginCApiRegisterWithRegistrar(
       registry->GetRegistrarForPlugin("DownloadsfolderPluginCApi"));
-  FlutterLocalizationPluginCApiRegisterWithRegistrar(
-      registry->GetRegistrarForPlugin("FlutterLocalizationPluginCApi"));
 }

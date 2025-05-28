@@ -11,6 +11,7 @@ import 'package:sharing_app/services/connectivityservice.dart';
 import 'package:sharing_app/services/notificationservice.dart';
 import 'package:sharing_app/services/transferservice.dart';
 import 'package:sharing_app/widgets/notificationflushbar.dart';
+import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 
 class ApplicationPage extends StatefulWidget {
   const ApplicationPage({super.key});
@@ -36,22 +37,27 @@ class _ApplicationPageState extends State<ApplicationPage> {
 
       appState.setOnTransferRequestHandler(_handleIncomingRequest);
       appState.networkService.onDeviceDisconnected = (message) {
-        NotificationFlushbar.build(message).show(context);
+        NotificationFlushbar.buildInformation(message).show(context);
       };
       connectivityService.addListener(() {
         final ConnectivityResult newStatus = connectivityService.currentStatus;
-        final String message = switch (newStatus) {
-          ConnectivityResult.mobile => "Connected via mobile data",
-          ConnectivityResult.wifi => "Connected via Wi-Fi",
-          ConnectivityResult.none => "Disconnected from network",
-          _ => "Connectivity changed",
-        };
-
-        NotificationFlushbar.build(message).show(context);
+        switch (newStatus) {
+          case ConnectivityResult.mobile:
+            NotificationFlushbar.buildInformation(AppLocalizations.of(context)!.connectedMobile).show(context);
+            break;
+          case ConnectivityResult.wifi:
+            NotificationFlushbar.buildInformation(AppLocalizations.of(context)!.connectedWifi).show(context);
+            break;
+          case ConnectivityResult.none:
+            NotificationFlushbar.buildWarning(AppLocalizations.of(context)!.disconnected).show(context);
+            break;
+          case _:
+            break;
+        }
       });
       transferService.onFileReceived = (message) {
-        NotificationService().showNotification(title: "File Received", body: message);
-        NotificationFlushbar.build(message).show(context);
+        NotificationService().showNotification(title: AppLocalizations.of(context)!.fileReceived, body: message);
+        NotificationFlushbar.buildInformation(message).show(context);
       };
       /*appState.networkService.onFileReceived = (message) {
         NotificationService().showNotification(
@@ -63,12 +69,9 @@ class _ApplicationPageState extends State<ApplicationPage> {
     });
   }
 
+  //TODO: IMPLEMENT
   void _handleIncomingRequest(String ip) {
     final AppState appState = context.read<AppState>();
-    print("Requesting device id: $ip");
-    for (Device device in appState.devices) {
-      print("Device in devices: ${device.ip}");
-    }
     final Device requestingDevice = appState.devices.firstWhere((d) => d.ip.trim() == ip.trim());
     showDialog(
       context: context,
@@ -99,7 +102,7 @@ class _ApplicationPageState extends State<ApplicationPage> {
     );
   }
 
-  Widget _buildNavigation() {
+  Widget _buildNavigation(BuildContext context) {
     return _isMobile
         ? SafeArea(
           child: BottomNavigationBar(
@@ -171,10 +174,16 @@ class _ApplicationPageState extends State<ApplicationPage> {
       body:
           _isMobile
               ? Column(
-                children: [Expanded(child: ColoredBox(color: Color.fromARGB(255, 245, 245, 245), child: _buildCurrentPage(_isMobile))), _buildNavigation()],
+                children: [
+                  Expanded(child: ColoredBox(color: Color.fromARGB(255, 245, 245, 245), child: _buildCurrentPage(_isMobile))),
+                  _buildNavigation(context),
+                ],
               )
               : Row(
-                children: [_buildNavigation(), Expanded(child: ColoredBox(color: Color.fromARGB(255, 245, 245, 245), child: _buildCurrentPage(_isMobile)))],
+                children: [
+                  _buildNavigation(context),
+                  Expanded(child: ColoredBox(color: Color.fromARGB(255, 245, 245, 245), child: _buildCurrentPage(_isMobile))),
+                ],
               ),
     );
   }
