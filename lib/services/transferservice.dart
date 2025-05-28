@@ -5,6 +5,7 @@ import 'package:sharing_app/model/device.dart';
 import 'package:sharing_app/model/historyentry.dart';
 import 'package:sharing_app/services/filereceiver.dart';
 import 'package:sharing_app/services/filesender.dart';
+import 'package:sharing_app/services/tcptransfer.dart';
 
 class TransferService {
   final AppState appState;
@@ -22,12 +23,28 @@ class TransferService {
     void Function(double progress)? onProgressUpdate,
     void Function(String statusMessage)? onStatusUpdate,
   ) {
+    /*final TcpFileSender sender = TcpFileSender(port: 8889);
+    sender.createTransferTask(selectedDevices, selectedFiles, onTransferComplete, onProgressUpdate, onStatusUpdate);
+    appState.addHistoryEntry(HistoryEntry(isUpload: true, filePaths: selectedFiles.map((f) => f.path).toList(), targetDevices: selectedDevices));*/
+
     final FileSender fileSender = FileSender(port: 8889);
     fileSender.createTransferTask(selectedDevices, selectedFiles, onTransferComplete, onProgressUpdate, onStatusUpdate);
     appState.addHistoryEntry(HistoryEntry(isUpload: true, filePaths: selectedFiles.map((f) => f.path).toList(), targetDevices: selectedDevices));
   }
 
-  void startFileReceiver() {
+  void startFileReceiver() async {
+    /*TcpFileReceiver(
+      port: 8889,
+      appState: appState,
+      onFileReceived: (message, device, files) {
+        print("Received ${files.length} file(s) from ${device.name}");
+
+        appState.addHistoryEntry(HistoryEntry(isUpload: false, filePaths: files.map((f) => f.path).toList(), senderDevice: device));
+
+        onFileReceived?.call("Files received from ${device.name}");
+      },
+    ).startReceiverServer();*/
+
     FileReceiver(
       port: 8889,
       appState: appState,
