@@ -1,0 +1,8 @@
+{
+    "@@locale": "es",
+    "language": "Español",
+    "@language": {
+        "description": "Idioma elegido"
+    },
+    "helloWorld": "Hola mundo"
+}

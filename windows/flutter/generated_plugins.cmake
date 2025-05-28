@@ -6,6 +6,7 @@ list(APPEND FLUTTER_PLUGIN_LIST
   connectivity_plus
   desktop_drop
   downloadsfolder
+  flutter_localization
 )
 
 list(APPEND FLUTTER_FFI_PLUGIN_LIST

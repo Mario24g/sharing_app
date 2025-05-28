@@ -5,7 +5,7 @@ import 'package:sharing_app/model/device.dart';
 import 'package:sharing_app/model/historyentry.dart';
 import 'package:sharing_app/services/filereceiver.dart';
 import 'package:sharing_app/services/filesender.dart';
-import 'package:sharing_app/services/tcptransfer.dart';
+//import 'package:sharing_app/services/tcptransfer.dart';
 
 class TransferService {
   final AppState appState;
