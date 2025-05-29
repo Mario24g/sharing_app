@@ -1,7 +1,7 @@
 import 'dart:io';
 
 import 'package:hive_flutter/hive_flutter.dart';
-import 'package:sharing_app/model/device.dart';
+import 'package:blitzshare/model/device.dart';
 
 part 'historyentry.g.dart';
 

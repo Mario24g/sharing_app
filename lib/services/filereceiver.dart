@@ -2,14 +2,17 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:downloadsfolder/downloadsfolder.dart';
+import 'package:flutter/material.dart';
 import 'package:mime/mime.dart';
 import 'package:path_provider/path_provider.dart';
-import 'package:sharing_app/main.dart';
-import 'package:sharing_app/model/device.dart';
+import 'package:blitzshare/main.dart';
+import 'package:blitzshare/model/device.dart';
+import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 
 class FileReceiver {
   final int port;
   final AppState appState;
+  final BuildContext context;
   //final void Function(String message)? onFileReceived;
   final void Function(String message, Device senderDevice, List<File> files)? onFileReceived;
 
@@ -17,21 +20,24 @@ class FileReceiver {
   final Map<String, int> _receivedFiles = {};
   final List<File> files = [];
 
-  FileReceiver({required this.port, required this.appState, required this.onFileReceived});
+  FileReceiver({required this.port, required this.appState, required this.context, required this.onFileReceived});
 
   void startReceiverServer() async {
     final HttpServer server = await HttpServer.bind(InternetAddress.anyIPv4, port);
-    print('Server running on http://${server.address.address}:${server.port}');
 
     await for (HttpRequest request in server) {
-      if (request.method == 'POST' && request.uri.path == '/upload-metadata') {
+      if (request.method == "POST" && request.uri.path == "/upload-metadata") {
         await _handleMetadata(request);
-      } else if (request.method == 'POST' && request.uri.path == '/upload') {
-        await _handleFileUpload(request);
+      } else if (request.method == "POST" && request.uri.path == "/upload") {
+        await _handleFileUpload(
+          request,
+          (fileCount, ip) => AppLocalizations.of(context)!.filesReceived(fileCount, ip),
+          (deviceName) => AppLocalizations.of(context)!.errorReceiving(deviceName),
+        );
       } else {
         request.response
           ..statusCode = HttpStatus.notFound
-          ..write('Not found')
+          ..write("Not found")
           ..close();
       }
     }
@@ -40,19 +46,23 @@ class FileReceiver {
   Future _handleMetadata(HttpRequest request) async {
     final String content = await utf8.decoder.bind(request).join();
     final dynamic data = jsonDecode(content);
-    final String ip = request.connectionInfo?.remoteAddress.address ?? 'unknown';
+    final String ip = request.connectionInfo?.remoteAddress.address ?? "unknown";
 
-    final int expected = data['fileCount'] ?? 1;
+    final int expected = data["fileCount"] ?? 1;
     _expectedFiles[ip] = expected;
     _receivedFiles[ip] = 0;
 
     request.response
       ..statusCode = HttpStatus.ok
-      ..write('Metadata received')
+      ..write("Metadata received")
       ..close();
   }
 
-  Future _handleFileUpload(HttpRequest request) async {
+  Future _handleFileUpload(
+    HttpRequest request,
+    String Function(int fileCount, String ip) filesReceivedMessage,
+    String Function(String deviceName) errorReceivingMessage,
+  ) async {
     final String ip = request.connectionInfo?.remoteAddress.address ?? "unknown";
     final Device senderDevice = appState.devices.firstWhere(
       (device) => device.ip == ip,
@@ -107,7 +117,9 @@ class FileReceiver {
         ..close();
 
       if (_receivedFiles[ip] == _expectedFiles[ip]) {
-        onFileReceived?.call("${_receivedFiles[ip]} file(s) received from $ip", senderDevice, files);
+        //onFileReceived?.call("${_receivedFiles[ip]} file(s) received from $ip", senderDevice, files);
+        //onFileReceived?.call(AppLocalizations.of(context)!.filesReceived(_receivedFiles[ip]!, ip), senderDevice, files);
+        onFileReceived?.call(filesReceivedMessage(_receivedFiles[ip]!, ip), senderDevice, files);
         _expectedFiles.remove(ip);
         _receivedFiles.remove(ip);
       }
@@ -116,7 +128,9 @@ class FileReceiver {
         ..statusCode = HttpStatus.internalServerError
         ..write("Error: $e")
         ..close();
-      onFileReceived?.call("Error receiving file from $ip", senderDevice, List.empty());
+      //onFileReceived?.call("Error receiving file from ${senderDevice.name}", senderDevice, List.empty());
+      //onFileReceived?.call(AppLocalizations.of(context)!.errorReceiving(senderDevice.name), senderDevice, List.empty());
+      onFileReceived?.call(errorReceivingMessage(senderDevice.name), senderDevice, List.empty());
     }
   }
 }

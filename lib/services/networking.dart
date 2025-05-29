@@ -2,10 +2,10 @@ import 'dart:async';
 import 'dart:io';
 
 import 'package:network_info_plus/network_info_plus.dart';
-import 'package:sharing_app/data/deviceinfo.dart';
-import 'package:sharing_app/services/devicediscovery.dart';
-import 'package:sharing_app/model/device.dart';
-import 'package:sharing_app/services/tcpconnection.dart';
+import 'package:blitzshare/data/deviceinfo.dart';
+import 'package:blitzshare/services/devicediscovery.dart';
+import 'package:blitzshare/model/device.dart';
+import 'package:blitzshare/services/tcpconnection.dart';
 
 /*
 TODO: Keep in mind linux ufw, android permissions and firewall

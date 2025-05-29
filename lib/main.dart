@@ -1,17 +1,17 @@
 import 'dart:async';
 import 'dart:io';
 
+import 'package:blitzshare/services/transferservice.dart';
 import 'package:hive_flutter/hive_flutter.dart';
-import 'package:sharing_app/model/historyentry.dart';
-import 'package:sharing_app/pages/applicationpage.dart';
-import 'package:sharing_app/model/device.dart';
-import 'package:sharing_app/services/connectivityservice.dart';
-import 'package:sharing_app/services/networking.dart' show NetworkService;
+import 'package:blitzshare/model/historyentry.dart';
+import 'package:blitzshare/pages/applicationpage.dart';
+import 'package:blitzshare/model/device.dart';
+import 'package:blitzshare/services/connectivityservice.dart';
+import 'package:blitzshare/services/networking.dart' show NetworkService;
 import 'package:provider/provider.dart';
 import 'package:flutter/material.dart';
-import 'package:sharing_app/services/notificationservice.dart';
-import 'package:sharing_app/services/transferservice.dart';
-import 'package:sharing_app/data/deviceinfo.dart';
+import 'package:blitzshare/services/notificationservice.dart';
+import 'package:blitzshare/data/deviceinfo.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 
@@ -71,7 +71,7 @@ class MainApp extends StatelessWidget {
           update: (context, networkService, appState) => appState!..networkService = networkService,
         ),
         */
-        ProxyProvider<AppState, TransferService>(update: (context, appState, previous) => previous ?? TransferService(appState: appState)),
+        ProxyProvider<AppState, TransferService>(update: (context, appState, previous) => previous ?? TransferService(appState: appState, context: context)),
       ],
       child: MaterialApp(
         localizationsDelegates: [

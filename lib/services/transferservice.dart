@@ -1,18 +1,20 @@
 import 'dart:io';
 
-import 'package:sharing_app/main.dart';
-import 'package:sharing_app/model/device.dart';
-import 'package:sharing_app/model/historyentry.dart';
-import 'package:sharing_app/services/filereceiver.dart';
-import 'package:sharing_app/services/filesender.dart';
+import 'package:blitzshare/main.dart';
+import 'package:blitzshare/model/device.dart';
+import 'package:blitzshare/model/historyentry.dart';
+import 'package:blitzshare/services/filereceiver.dart';
+import 'package:blitzshare/services/filesender.dart';
+import 'package:flutter/material.dart';
 //import 'package:sharing_app/services/tcptransfer.dart';
 
 class TransferService {
   final AppState appState;
+  final BuildContext context;
 
   void Function(String message)? onFileReceived;
 
-  TransferService({required this.appState}) {
+  TransferService({required this.appState, required this.context}) {
     startFileReceiver();
   }
 
@@ -48,6 +50,7 @@ class TransferService {
     FileReceiver(
       port: 8889,
       appState: appState,
+      context: context,
       onFileReceived: (String message, Device senderDevice, List<File> files) {
         print("Received ${files.length} file(s) from ${senderDevice.name}");
 

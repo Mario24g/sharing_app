@@ -2,7 +2,7 @@ import 'dart:math';
 
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
-import 'package:sharing_app/model/historyentry.dart';
+import 'package:blitzshare/model/historyentry.dart';
 
 class HistoryEntryView extends StatefulWidget {
   final HistoryEntry historyEntry;

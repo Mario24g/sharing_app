@@ -13,6 +13,44 @@
     "fileReceived": "File received",
     "navigationItemDevices": "Devices",
     "navigationItemSettings": "Settings",
-    "navigationItemHistory": "History"
+    "navigationItemHistory": "History",
+    "deviceInfoLoading": "Loading...",
+    "selectFiles": "Select file(s)",
+    "pickFiles": "Pick file(s)",
+    "noDevicesFound": "No devices were found",
+    "noFilesSelected": "No files selected",
+    "foldersNotAllowed": "Folders aren't allowed for transfer",
+    "devices": "Devices",
+    "files": "Files",
+    "clearAll": "Clear all",
+    "clearFiles": "Clear files",
+    "selectAll": "Select all",
+    "deselectAll": "Deselect all",
+    "pickDropFile": "Pick or drop a file",
+    "transferring": "Transferring...",
+    "transfer": "Transfer",
+    "activity": "Activity",
+    "noActivityYet": "No activity yet",
 
+    "filesReceived": "{fileCount} file(s) received from {ip}",
+    "@filesReceived": {
+        "description": "Shown when files are received",
+        "placeholders": {
+            "fileCount": {
+                "type": "int"
+            },
+            "ip": {
+                "type": "String"
+            }
+        }
+    },
+    "errorReceiving": "Error receiving file from ${deviceName}",
+    "@errorReceiving": {
+        "description": "Show on error receiving",
+        "placeholders": {
+            "deviceName": {
+                "type": "String"
+            }
+        }
+    }
 }

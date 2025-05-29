@@ -3,13 +3,14 @@ import 'dart:io';
 import 'package:desktop_drop/desktop_drop.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:sharing_app/main.dart';
-import 'package:sharing_app/model/device.dart';
+import 'package:blitzshare/main.dart';
+import 'package:blitzshare/model/device.dart';
 import 'package:file_picker/file_picker.dart';
-import 'package:sharing_app/services/transferservice.dart';
-import 'package:sharing_app/widgets/deviceview.dart';
-import 'package:sharing_app/widgets/fileview.dart';
-import 'package:sharing_app/widgets/notificationflushbar.dart';
+import 'package:blitzshare/services/transferservice.dart';
+import 'package:blitzshare/widgets/deviceview.dart';
+import 'package:blitzshare/widgets/fileview.dart';
+import 'package:blitzshare/widgets/notificationflushbar.dart';
+import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 
 class DevicePage extends StatefulWidget {
   final bool isMobile;
@@ -25,8 +26,12 @@ class _DevicePageState extends State<DevicePage> {
   double _progress = 0.0;
   String _statusMessage = "";
 
-  Future _pickFile(AppState appState) async {
-    FilePickerResult? result = await FilePicker.platform.pickFiles(dialogTitle: "Select file(s)", type: FileType.any, allowMultiple: true);
+  Future _pickFile(AppState appState, BuildContext context) async {
+    FilePickerResult? result = await FilePicker.platform.pickFiles(
+      dialogTitle: AppLocalizations.of(context)!.selectFiles,
+      type: FileType.any,
+      allowMultiple: true,
+    );
 
     if (result != null) {
       final List<File> files =
@@ -101,6 +106,7 @@ class _DevicePageState extends State<DevicePage> {
 
   Widget _desktopPage(
     final AppState appState,
+    final BuildContext context,
     final List<Device> deviceList,
     final List<File> pickedFiles,
     final List<File> selectedFiles,
@@ -126,11 +132,11 @@ class _DevicePageState extends State<DevicePage> {
                         padding: const EdgeInsets.all(16.0),
                         child: Column(
                           children: [
-                            Text("Devices", style: Theme.of(context).textTheme.bodyMedium),
+                            Text(AppLocalizations.of(context)!.devices, style: Theme.of(context).textTheme.bodyMedium),
                             Expanded(
                               child:
                                   deviceList.isEmpty
-                                      ? Text("No devices were found")
+                                      ? Text(AppLocalizations.of(context)!.noDevicesFound)
                                       : GridView.count(
                                         crossAxisCount: 2,
                                         children: List.generate(deviceList.length, (index) {
@@ -163,7 +169,7 @@ class _DevicePageState extends State<DevicePage> {
                             return !FileSystemEntity.isFileSync(item.path);
                           });
                           if (isAnyDirectory) {
-                            NotificationFlushbar.buildInformation("Folders aren't allowed for transfer").show(context);
+                            NotificationFlushbar.buildWarning(AppLocalizations.of(context)!.foldersNotAllowed).show(context);
                           }
 
                           for (final DropItem item in detail.files) {
@@ -192,7 +198,7 @@ class _DevicePageState extends State<DevicePage> {
                           padding: const EdgeInsets.all(16.0),
                           child: Column(
                             children: [
-                              Text("Files", style: Theme.of(context).textTheme.bodyMedium),
+                              Text(AppLocalizations.of(context)!.files, style: Theme.of(context).textTheme.bodyMedium),
 
                               SizedBox(height: 12),
                               /* CONTROL BUTTONS */
@@ -206,18 +212,18 @@ class _DevicePageState extends State<DevicePage> {
                                       child: Row(
                                         mainAxisAlignment: MainAxisAlignment.center,
                                         mainAxisSize: MainAxisSize.min,
-                                        children: [Icon(Icons.delete), SizedBox(width: 8), Text("Clear all")],
+                                        children: [Icon(Icons.delete), SizedBox(width: 8), Text(AppLocalizations.of(context)!.clearAll)],
                                       ),
                                     ),
                                   ),
                                   SizedBox(width: 30),
                                   ElevatedButton(
-                                    onPressed: _isTransferring ? null : () => _pickFile(appState),
+                                    onPressed: _isTransferring ? null : () => _pickFile(appState, context),
                                     style: ElevatedButton.styleFrom(padding: EdgeInsets.symmetric(vertical: 12, horizontal: 16)),
                                     child: Row(
                                       mainAxisAlignment: MainAxisAlignment.center,
                                       mainAxisSize: MainAxisSize.min,
-                                      children: [Icon(Icons.upload_file), SizedBox(width: 8), Text("Pick files")],
+                                      children: [Icon(Icons.upload_file), SizedBox(width: 8), Text(AppLocalizations.of(context)!.pickFiles)],
                                     ),
                                   ),
                                   SizedBox(width: 30),
@@ -244,7 +250,7 @@ class _DevicePageState extends State<DevicePage> {
                                         children: [
                                           Icon(selectedFiles.isEmpty ? Icons.select_all : Icons.deselect),
                                           SizedBox(width: 8),
-                                          Text(selectedFiles.isEmpty ? "Select all" : "Deselect all"),
+                                          Text(selectedFiles.isEmpty ? AppLocalizations.of(context)!.selectAll : AppLocalizations.of(context)!.deselectAll),
                                         ],
                                       ),
                                     ),
@@ -253,7 +259,7 @@ class _DevicePageState extends State<DevicePage> {
                               ),
                               SizedBox(height: 12),
                               pickedFiles.isEmpty
-                                  ? Text("Pick or drop a file")
+                                  ? Text(AppLocalizations.of(context)!.pickDropFile)
                                   : Expanded(
                                     child: ListView.builder(
                                       itemCount: pickedFiles.length,
@@ -325,10 +331,10 @@ class _DevicePageState extends State<DevicePage> {
                                 children: [
                                   SizedBox(height: 20, width: 20, child: CircularProgressIndicator(strokeWidth: 2)),
                                   SizedBox(width: 8),
-                                  Text("Transferring..."),
+                                  Text(AppLocalizations.of(context)!.transferring),
                                 ],
                               )
-                              : Text("Transfer"),
+                              : Text(AppLocalizations.of(context)!.transfer),
                     ),
                   ],
                 ),
@@ -342,6 +348,7 @@ class _DevicePageState extends State<DevicePage> {
 
   Widget _mobilePage(
     final AppState appState,
+    final BuildContext context,
     final List<Device> deviceList,
     final List<File> pickedFiles,
     final List<File> selectedFiles,
@@ -365,10 +372,10 @@ class _DevicePageState extends State<DevicePage> {
                     padding: const EdgeInsets.all(12.0),
                     child: Column(
                       children: [
-                        Text("Devices", style: Theme.of(context).textTheme.titleMedium),
+                        Text(AppLocalizations.of(context)!.devices, style: Theme.of(context).textTheme.titleMedium),
                         const SizedBox(height: 8),
                         deviceList.isEmpty
-                            ? const Text("No devices found")
+                            ? Text(AppLocalizations.of(context)!.noDevicesFound)
                             : Wrap(
                               spacing: 8,
                               runSpacing: 8,
@@ -404,19 +411,27 @@ class _DevicePageState extends State<DevicePage> {
                     padding: const EdgeInsets.all(12.0),
                     child: Column(
                       children: [
-                        Text("Files", style: Theme.of(context).textTheme.titleMedium),
+                        Text(AppLocalizations.of(context)!.files, style: Theme.of(context).textTheme.titleMedium),
                         /* CONTROL BUTTONS */
                         const SizedBox(height: 8),
                         Row(
                           mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                           children: [
                             if (pickedFiles.isNotEmpty)
-                              IconButton(icon: Icon(Icons.delete), tooltip: "Clear Files", onPressed: _isTransferring ? null : () => appState.clearFiles()),
-                            IconButton(icon: Icon(Icons.upload_file), tooltip: "Pick Files", onPressed: _isTransferring ? null : () => _pickFile(appState)),
+                              IconButton(
+                                icon: Icon(Icons.delete),
+                                tooltip: AppLocalizations.of(context)!.clearFiles,
+                                onPressed: _isTransferring ? null : () => appState.clearFiles(),
+                              ),
+                            IconButton(
+                              icon: Icon(Icons.upload_file),
+                              tooltip: AppLocalizations.of(context)!.pickFiles,
+                              onPressed: _isTransferring ? null : () => _pickFile(appState, context),
+                            ),
                             if (pickedFiles.isNotEmpty)
                               IconButton(
                                 icon: Icon(selectedFiles.isEmpty ? Icons.select_all : Icons.deselect),
-                                tooltip: selectedFiles.isEmpty ? "Select All" : "Deselect All",
+                                tooltip: selectedFiles.isEmpty ? AppLocalizations.of(context)!.selectAll : AppLocalizations.of(context)!.deselectAll,
                                 onPressed:
                                     _isTransferring
                                         ? null
@@ -436,7 +451,7 @@ class _DevicePageState extends State<DevicePage> {
                         ),
                         const SizedBox(height: 8),
                         pickedFiles.isEmpty
-                            ? const Text("No files selected")
+                            ? Text(AppLocalizations.of(context)!.noFilesSelected)
                             : ListView.builder(
                               shrinkWrap: true,
                               physics: const NeverScrollableScrollPhysics(),
@@ -486,7 +501,7 @@ class _DevicePageState extends State<DevicePage> {
                         ? null
                         : () => _startTransfer(appState, selectedDevices, selectedFiles, transferService),
                 icon: _isTransferring ? const SizedBox(width: 18, height: 18, child: CircularProgressIndicator(strokeWidth: 2)) : const Icon(Icons.send),
-                label: Text(_isTransferring ? "Transferring..." : "Send"),
+                label: Text(_isTransferring ? AppLocalizations.of(context)!.transferring : AppLocalizations.of(context)!.transfer),
                 style: ElevatedButton.styleFrom(padding: const EdgeInsets.all(14)),
               ),
             ),
@@ -506,7 +521,7 @@ class _DevicePageState extends State<DevicePage> {
     final TransferService transferService = context.read<TransferService>();
 
     return widget.isMobile
-        ? _mobilePage(appState, deviceList, pickedFiles, selectedFiles, selectedDevices, transferService)
-        : _desktopPage(appState, deviceList, pickedFiles, selectedFiles, selectedDevices, transferService);
+        ? _mobilePage(appState, context, deviceList, pickedFiles, selectedFiles, selectedDevices, transferService)
+        : _desktopPage(appState, context, deviceList, pickedFiles, selectedFiles, selectedDevices, transferService);
   }
 }

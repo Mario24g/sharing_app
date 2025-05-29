@@ -3,14 +3,14 @@ import 'dart:io';
 import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:sharing_app/pages/devicepage.dart';
-import 'package:sharing_app/main.dart';
-import 'package:sharing_app/model/device.dart';
-import 'package:sharing_app/pages/historypage.dart';
-import 'package:sharing_app/services/connectivityservice.dart';
-import 'package:sharing_app/services/notificationservice.dart';
-import 'package:sharing_app/services/transferservice.dart';
-import 'package:sharing_app/widgets/notificationflushbar.dart';
+import 'package:blitzshare/pages/devicepage.dart';
+import 'package:blitzshare/main.dart';
+import 'package:blitzshare/model/device.dart';
+import 'package:blitzshare/pages/historypage.dart';
+import 'package:blitzshare/services/connectivityservice.dart';
+import 'package:blitzshare/services/notificationservice.dart';
+import 'package:blitzshare/services/transferservice.dart';
+import 'package:blitzshare/widgets/notificationflushbar.dart';
 import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 
 class ApplicationPage extends StatefulWidget {
@@ -43,13 +43,13 @@ class _ApplicationPageState extends State<ApplicationPage> {
         final ConnectivityResult newStatus = connectivityService.currentStatus;
         switch (newStatus) {
           case ConnectivityResult.mobile:
-            NotificationFlushbar.buildInformation(AppLocalizations.of(context)!.connectedMobile).show(context);
+            NotificationFlushbar.buildWarning(AppLocalizations.of(context)!.connectedMobile).show(context);
             break;
           case ConnectivityResult.wifi:
             NotificationFlushbar.buildInformation(AppLocalizations.of(context)!.connectedWifi).show(context);
             break;
           case ConnectivityResult.none:
-            NotificationFlushbar.buildWarning(AppLocalizations.of(context)!.disconnected).show(context);
+            NotificationFlushbar.buildError(AppLocalizations.of(context)!.disconnected).show(context);
             break;
           case _:
             break;
@@ -106,10 +106,10 @@ class _ApplicationPageState extends State<ApplicationPage> {
     return _isMobile
         ? SafeArea(
           child: BottomNavigationBar(
-            items: const [
-              BottomNavigationBarItem(icon: Icon(Icons.settings_remote_rounded), label: 'Devices'),
-              BottomNavigationBarItem(icon: Icon(Icons.settings), label: 'Settings'),
-              BottomNavigationBarItem(icon: Icon(Icons.history), label: 'History'),
+            items: [
+              BottomNavigationBarItem(icon: Icon(Icons.settings_remote_rounded), label: AppLocalizations.of(context)!.navigationItemDevices),
+              BottomNavigationBarItem(icon: Icon(Icons.settings), label: AppLocalizations.of(context)!.navigationItemSettings),
+              BottomNavigationBarItem(icon: Icon(Icons.history), label: AppLocalizations.of(context)!.navigationItemHistory),
             ],
             currentIndex: _selectedIndex,
             onTap: _onItemTapped,
@@ -120,10 +120,10 @@ class _ApplicationPageState extends State<ApplicationPage> {
             extended: _isExpanded,
             labelType: NavigationRailLabelType.none,
             minWidth: 80,
-            destinations: const [
-              NavigationRailDestination(icon: Icon(Icons.settings_remote_rounded), label: Text('Devices')),
-              NavigationRailDestination(icon: Icon(Icons.settings), label: Text('Settings')),
-              NavigationRailDestination(icon: Icon(Icons.history), label: Text('History')),
+            destinations: [
+              NavigationRailDestination(icon: Icon(Icons.settings_remote_rounded), label: Text(AppLocalizations.of(context)!.navigationItemDevices)),
+              NavigationRailDestination(icon: Icon(Icons.settings), label: Text(AppLocalizations.of(context)!.navigationItemSettings)),
+              NavigationRailDestination(icon: Icon(Icons.history), label: Text(AppLocalizations.of(context)!.navigationItemHistory)),
             ],
             selectedIndex: _selectedIndex,
             onDestinationSelected: _onItemTapped,
@@ -156,7 +156,7 @@ class _ApplicationPageState extends State<ApplicationPage> {
         title: Consumer<AppState>(
           builder: (context, appState, _) {
             final deviceInfo = appState.deviceInfo;
-            return Text(deviceInfo ?? "Loading...");
+            return Text(deviceInfo ?? AppLocalizations.of(context)!.deviceInfoLoading);
           },
         ),
         leading:

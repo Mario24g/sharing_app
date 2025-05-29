@@ -3,7 +3,7 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:network_info_plus/network_info_plus.dart';
-import 'package:sharing_app/model/device.dart';
+import 'package:blitzshare/model/device.dart';
 
 class DeviceDiscoverer {
   final int port;

@@ -2,7 +2,7 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 
-import 'package:sharing_app/model/device.dart';
+import 'package:blitzshare/model/device.dart';
 
 class TCPConnection {
   final int port;
@@ -42,11 +42,7 @@ class TCPConnection {
   }
 
   void _startTcpServer() async {
-    ServerSocket server = await ServerSocket.bind(
-      InternetAddress.anyIPv4,
-      port,
-      shared: true,
-    );
+    ServerSocket server = await ServerSocket.bind(InternetAddress.anyIPv4, port, shared: true);
 
     server.listen((Socket client) {
       client.listen((data) async {

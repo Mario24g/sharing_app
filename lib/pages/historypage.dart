@@ -1,8 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:sharing_app/main.dart';
-import 'package:sharing_app/model/historyentry.dart';
-import 'package:sharing_app/widgets/historyentryview.dart';
+import 'package:blitzshare/main.dart';
+import 'package:blitzshare/model/historyentry.dart';
+import 'package:blitzshare/widgets/historyentryview.dart';
+import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 
 class HistoryPage extends StatefulWidget {
   const HistoryPage({super.key});
@@ -26,7 +27,10 @@ class _HistoryPageState extends State<HistoryPage> {
           padding: const EdgeInsets.all(16.0),
           child: Column(
             children: [
-              Text(historyEntries.isEmpty ? "No activity yet" : "Activity", style: Theme.of(context).textTheme.bodyMedium),
+              Text(
+                historyEntries.isEmpty ? AppLocalizations.of(context)!.noActivityYet : AppLocalizations.of(context)!.activity,
+                style: Theme.of(context).textTheme.bodyMedium,
+              ),
               Expanded(
                 child: ListView.builder(
                   itemCount: historyEntries.length,

@@ -5,7 +5,7 @@ import 'dart:io';
 import 'package:http/http.dart';
 import 'package:path/path.dart';
 import 'package:http/http.dart' as http;
-import 'package:sharing_app/model/device.dart';
+import 'package:blitzshare/model/device.dart';
 
 class FileSender {
   final int port;

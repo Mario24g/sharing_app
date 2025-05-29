@@ -4,8 +4,8 @@ import 'dart:convert';
 import 'dart:typed_data';
 import 'package:downloadsfolder/downloadsfolder.dart';
 import 'package:path/path.dart' as path;
-import 'package:sharing_app/main.dart';
-import 'package:sharing_app/model/device.dart';
+import 'package:blitzshare/main.dart';
+import 'package:blitzshare/model/device.dart';
 
 class TransferProtocol {
   static const int METADATA_TYPE = 1;
