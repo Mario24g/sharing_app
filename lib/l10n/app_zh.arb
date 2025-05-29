@@ -1,0 +1,169 @@
+{
+    "@@locale": "zh",
+    "language": "简体中文",
+    "@language": {
+        "description": "选择的语言"
+    },
+    "connectedMobile": "通过移动数据连接",
+    "@connectedMobile": {
+        "description": "设备通过移动数据连接"
+    },
+    "connectedWifi": "通过 Wi-Fi 连接",
+    "@connectedWifi": {
+        "description": "设备通过 Wi-Fi 连接"
+    },
+    "disconnected": "已断开网络连接",
+    "@disconnected": {
+        "description": "设备已断开网络连接"
+    },
+    "fileReceived": "文件已接收",
+    "@fileReceived": {
+        "description": "设备从其他设备接收了文件"
+    },
+    "navigationItemDevices": "设备",
+    "@navigationItemDevices": {
+        "description": "导航中的设备页面"
+    },
+    "navigationItemSettings": "设置",
+    "@navigationItemSettings": {
+        "description": "导航中的设置页面"
+    },
+    "navigationItemHistory": "历史记录",
+    "@navigationItemHistory": {
+        "description": "导航中的历史记录页面"
+    },
+    "deviceInfoLoading": "加载中...",
+    "@deviceInfoLoading": {
+        "description": "设备信息加载中"
+    },
+    "selectFiles": "选择文件",
+    "@selectFiles": {
+        "description": "选择用于传输的文件"
+    },
+    "pickFiles": "选择文件",
+    "@pickFiles": {
+        "description": "选择文件用于上传"
+    },
+    "noDevicesFound": "未发现设备",
+    "@noDevicesFound": {
+        "description": "未发现可用设备"
+    },
+    "noFilesSelected": "未选择文件",
+    "@noFilesSelected": {
+        "description": "未选择任何文件"
+    },
+    "foldersNotAllowed": "不允许传输文件夹",
+    "@foldersNotAllowed": {
+        "description": "不允许传输文件夹"
+    },
+    "devices": "设备",
+    "@devices": {
+        "description": "设备"
+    },
+    "files": "文件",
+    "@files": {
+        "description": "文件"
+    },
+    "clearAll": "全部清除",
+    "@clearAll": {
+        "description": "清除所有内容"
+    },
+    "clearFiles": "清除文件",
+    "@clearFiles": {
+        "description": "清除文件列表"
+    },
+    "selectAll": "全选",
+    "@selectAll": {
+        "description": "选择所有文件"
+    },
+    "deselectAll": "取消全选",
+    "@deselectAll": {
+        "description": "取消选择所有文件"
+    },
+    "pickDropFile": "选择或拖放文件",
+    "@pickDropFile": {
+        "description": "选择或拖放文件"
+    },
+    "transferring": "传输中...",
+    "@transferring": {
+        "description": "正在传输"
+    },
+    "transfer": "传输",
+    "@transfer": {
+        "description": "开始传输"
+    },
+    "activity": "活动",
+    "@activity": {
+        "description": "传输活动"
+    },
+    "noActivityYet": "尚无活动",
+    "@noActivityYet": {
+        "description": "尚无任何传输活动"
+    },
+    "filesReceived": "从 {ip} 接收到 {fileCount} 个文件",
+    "@filesReceived": {
+        "description": "文件接收成功时显示",
+        "placeholders": {
+            "fileCount": {
+                "type": "int"
+            },
+            "ip": {
+                "type": "String"
+            }
+        }
+    },
+    "errorReceiving": "从 {deviceName} 接收文件时出错",
+    "@errorReceiving": {
+        "description": "接收文件出错时显示",
+        "placeholders": {
+            "deviceName": {
+                "type": "String"
+            }
+        }
+    },
+    "statusUpdateTransferring": "正在将 {fileName} 传输到 {deviceName}",
+    "@statusUpdateTransferring": {
+        "description": "传输状态更新时显示",
+        "placeholders": {
+            "fileName": {
+                "type": "String"
+            },
+            "deviceName": {
+                "type": "String"
+            }
+        }
+    },
+    "statusUpdateTransferred": "{fileName} 已传输到 {deviceName}",
+    "@statusUpdateTransferred": {
+        "description": "文件传输完成时显示",
+        "placeholders": {
+            "fileName": {
+                "type": "String"
+            },
+            "deviceName": {
+                "type": "String"
+            }
+        }
+    },
+    "transferComplete": "已将 {fileCount} 个文件传输到 {devicesCount} 个设备",
+    "@transferComplete": {
+        "description": "传输完成后显示",
+        "placeholders": {
+            "fileCount": {
+                "type": "int"
+            },
+            "devicesCount": {
+                "type": "int"
+            }
+        }
+    },
+    "deviceDisconnected": "与 {ip} 的连接已断开",
+    "@deviceDisconnected": {
+        "description": "设备断开连接时显示",
+        "placeholders": {
+            "ip": {
+                "type": "String"
+            }
+        }
+    }
+}

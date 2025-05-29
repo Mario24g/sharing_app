@@ -24,7 +24,7 @@ class NotificationFlushbar {
       flushbarStyle: FlushbarStyle.FLOATING,
       flushbarPosition: FlushbarPosition.TOP,
       borderRadius: BorderRadius.circular(12),
-      duration: Duration(seconds: 4),
+      duration: Duration(seconds: 2),
       leftBarIndicatorColor: Colors.amber[300],
       isDismissible: true,
     );
@@ -38,7 +38,7 @@ class NotificationFlushbar {
       flushbarStyle: FlushbarStyle.FLOATING,
       flushbarPosition: FlushbarPosition.TOP,
       borderRadius: BorderRadius.circular(12),
-      duration: Duration(seconds: 4),
+      duration: Duration(seconds: 6),
       leftBarIndicatorColor: Colors.red[300],
       isDismissible: true,
     );

@@ -2,7 +2,168 @@
     "@@locale": "es",
     "language": "Español",
     "@language": {
-        "description": "Idioma elegido"
+        "description": "Idioma seleccionado"
     },
-    "helloWorld": "Hola mundo"
+    "connectedMobile": "Conectado mediante datos móviles",
+    "@connectedMobile": {
+        "description": "Dispositivo conectado usando datos móviles"
+    },
+    "connectedWifi": "Conectado mediante Wi-Fi",
+    "@connectedWifi": {
+        "description": "Dispositivo conectado usando Wi-Fi"
+    },
+    "disconnected": "Desconectado de la red",
+    "@disconnected": {
+        "description": "Dispositivo desconectado de la red"
+    },
+    "fileReceived": "Archivo recibido",
+    "@fileReceived": {
+        "description": "Dispositivo recibió un archivo de otro dispositivo"
+    },
+    "navigationItemDevices": "Dispositivos",
+    "@navigationItemDevices": {
+        "description": "Página de dispositivos en la navegación"
+    },
+    "navigationItemSettings": "Configuración",
+    "@navigationItemSettings": {
+        "description": "Página de configuración en la navegación"
+    },
+    "navigationItemHistory": "Historial",
+    "@navigationItemHistory": {
+        "description": "Página de historial en la navegación"
+    },
+    "deviceInfoLoading": "Cargando...",
+    "@deviceInfoLoading": {
+        "description": "Cargando información del dispositivo"
+    },
+    "selectFiles": "Seleccionar archivo(s)",
+    "@selectFiles": {
+        "description": "Seleccionar archivos para transferir"
+    },
+    "pickFiles": "Elegir archivo(s)",
+    "@pickFiles": {
+        "description": "Elegir archivos para seleccionar"
+    },
+    "noDevicesFound": "No se encontraron dispositivos",
+    "@noDevicesFound": {
+        "description": "No se encontraron dispositivos"
+    },
+    "noFilesSelected": "No se seleccionaron archivos",
+    "@noFilesSelected": {
+        "description": "No se seleccionaron archivos"
+    },
+    "foldersNotAllowed": "No se permiten carpetas para la transferencia",
+    "@foldersNotAllowed": {
+        "description": "No se permiten carpetas para la transferencia"
+    },
+    "devices": "Dispositivos",
+    "@devices": {
+        "description": "Dispositivos"
+    },
+    "files": "Archivos",
+    "@files": {
+        "description": "Archivos"
+    },
+    "clearAll": "Borrar todo",
+    "@clearAll": {
+        "description": "Borrar todo"
+    },
+    "clearFiles": "Borrar archivos",
+    "@clearFiles": {
+        "description": "Borrar archivos"
+    },
+    "selectAll": "Seleccionar todo",
+    "@selectAll": {
+        "description": "Seleccionar todos los archivos"
+    },
+    "deselectAll": "Deseleccionar todo",
+    "@deselectAll": {
+        "description": "Deseleccionar todos los archivos"
+    },
+    "pickDropFile": "Elegir o soltar un archivo",
+    "@pickDropFile": {
+        "description": "Elegir o soltar un archivo"
+    },
+    "transferring": "Transfiriendo...",
+    "@transferring": {
+        "description": "Transferencia en curso"
+    },
+    "transfer": "Transferir",
+    "@transfer": {
+        "description": "Iniciar transferencia"
+    },
+    "activity": "Actividad",
+    "@activity": {
+        "description": "Actividad"
+    },
+    "noActivityYet": "Sin actividad aún",
+    "@noActivityYet": {
+        "description": "Sin actividad aún"
+    },
+    "filesReceived": "{fileCount} archivo(s) recibido(s) de {ip}",
+    "@filesReceived": {
+        "description": "Se muestra cuando se reciben archivos",
+        "placeholders": {
+            "fileCount": {
+                "type": "int"
+            },
+            "ip": {
+                "type": "String"
+            }
+        }
+    },
+    "errorReceiving": "Error al recibir archivo de {deviceName}",
+    "@errorReceiving": {
+            "description": "Se muestra en caso de error al recibir",
+            "placeholders": {
+            "deviceName": {
+                "type": "String"
+            }
+        }
+    },
+    "statusUpdateTransferring": "Transfiriendo {fileName} a {deviceName}",
+    "@statusUpdateTransferring": {
+        "description": "Se muestra cuando se actualiza el estado",
+        "placeholders": {
+            "fileName": {
+                "type": "String"
+            },
+            "deviceName": {
+                "type": "String"
+            }
+        }
+    },
+    "statusUpdateTransferred": "Transferido {fileName} a {deviceName}",
+    "@statusUpdateTransferred": {
+        "description": "Se muestra cuando se actualiza el estado",
+        "placeholders": {
+            "fileName": {
+                "type": "String"
+            },
+            "deviceName": {
+                "type": "String"
+            }
+        }
+    },
+    "transferComplete": "Transferidos {fileCount} archivo(s) a {devicesCount} dispositivo(s)",
+    "@transferComplete": {
+        "description": "Se muestra cuando se completa la transferencia",
+        "placeholders": {
+            "fileCount": {
+                "type": "int"
+            },
+            "devicesCount": {
+                "type": "int"
+            }
+        }
+    },
+    "deviceDisconnected": "Conexión perdida con {ip}",
+    "@deviceDisconnected": {
+        "description": "Se muestra cuando se desconecta un dispositivo",
+        "placeholders": {
+            "ip": {
+                "type": "String"
+            }
+        }
+    }
 }

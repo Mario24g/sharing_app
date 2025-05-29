@@ -57,7 +57,7 @@ class _DevicePageState extends State<DevicePage> {
     }
   }*/
 
-  void _startTransfer(AppState appState, List<Device> selectedDevices, List<File> selectedFiles, TransferService transferService) {
+  void _startTransfer(AppState appState, BuildContext context, List<Device> selectedDevices, List<File> selectedFiles, TransferService transferService) {
     setState(() {
       _isTransferring = true;
       _progress = 0.0;
@@ -82,6 +82,7 @@ class _DevicePageState extends State<DevicePage> {
     }
 
     transferService.createTransferTask(
+      context,
       selectedDevices,
       selectedFiles,
       (message) {
@@ -323,7 +324,7 @@ class _DevicePageState extends State<DevicePage> {
                       onPressed:
                           (_isTransferring || selectedDevices.isEmpty || selectedFiles.isEmpty)
                               ? null
-                              : () => _startTransfer(appState, selectedDevices, selectedFiles, transferService),
+                              : () => _startTransfer(appState, context, selectedDevices, selectedFiles, transferService),
                       child:
                           _isTransferring
                               ? Row(
@@ -499,7 +500,7 @@ class _DevicePageState extends State<DevicePage> {
                 onPressed:
                     (_isTransferring || selectedDevices.isEmpty || selectedFiles.isEmpty)
                         ? null
-                        : () => _startTransfer(appState, selectedDevices, selectedFiles, transferService),
+                        : () => _startTransfer(appState, context, selectedDevices, selectedFiles, transferService),
                 icon: _isTransferring ? const SizedBox(width: 18, height: 18, child: CircularProgressIndicator(strokeWidth: 2)) : const Icon(Icons.send),
                 label: Text(_isTransferring ? AppLocalizations.of(context)!.transferring : AppLocalizations.of(context)!.transfer),
                 style: ElevatedButton.styleFrom(padding: const EdgeInsets.all(14)),

@@ -1,0 +1,169 @@
+{
+    "@@locale": "ru",
+    "language": "Русский",
+    "@language": {
+        "description": "Выбранный язык"
+    },
+    "connectedMobile": "Подключено через мобильную сеть",
+    "@connectedMobile": {
+        "description": "Устройство подключено с использованием мобильной сети"
+    },
+    "connectedWifi": "Подключено через Wi-Fi",
+    "@connectedWifi": {
+        "description": "Устройство подключено через Wi-Fi"
+    },
+    "disconnected": "Отключено от сети",
+    "@disconnected": {
+        "description": "Устройство отключено от сети"
+    },
+    "fileReceived": "Файл получен",
+    "@fileReceived": {
+        "description": "Устройство получило файл от другого устройства"
+    },
+    "navigationItemDevices": "Устройства",
+    "@navigationItemDevices": {
+        "description": "Страница устройств в навигации"
+    },
+    "navigationItemSettings": "Настройки",
+    "@navigationItemSettings": {
+        "description": "Страница настроек в навигации"
+    },
+    "navigationItemHistory": "Журналы",
+    "@navigationItemHistory": {
+        "description": "Страница журналов в навигации"
+    },
+    "deviceInfoLoading": "Загрузка...",
+    "@deviceInfoLoading": {
+        "description": "Загрузка информации об устройстве"
+    },
+    "selectFiles": "Выбрать файл(ы)",
+    "@selectFiles": {
+        "description": "Выбор файлов для передачи"
+    },
+    "pickFiles": "Искать файл(ы)",
+    "@pickFiles": {
+        "description": "Поиск файлов для выбора"
+    },
+    "noDevicesFound": "Устройства не найдены",
+    "@noDevicesFound": {
+        "description": "Устройства не найдены"
+    },
+    "noFilesSelected": "Файлы не выбраны",
+    "@noFilesSelected": {
+        "description": "Файлы не были выбраны"
+    },
+    "foldersNotAllowed": "Папки не допускаются к передаче",
+    "@foldersNotAllowed": {
+        "description": "Папки не разрешены к передаче"
+    },
+    "devices": "Устройства",
+    "@devices": {
+        "description": "Устройства"
+    },
+    "files": "Файлы",
+    "@files": {
+        "description": "Файлы"
+    },
+    "clearAll": "Очистить всё",
+    "@clearAll": {
+        "description": "Очистить всё"
+    },
+    "clearFiles": "Очистить файлы",
+    "@clearFiles": {
+        "description": "Очистить список файлов"
+    },
+    "selectAll": "Выбрать все",
+    "@selectAll": {
+        "description": "Выбрать все файлы"
+    },
+    "deselectAll": "Снять выделение",
+    "@deselectAll": {
+        "description": "Снять выделение со всех файлов"
+    },
+    "pickDropFile": "Выберите или перетащите файл",
+    "@pickDropFile": {
+        "description": "Выбрать или перетащить файл"
+    },
+    "transferring": "Передача...",
+    "@transferring": {
+        "description": "Процесс передачи"
+    },
+    "transfer": "Передать",
+    "@transfer": {
+        "description": "Начать передачу"
+    },
+    "activity": "Активность",
+    "@activity": {
+        "description": "Активность"
+    },
+    "noActivityYet": "Активности пока нет",
+    "@noActivityYet": {
+        "description": "Пока нет активности"
+    },
+    "filesReceived": "Получено {fileCount} файл(ов) от {ip}",
+    "@filesReceived": {
+        "description": "Отображается, когда получены файлы",
+        "placeholders": {
+            "fileCount": {
+                "type": "int"
+            },
+            "ip": {
+                "type": "String"
+            }
+        }
+    },
+    "errorReceiving": "Ошибка при получении файла от {deviceName}",
+    "@errorReceiving": {
+        "description": "Отображается при ошибке получения файла",
+        "placeholders": {
+            "deviceName": {
+                "type": "String"
+            }
+        }
+    },
+    "statusUpdateTransferring": "Передача {fileName} на {deviceName}",
+    "@statusUpdateTransferring": {
+        "description": "Отображается при обновлении статуса",
+        "placeholders": {
+            "fileName": {
+                "type": "String"
+            },
+            "deviceName": {
+                "type": "String"
+            }
+        }
+    },
+    "statusUpdateTransferred": "{fileName} передан на {deviceName}",
+    "@statusUpdateTransferred": {
+        "description": "Отображается после завершения передачи",
+        "placeholders": {
+            "fileName": {
+                "type": "String"
+            },
+            "deviceName": {
+                "type": "String"
+            }
+        }
+    },
+    "transferComplete": "Передано {fileCount} файл(ов) на {devicesCount} устройство(в)",
+    "@transferComplete": {
+        "description": "Отображается после завершения передачи",
+        "placeholders": {
+            "fileCount": {
+                "type": "int"
+            },
+            "devicesCount": {
+                "type": "int"
+            }
+        }
+    },
+    "deviceDisconnected": "Связь с {ip} потеряна",
+    "@deviceDisconnected": {
+        "description": "Отображается при отключении устройства",
+        "placeholders": {
+            "ip": {
+                "type": "String"
+            }
+        }
+    }
+}

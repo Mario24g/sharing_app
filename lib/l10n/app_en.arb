@@ -6,31 +6,100 @@
     },
     "connectedMobile": "Connected via mobile data",
     "@connectedMobile": {
-        "description": "Device using mobile data"
+        "description": "Device connected using mobile data"
     },
     "connectedWifi": "Connected via Wi-Fi",
+    "@connectedWifi": {
+        "description": "Device connected using Wi-fi"
+    },
     "disconnected": "Disconnected from network",
+    "@disconnected": {
+        "description": "Device disconnected from network"
+    },
     "fileReceived": "File received",
+    "@fileReceived": {
+        "description": "Device received a file from another device"
+    },
     "navigationItemDevices": "Devices",
+    "@navigationItemDevices": {
+        "description": "Device page in navigation"
+    },
     "navigationItemSettings": "Settings",
+    "@navigationItemSettings": {
+        "description": "Settings page in navigation"
+    },
     "navigationItemHistory": "History",
+    "@navigationItemHistory": {
+        "description": "History page in navigation"
+    },
     "deviceInfoLoading": "Loading...",
+    "@deviceInfoLoading": {
+        "description": "Device info loading"
+    },
     "selectFiles": "Select file(s)",
+    "@selectFiles": {
+        "description": "Select files for transfer"
+    },
     "pickFiles": "Pick file(s)",
+    "@pickFiles": {
+        "description": "Pick files for selection"
+    },
     "noDevicesFound": "No devices were found",
+    "@noDevicesFound": {
+        "description": "No devices were found"
+    },
     "noFilesSelected": "No files selected",
+    "@noFilesSelected": {
+        "description": "No files were selected"
+    },
     "foldersNotAllowed": "Folders aren't allowed for transfer",
+    "@foldersNotAllowed": {
+        "description": "Folders aren't allowed for transfer"
+    },
     "devices": "Devices",
+    "@devices": {
+        "description": "Devices"
+    },
     "files": "Files",
+    "@files": {
+        "description": "Files"
+    },
     "clearAll": "Clear all",
+    "@clearAll": {
+        "description": "Clear all"
+    },
     "clearFiles": "Clear files",
+    "@clearFiles": {
+        "description": "Clear files"
+    },
     "selectAll": "Select all",
+    "@selectAll": {
+        "description": "Select all files"
+    },
     "deselectAll": "Deselect all",
+    "@deselectAll": {
+        "description": "Deselect all files"
+    },
     "pickDropFile": "Pick or drop a file",
+    "@pickDropFile": {
+        "description": "Pick or drop a file"
+    },
     "transferring": "Transferring...",
+    "@transferring": {
+        "description": "Transfer in course"
+    },
     "transfer": "Transfer",
+    "@transfer": {
+        "description": "Start transfer"
+    },
     "activity": "Activity",
+    "@activity": {
+        "description": "Activity"
+    },
     "noActivityYet": "No activity yet",
+    "@noActivityYet": {
+        "description": "No activity yet"
+    },
 
     "filesReceived": "{fileCount} file(s) received from {ip}",
     "@filesReceived": {
@@ -44,11 +113,57 @@
             }
         }
     },
-    "errorReceiving": "Error receiving file from ${deviceName}",
+    "errorReceiving": "Error receiving file from {deviceName}",
     "@errorReceiving": {
         "description": "Show on error receiving",
         "placeholders": {
             "deviceName": {
+                "type": "String"
+            }
+        }
+    },
+    "statusUpdateTransferring": "Transfering {fileName} to {deviceName}",
+    "@statusUpdateTransferring": {
+        "description": "Show on status updated",
+        "placeholders": {
+            "fileName": {
+                "type": "String"
+            },
+            "deviceName": {
+                "type": "String"
+            }
+        }
+    },
+    "statusUpdateTransferred": "Transferred {fileName} to {deviceName}",
+    "@statusUpdateTransferred": {
+        "description": "Show on status updated",
+        "placeholders": {
+            "fileName": {
+                "type": "String"
+            },
+            "deviceName": {
+                "type": "String"
+            }
+        }
+    },
+    "transferComplete": "Transferred {fileCount} file(s) to {devicesCount} device(s)",
+    "@transferComplete": {
+        "description": "Show on transfer completed",
+        "placeholders": {
+            "fileCount": {
+                "type": "int"
+            },
+            "devicesCount": {
+                "type": "int"
+            }
+        }
+    },
+
+    "deviceDisconnected": "Lost connection to {ip}",
+    "@deviceDisconnected": {
+        "description": "Show on device disconnection",
+        "placeholders": {
+            "ip": {
                 "type": "String"
             }
         }

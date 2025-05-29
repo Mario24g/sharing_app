@@ -45,7 +45,7 @@ class MainApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MultiProvider(
       providers: [
-        Provider<NetworkService>(create: (_) => NetworkService()),
+        Provider<NetworkService>(create: (_) => NetworkService(context: context)),
 
         //TODO: service starts only with lazy: false
         ChangeNotifierProvider<ConnectivityService>(create: (_) => ConnectivityService(), lazy: false),

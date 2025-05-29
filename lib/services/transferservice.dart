@@ -6,7 +6,8 @@ import 'package:blitzshare/model/historyentry.dart';
 import 'package:blitzshare/services/filereceiver.dart';
 import 'package:blitzshare/services/filesender.dart';
 import 'package:flutter/material.dart';
-//import 'package:sharing_app/services/tcptransfer.dart';
+import 'package:flutter_gen/gen_l10n/app_localizations.dart';
+//import 'package:blitzshare/services/tcptransfer.dart';
 
 class TransferService {
   final AppState appState;
@@ -19,6 +20,7 @@ class TransferService {
   }
 
   void createTransferTask(
+    BuildContext context,
     List<Device> selectedDevices,
     List<File> selectedFiles,
     void Function(String message)? onTransferComplete,
@@ -29,8 +31,16 @@ class TransferService {
     sender.createTransferTask(selectedDevices, selectedFiles, onTransferComplete, onProgressUpdate, onStatusUpdate);
     appState.addHistoryEntry(HistoryEntry(isUpload: true, filePaths: selectedFiles.map((f) => f.path).toList(), targetDevices: selectedDevices));*/
 
-    final FileSender fileSender = FileSender(port: 8889);
-    fileSender.createTransferTask(selectedDevices, selectedFiles, onTransferComplete, onProgressUpdate, onStatusUpdate);
+    FileSender(context: context).createTransferTask(
+      selectedDevices,
+      selectedFiles,
+      onTransferComplete,
+      onProgressUpdate,
+      onStatusUpdate,
+      statusUpdateTransferring: (filePath, deviceName) => AppLocalizations.of(context)!.statusUpdateTransferring(filePath, deviceName),
+      statusUpdateTransferred: (filePath, deviceName) => AppLocalizations.of(context)!.statusUpdateTransferred(filePath, deviceName),
+      transferComplete: (fileCount, deviceCount) => AppLocalizations.of(context)!.transferComplete(fileCount, deviceCount),
+    );
     appState.addHistoryEntry(HistoryEntry(isUpload: true, filePaths: selectedFiles.map((f) => f.path).toList(), targetDevices: selectedDevices));
   }
 
@@ -58,6 +68,9 @@ class TransferService {
 
         onFileReceived?.call("Files received from ${senderDevice.name}");
       },
-    ).startReceiverServer();
+    ).startReceiverServer(
+      filesReceivedMessage: (fileCount, ip) => AppLocalizations.of(context)!.filesReceived(fileCount, ip),
+      errorReceivingMessage: (deviceName) => AppLocalizations.of(context)!.errorReceiving(deviceName),
+    );
   }
 }

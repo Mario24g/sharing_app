@@ -2,19 +2,20 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 
+import 'package:flutter/widgets.dart';
 import 'package:http/http.dart';
 import 'package:path/path.dart';
 import 'package:http/http.dart' as http;
 import 'package:blitzshare/model/device.dart';
 
 class FileSender {
-  final int port;
+  final BuildContext context;
 
-  FileSender({required this.port});
+  FileSender({required this.context});
 
   Future sendMetadata(String targetIp, int fileCount) async {
-    final Uri uri = Uri.parse('http://$targetIp:8889/upload-metadata');
-    await http.post(uri, headers: {'Content-Type': 'application/json'}, body: jsonEncode({'fileCount': fileCount}));
+    final Uri uri = Uri.parse("http://$targetIp:8889/upload-metadata");
+    await http.post(uri, headers: {"Content-Type": "application/json"}, body: jsonEncode({"fileCount": fileCount}));
   }
 
   void createTransferTask(
@@ -22,8 +23,11 @@ class FileSender {
     List<File> selectedFiles,
     void Function(String message)? onTransferComplete,
     void Function(double progress)? onProgressUpdate,
-    void Function(String statusMessage)? onStatusUpdate,
-  ) async {
+    void Function(String statusMessage)? onStatusUpdate, {
+    required String Function(String filePath, String deviceName) statusUpdateTransferring,
+    required String Function(String filePath, String deviceName) statusUpdateTransferred,
+    required String Function(int fileCount, int deviceCount) transferComplete,
+  }) async {
     //final List<Future> uploadTasks = [];
     final int totalFiles = selectedDevices.length * selectedFiles.length;
     int completedFiles = 0;
@@ -36,14 +40,19 @@ class FileSender {
           device.ip,
           file,
           () {
-            onStatusUpdate?.call("Transfering ${basename(file.path)} to ${device.name}");
+            //onStatusUpdate?.call("Transfering ${basename(file.path)} to ${device.name}");
+            onStatusUpdate?.call(statusUpdateTransferring(basename(file.path), device.name));
           },
           (progress) {
             onProgressUpdate?.call(progress);
 
             if (progress >= 1.0) {
               completedFiles++;
-              onStatusUpdate?.call("Transferred ${basename(file.path)} to ${device.name} ($completedFiles/$totalFiles)");
+              /*onStatusUpdate?.call(
+                "Transferred ${basename(file.path)} to ${device.name}"
+                " ($completedFiles/$totalFiles)",
+              );*/
+              onStatusUpdate?.call("${statusUpdateTransferred(basename(file.path), device.name)} ($completedFiles/$totalFiles)");
             }
           },
         );
@@ -55,12 +64,13 @@ class FileSender {
 
     //await Future.wait(uploadTasks);
 
-    onTransferComplete?.call("Transferred ${selectedFiles.length} file(s) to ${selectedDevices.length} device(s)");
+    //onTransferComplete?.call("Transferred ${selectedFiles.length} file(s) to ${selectedDevices.length} device(s)");
+    onTransferComplete?.call(transferComplete(selectedFiles.length, selectedDevices.length));
   }
 
   Future sendFile(String targetIp, File file, void Function()? onTransferStarted, void Function(double progress)? onProgress) async {
     onTransferStarted?.call();
-    Uri uri = Uri.parse('http://$targetIp:8889/upload');
+    Uri uri = Uri.parse("http://$targetIp:8889/upload");
     int length = await file.length();
     //ByteStream stream = http.ByteStream(file.openRead());
     ByteStream stream = http.ByteStream(_ProgressStream(file.openRead(), length, onProgress!));
