@@ -68,7 +68,7 @@ class _DevicePageState extends State<DevicePage> {
     setState(() {
       _isTransferring = true;
       _progress = 0.0;
-      _statusMessage = '';
+      _statusMessage = "";
     });
 
     double lastProgress = 0.0;
@@ -96,7 +96,7 @@ class _DevicePageState extends State<DevicePage> {
         setState(() {
           _isTransferring = false;
           _progress = 0.0;
-          _statusMessage = '';
+          _statusMessage = "";
         });
         NotificationFlushbar.buildInformation(message).show(context);
       },
@@ -110,6 +110,13 @@ class _DevicePageState extends State<DevicePage> {
     for (File file in List.from(selectedFiles)) {
       appState.toggleFileSelection(file);
     }
+  }
+
+  void _cancelTransfer(TransferService transferService) {
+    transferService.fileSender.cancelTransfer();
+    setState(() {
+      _isTransferring = false;
+    });
   }
 
   Widget _desktopPage(
@@ -299,7 +306,7 @@ class _DevicePageState extends State<DevicePage> {
             ),
           ),
 
-          /* TRANSFER BUTTON */
+          /* CONTROL BUTTONS */
           //TODO
           Expanded(
             flex: 2,
@@ -327,22 +334,29 @@ class _DevicePageState extends State<DevicePage> {
                       ),
                     ),
                     SizedBox(height: 8.0),
-                    ElevatedButton(
-                      onPressed:
-                          (_isTransferring || selectedDevices.isEmpty || selectedFiles.isEmpty)
-                              ? null
-                              : () => _startTransfer(appState, context, selectedDevices, selectedFiles, transferService),
-                      child:
-                          _isTransferring
-                              ? Row(
-                                mainAxisSize: MainAxisSize.min,
-                                children: [
-                                  SizedBox(height: 20, width: 20, child: CircularProgressIndicator(strokeWidth: 2)),
-                                  SizedBox(width: 8),
-                                  Text(AppLocalizations.of(context)!.transferring),
-                                ],
-                              )
-                              : Text(AppLocalizations.of(context)!.transfer),
+                    Row(
+                      spacing: 10,
+                      children: [
+                        ElevatedButton(
+                          onPressed:
+                              (_isTransferring || selectedDevices.isEmpty || selectedFiles.isEmpty)
+                                  ? null
+                                  : () => _startTransfer(appState, context, selectedDevices, selectedFiles, transferService),
+                          child:
+                              _isTransferring
+                                  ? Row(
+                                    mainAxisSize: MainAxisSize.min,
+                                    children: [
+                                      SizedBox(height: 20, width: 20, child: CircularProgressIndicator(strokeWidth: 2)),
+                                      SizedBox(width: 8),
+                                      Text(AppLocalizations.of(context)!.transferring),
+                                    ],
+                                  )
+                                  : Text(AppLocalizations.of(context)!.transfer),
+                        ),
+
+                        ElevatedButton(onPressed: (_isTransferring) ? () => _cancelTransfer(transferService) : null, child: Text("Cancel")),
+                      ],
                     ),
                   ],
                 ),
@@ -503,14 +517,25 @@ class _DevicePageState extends State<DevicePage> {
             ),
             SizedBox(
               width: double.infinity,
-              child: ElevatedButton.icon(
-                onPressed:
-                    (_isTransferring || selectedDevices.isEmpty || selectedFiles.isEmpty)
-                        ? null
-                        : () => _startTransfer(appState, context, selectedDevices, selectedFiles, transferService),
-                icon: _isTransferring ? const SizedBox(width: 18, height: 18, child: CircularProgressIndicator(strokeWidth: 2)) : const Icon(Icons.send),
-                label: Text(_isTransferring ? AppLocalizations.of(context)!.transferring : AppLocalizations.of(context)!.transfer),
-                style: ElevatedButton.styleFrom(padding: const EdgeInsets.all(14)),
+              child: Row(
+                spacing: 10,
+                children: [
+                  ElevatedButton.icon(
+                    onPressed:
+                        (_isTransferring || selectedDevices.isEmpty || selectedFiles.isEmpty)
+                            ? null
+                            : () => _startTransfer(appState, context, selectedDevices, selectedFiles, transferService),
+                    icon: _isTransferring ? const SizedBox(width: 18, height: 18, child: CircularProgressIndicator(strokeWidth: 2)) : Icon(Icons.send),
+                    label: Text(_isTransferring ? AppLocalizations.of(context)!.transferring : AppLocalizations.of(context)!.transfer),
+                    style: ElevatedButton.styleFrom(padding: const EdgeInsets.all(14)),
+                  ),
+                  ElevatedButton.icon(
+                    onPressed: _isTransferring ? () => _cancelTransfer(transferService) : null,
+                    icon: Icon(Icons.cancel_outlined),
+                    label: Text("Cancel"),
+                    style: ElevatedButton.styleFrom(padding: const EdgeInsets.all(14)),
+                  ),
+                ],
               ),
             ),
           ],
@@ -521,7 +546,6 @@ class _DevicePageState extends State<DevicePage> {
 
   @override
   Widget build(BuildContext context) {
-    print("DevicePage built");
     final AppState appState = Provider.of<AppState>(context);
     final List<Device> deviceList = appState.devices;
     final List<File> pickedFiles = appState.pickedFiles;

@@ -10,6 +10,7 @@ import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 
 class TransferService {
   final AppState appState;
+  late FileSender fileSender;
   BuildContext _context;
 
   void Function(String message)? onFileReceived;
@@ -29,7 +30,8 @@ class TransferService {
     void Function(double progress)? onProgressUpdate,
     void Function(String statusMessage)? onStatusUpdate,
   ) {
-    FileSender(context: context).createTransferTask(
+    fileSender = FileSender(context: context);
+    fileSender.createTransferTask(
       selectedDevices,
       selectedFiles,
       onTransferComplete,
@@ -60,4 +62,28 @@ class TransferService {
       errorReceivingMessage: (deviceName) => AppLocalizations.of(_context)!.errorReceiving(deviceName),
     );
   }
+}
+
+class TransferSession {
+  final int expectedFiles;
+  int receivedFiles;
+  final List<File> files;
+  final DateTime startTime;
+  DateTime lastActivity;
+
+  TransferSession({required this.expectedFiles, required this.receivedFiles, required this.files, required this.startTime, required this.lastActivity});
+}
+
+class TransferResult {
+  final bool success;
+  final int completedFiles;
+  final int totalFiles;
+  final bool cancelled;
+  final List<String> errors;
+
+  TransferResult({required this.success, required this.completedFiles, required this.totalFiles, required this.cancelled, required this.errors});
+
+  double get completionPercentage => totalFiles > 0 ? completedFiles / totalFiles : 0.0;
+
+  bool get hasErrors => errors.isNotEmpty;
 }
