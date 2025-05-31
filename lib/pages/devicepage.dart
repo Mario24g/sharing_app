@@ -521,13 +521,13 @@ class _DevicePageState extends State<DevicePage> {
 
   @override
   Widget build(BuildContext context) {
+    print("DevicePage built");
     final AppState appState = Provider.of<AppState>(context);
     final List<Device> deviceList = appState.devices;
     final List<File> pickedFiles = appState.pickedFiles;
     final List<File> selectedFiles = appState.selectedFiles;
     final List<Device> selectedDevices = appState.selectedDevices;
     final TransferService transferService = context.read<TransferService>();
-    transferService.initializeReceiver(context);
 
     return widget.isMobile
         ? _mobilePage(appState, context, deviceList, pickedFiles, selectedFiles, selectedDevices, transferService)

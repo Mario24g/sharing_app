@@ -59,6 +59,8 @@ class _ApplicationPageState extends State<ApplicationPage> {
         NotificationService().showNotification(title: AppLocalizations.of(context)!.fileReceived, body: message);
         NotificationFlushbar.buildInformation(message).show(context);
       };
+      transferService.initializeReceiver(context);
+
       /*appState.networkService.onFileReceived = (message) {
         NotificationService().showNotification(
           title: "File Received",
@@ -134,7 +136,6 @@ class _ApplicationPageState extends State<ApplicationPage> {
   Widget _buildCurrentPage(bool isMobile) {
     switch (_selectedIndex) {
       case 0:
-        print("DevicePage built");
         return DevicePage(isMobile: isMobile);
       case 1:
         return Scaffold();
