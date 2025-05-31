@@ -11,12 +11,22 @@ import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 
 class TransferService {
   final AppState appState;
-  final BuildContext context;
+  BuildContext _context;
+  bool _receiverStarted = false;
 
   void Function(String message)? onFileReceived;
 
-  TransferService({required this.appState, required this.context}) {
+  /*TransferService({required this.appState, required this.context}) {
     startFileReceiver();
+  }*/
+  TransferService({required this.appState, required BuildContext context}) : _context = context;
+
+  void initializeReceiver(BuildContext context) {
+    if (!_receiverStarted) {
+      _context = context;
+      _startFileReceiver();
+      _receiverStarted = true;
+    }
   }
 
   void createTransferTask(
@@ -41,10 +51,12 @@ class TransferService {
       statusUpdateTransferred: (filePath, deviceName) => AppLocalizations.of(context)!.statusUpdateTransferred(filePath, deviceName),
       transferComplete: (fileCount, deviceCount) => AppLocalizations.of(context)!.transferComplete(fileCount, deviceCount),
     );
-    appState.addHistoryEntry(HistoryEntry(isUpload: true, filePaths: selectedFiles.map((f) => f.path).toList(), targetDevices: selectedDevices));
+    appState.addHistoryEntry(
+      HistoryEntry(isUpload: true, filePaths: selectedFiles.map((f) => f.path).toList(), targetDevices: selectedDevices, timestamp: DateTime.now().toString()),
+    );
   }
 
-  void startFileReceiver() async {
+  void _startFileReceiver() async {
     /*TcpFileReceiver(
       port: 8889,
       appState: appState,
@@ -60,17 +72,16 @@ class TransferService {
     FileReceiver(
       port: 8889,
       appState: appState,
-      context: context,
+      context: _context,
       onFileReceived: (String message, Device senderDevice, List<File> files) {
-        print("Received ${files.length} file(s) from ${senderDevice.name}");
-
-        appState.addHistoryEntry(HistoryEntry(isUpload: false, filePaths: files.map((f) => f.path).toList(), senderDevice: senderDevice));
-
-        onFileReceived?.call("Files received from ${senderDevice.name}");
+        appState.addHistoryEntry(
+          HistoryEntry(isUpload: false, filePaths: files.map((f) => f.path).toList(), senderDevice: senderDevice, timestamp: DateTime.now().toString()),
+        );
+        onFileReceived?.call(message);
       },
     ).startReceiverServer(
-      filesReceivedMessage: (fileCount, ip) => AppLocalizations.of(context)!.filesReceived(fileCount, ip),
-      errorReceivingMessage: (deviceName) => AppLocalizations.of(context)!.errorReceiving(deviceName),
+      filesReceivedMessage: (fileCount, ip) => AppLocalizations.of(_context)!.filesReceived(fileCount, ip),
+      errorReceivingMessage: (deviceName) => AppLocalizations.of(_context)!.errorReceiving(deviceName),
     );
   }
 }

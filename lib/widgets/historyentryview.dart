@@ -3,6 +3,7 @@ import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:blitzshare/model/historyentry.dart';
+import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 
 class HistoryEntryView extends StatefulWidget {
   final HistoryEntry historyEntry;
@@ -36,6 +37,8 @@ class _HistoryEntryViewState extends State<HistoryEntryView> {
   @override
   Widget build(BuildContext context) {
     final bool isUpload = widget.historyEntry.isUpload;
+    final AppLocalizations? localizations = AppLocalizations.of(context);
+
     return Card(
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12.0)),
       elevation: 8.0,
@@ -53,7 +56,7 @@ class _HistoryEntryViewState extends State<HistoryEntryView> {
                 padding: const EdgeInsets.only(right: 12.0),
                 constraints: BoxConstraints(maxWidth: MediaQuery.of(context).size.width * 0.7),
                 child: Text(
-                  isUpload ? "Sent ${widget.timestamp}" : "Received ${widget.timestamp}",
+                  isUpload ? localizations!.historyEntrySendTitle(widget.timestamp) : localizations!.historyEntryReceiveTitle(widget.timestamp),
                   overflow: TextOverflow.ellipsis,
                   maxLines: 1,
                   style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
@@ -65,8 +68,8 @@ class _HistoryEntryViewState extends State<HistoryEntryView> {
                     flex: 4,
                     child: Text(
                       isUpload
-                          ? "Sent ${widget.totalFiles} files to ${widget.totalDevices} devices"
-                          : "Received ${widget.totalFiles} files from ${widget.senderDevice}",
+                          ? localizations.historyEntrySendSubtitle(widget.totalFiles, widget.totalDevices)
+                          : localizations.historyEntryReceiveSubtitle(widget.totalFiles, widget.senderDevice),
                       style: TextStyle(color: Colors.white),
                     ),
                   ),

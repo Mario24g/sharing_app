@@ -167,5 +167,51 @@
                 "type": "String"
             }
         }
+    },
+
+    "historyEntrySendTitle": "Sent {timestamp}",
+    "@historyEntrySendTitle": {
+        "description": "Show in title of HistoryEntry",
+        "placeholders": {
+            "timestamp": {
+                "type": "String"
+            }
+        }
+    },
+
+    "historyEntrySendSubtitle": "Sent {totalFiles} files to {totalDevices} devices",
+    "@historyEntrySendSubtitle": {
+        "description": "Show in subtitle of HistoryEntry",
+        "placeholders": {
+            "totalFiles": {
+                "type": "int"
+            },
+            "totalDevices": {
+                "type": "int"
+            }
+        }
+    },
+
+    "historyEntryReceiveTitle": "Received {timestamp}",
+    "@historyEntryReceiveTitle": {
+        "description": "Show in title of HistoryEntry",
+        "placeholders": {
+            "timestamp": {
+                "type": "String"
+            }
+        }
+    },
+
+    "historyEntryReceiveSubtitle": "Received {totalFiles} files from {senderDevice}",
+    "@historyEntryReceiveSubtitle": {
+        "description": "Show in subtitle of HistoryEntry",
+        "placeholders": {
+            "totalFiles": {
+                "type": "int"
+            },
+            "senderDevice": {
+                "type": "String"
+            }
+        }
     }
 }

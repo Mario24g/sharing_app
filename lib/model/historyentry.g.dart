@@ -21,6 +21,7 @@ class HistoryEntryAdapter extends TypeAdapter<HistoryEntry> {
       filePaths: (fields[1] as List).cast<String>(),
       targetDevices: (fields[2] as List?)?.cast<Device>(),
       senderDevice: fields[3] as Device?,
+      timestamp: fields[4] as String?,
     );
   }
 

@@ -51,7 +51,7 @@ class DeviceView extends StatelessWidget {
                         switch (device.devicePlatform) {
                           DevicePlatform.windows || DevicePlatform.linux || DevicePlatform.macos => FontAwesomeIcons.desktop,
                           DevicePlatform.android ||
-                          DevicePlatform.ios => device.getDeviceType() == 'tablet' ? FontAwesomeIcons.tablet : FontAwesomeIcons.mobile,
+                          DevicePlatform.ios => device.getDeviceType() == "tablet" ? FontAwesomeIcons.tablet : FontAwesomeIcons.mobile,
                           DevicePlatform.unknown => FontAwesomeIcons.question,
                         },
                         size: 50,

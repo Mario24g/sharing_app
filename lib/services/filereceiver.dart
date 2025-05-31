@@ -23,6 +23,7 @@ class FileReceiver {
   FileReceiver({required this.port, required this.appState, required this.context, required this.onFileReceived});
 
   void startReceiverServer({required String Function(int, String) filesReceivedMessage, required String Function(String) errorReceivingMessage}) async {
+    print("Receiver started");
     final HttpServer server = await HttpServer.bind(InternetAddress.anyIPv4, port);
 
     await for (HttpRequest request in server) {
@@ -113,9 +114,9 @@ class FileReceiver {
         ..close();
 
       if (_receivedFiles[ip] == _expectedFiles[ip]) {
-        onFileReceived?.call("${_receivedFiles[ip]} file(s) received from $ip", senderDevice, files);
+        //onFileReceived?.call("${_receivedFiles[ip]} file(s) received from $ip", senderDevice, files);
         //onFileReceived?.call(AppLocalizations.of(context)!.filesReceived(_receivedFiles[ip]!, ip), senderDevice, files);
-        //onFileReceived?.call(filesReceivedMessage(_receivedFiles[ip]!, ip), senderDevice, files);
+        onFileReceived?.call(filesReceivedMessage(_receivedFiles[ip]!, senderDevice.name), senderDevice, files);
         _expectedFiles.remove(ip);
         _receivedFiles.remove(ip);
       }
@@ -124,9 +125,9 @@ class FileReceiver {
         ..statusCode = HttpStatus.internalServerError
         ..write("Error: $e")
         ..close();
-      onFileReceived?.call("Error receiving file from ${senderDevice.name}", senderDevice, List.empty());
+      //onFileReceived?.call("Error receiving file from ${senderDevice.name}", senderDevice, List.empty());
       //onFileReceived?.call(AppLocalizations.of(context)!.errorReceiving(senderDevice.name), senderDevice, List.empty());
-      //onFileReceived?.call(errorReceivingMessage(senderDevice.name), senderDevice, List.empty());
+      onFileReceived?.call(errorReceivingMessage(senderDevice.name), senderDevice, List.empty());
     }
   }
 }

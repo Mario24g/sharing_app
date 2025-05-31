@@ -134,6 +134,7 @@ class _ApplicationPageState extends State<ApplicationPage> {
   Widget _buildCurrentPage(bool isMobile) {
     switch (_selectedIndex) {
       case 0:
+        print("DevicePage built");
         return DevicePage(isMobile: isMobile);
       case 1:
         return Scaffold();

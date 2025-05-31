@@ -165,5 +165,51 @@
                 "type": "String"
             }
         }
+    },
+
+    "historyEntrySendTitle": "Отправлено {timestamp}",
+    "@historyEntrySendTitle": {
+        "description": "Отображается в заголовке журналов",
+        "placeholders": {
+            "timestamp": {
+                "type": "String"
+            }
+        }
+    },
+
+    "historyEntrySendSubtitle": "Отправлено {totalFiles} файлов на {totalDevices} устройств",
+    "@historyEntrySendSubtitle": {
+        "description": "Отображается в подзаголовке журналов",
+        "placeholders": {
+            "totalFiles": {
+                "type": "int"
+            },
+            "totalDevices": {
+                "type": "int"
+            }
+        }
+    },
+
+    "historyEntryReceiveTitle": "Получено {timestamp}",
+        "@historyEntryReceiveTitle": {
+        "description": "Отображается в заголовке журналов",
+        "placeholders": {
+            "timestamp": {
+                "type": "String"
+            }
+        }
+    },
+
+    "historyEntryReceiveSubtitle": "Получено {totalFiles} файлов от {senderDevice}",
+    "@historyEntryReceiveSubtitle": {
+        "description": "Отображается в подзаголовке журналов",
+        "placeholders": {
+            "totalFiles": {
+                "type": "int"
+            },
+            "senderDevice": {
+                "type": "String"
+            }
+        }
     }
 }

@@ -165,5 +165,52 @@
                 "type": "String"
             }
         }
+    },
+
+    "historyEntrySendTitle": "已发送 {timestamp}",
+    "@historyEntrySendTitle": {
+        "description": "显示在历史记录标题中",
+        "placeholders": {
+            "timestamp": {
+                "type": "String"
+            }
+        }
+    },
+
+    "historyEntrySendSubtitle": "已发送 {totalFiles} 个文件到 {totalDevices} 个设备",
+    "@historyEntrySendSubtitle": {
+        "description": "显示在历史记录副标题中",
+        "placeholders": {
+            "totalFiles": {
+                "type": "int"
+            },
+            "totalDevices": {
+                "type": "int"
+            }
+        }
+    },
+
+    "historyEntryReceiveTitle": "已接收 {timestamp}",
+    "@historyEntryReceiveTitle": {
+        "description": "显示在历史记录标题中",
+        "placeholders": {
+            "timestamp": {
+                "type": "String"
+            }
+        }
+    },
+
+    "historyEntryReceiveSubtitle": "从 {senderDevice} 接收了 {totalFiles} 个文件",
+    "@historyEntryReceiveSubtitle": {
+        "description": "显示在历史记录副标题中",
+        "placeholders": {
+            "totalFiles": {
+                "type": "int"
+            },
+            "senderDevice": {
+                "type": "String"
+            }
+        }
     }
+
 }

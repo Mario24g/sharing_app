@@ -16,9 +16,10 @@ class HistoryEntry {
   @HiveField(3)
   final Device? senderDevice;
   @HiveField(4)
-  final String timestamp = DateTime.now().toString();
+  final String timestamp;
 
-  HistoryEntry({required this.isUpload, required this.filePaths, this.targetDevices, this.senderDevice});
+  HistoryEntry({required this.isUpload, required this.filePaths, this.targetDevices, this.senderDevice, String? timestamp})
+    : timestamp = timestamp ?? DateTime.now().toString();
 
   List<File> get files => filePaths.map((p) => File(p)).toList();
 }

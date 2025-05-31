@@ -26,7 +26,7 @@ class _DevicePageState extends State<DevicePage> {
   double _progress = 0.0;
   String _statusMessage = "";
 
-  Future _pickFile(AppState appState, BuildContext context) async {
+  Future _pickFile(AppState appState) async {
     FilePickerResult? result = await FilePicker.platform.pickFiles(
       dialogTitle: AppLocalizations.of(context)!.selectFiles,
       type: FileType.any,
@@ -34,6 +34,13 @@ class _DevicePageState extends State<DevicePage> {
     );
 
     if (result != null) {
+      bool hasDirectories = result.files.any((file) => file.path != null && FileSystemEntity.isDirectorySync(file.path!));
+      if (hasDirectories) {
+        if (mounted) {
+          NotificationFlushbar.buildWarning(AppLocalizations.of(context)!.foldersNotAllowed).show(context);
+        }
+      }
+
       final List<File> files =
           result.files.where((file) => file.path != null && FileSystemEntity.isFileSync(file.path!)).map((file) => File(file.path!)).toList();
 
@@ -219,7 +226,7 @@ class _DevicePageState extends State<DevicePage> {
                                   ),
                                   SizedBox(width: 30),
                                   ElevatedButton(
-                                    onPressed: _isTransferring ? null : () => _pickFile(appState, context),
+                                    onPressed: _isTransferring ? null : () => _pickFile(appState),
                                     style: ElevatedButton.styleFrom(padding: EdgeInsets.symmetric(vertical: 12, horizontal: 16)),
                                     child: Row(
                                       mainAxisAlignment: MainAxisAlignment.center,
@@ -427,7 +434,7 @@ class _DevicePageState extends State<DevicePage> {
                             IconButton(
                               icon: Icon(Icons.upload_file),
                               tooltip: AppLocalizations.of(context)!.pickFiles,
-                              onPressed: _isTransferring ? null : () => _pickFile(appState, context),
+                              onPressed: _isTransferring ? null : () => _pickFile(appState),
                             ),
                             if (pickedFiles.isNotEmpty)
                               IconButton(
@@ -520,6 +527,7 @@ class _DevicePageState extends State<DevicePage> {
     final List<File> selectedFiles = appState.selectedFiles;
     final List<Device> selectedDevices = appState.selectedDevices;
     final TransferService transferService = context.read<TransferService>();
+    transferService.initializeReceiver(context);
 
     return widget.isMobile
         ? _mobilePage(appState, context, deviceList, pickedFiles, selectedFiles, selectedDevices, transferService)
