@@ -25,12 +25,12 @@ class FileSender {
   void cancelTransfer() {
     _isCancelled = true;
 
-    for (final subscription in _activeSubscriptions) {
+    for (final StreamSubscription subscription in _activeSubscriptions) {
       subscription.cancel();
     }
     _activeSubscriptions.clear();
 
-    //HTTP requests can"t be directly cancelled in Dart, but we can ignore their responses
+    //HTTP requests cant be directly cancelled in Dart, but we can ignore their responses
     _activeRequests.clear();
   }
 
@@ -81,7 +81,7 @@ class FileSender {
 
         final bool metadataSuccess = await sendMetadata(device.ip, selectedFiles.length);
         if (!metadataSuccess) {
-          final error = "Failed to send metadata to ${device.name}";
+          final String error = "Failed to send metadata to ${device.name}";
           failedTransfers.add(error);
           onError?.call(error);
           continue;
@@ -101,12 +101,12 @@ class FileSender {
               completedFiles++;
               onStatusUpdate?.call("${statusUpdateTransferred(basename(file.path), device.name)} ($completedFiles/$totalFiles)");
             } else {
-              final error = "Failed to transfer ${basename(file.path)} to ${device.name}";
+              final String error = "Failed to transfer ${basename(file.path)} to ${device.name}";
               failedTransfers.add(error);
               onError?.call(error);
             }
           } catch (e) {
-            final error = "Error transferring ${basename(file.path)} to ${device.name}: $e";
+            final String error = "Error transferring ${basename(file.path)} to ${device.name}: $e";
             failedTransfers.add(error);
             onError?.call(error);
           }
@@ -143,7 +143,7 @@ class FileSender {
       final Uri uri = Uri.parse("http://$targetIp:8889/upload");
       final int fileSize = await file.length();
 
-      final Stream<List<int>> fileStream = _createOptimizedStream(file, fileSize, onProgress);
+      final Stream<List<int>> fileStream = _createStream(file, fileSize, onProgress);
       final ByteStream byteStream = http.ByteStream(fileStream);
 
       final MultipartRequest request = http.MultipartRequest("POST", uri);
@@ -173,18 +173,14 @@ class FileSender {
         await response.stream.drain();
         return true;
       } else {
-        print("Upload failed with status: ${response.statusCode}");
         return false;
       }
     } catch (e) {
-      if (!_isCancelled) {
-        print("Error uploading file: $e");
-      }
       return false;
     }
   }
 
-  Stream<List<int>> _createOptimizedStream(File file, int fileSize, void Function(double progress)? onProgress) {
+  Stream<List<int>> _createStream(File file, int fileSize, void Function(double progress)? onProgress) {
     return Stream.fromFuture(_readFileInChunks(file, fileSize, onProgress));
   }
 

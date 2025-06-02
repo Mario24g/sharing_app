@@ -68,10 +68,8 @@ class TransferSession {
   final int expectedFiles;
   int receivedFiles;
   final List<File> files;
-  final DateTime startTime;
-  DateTime lastActivity;
 
-  TransferSession({required this.expectedFiles, required this.receivedFiles, required this.files, required this.startTime, required this.lastActivity});
+  TransferSession({required this.expectedFiles, required this.receivedFiles, required this.files});
 }
 
 class TransferResult {

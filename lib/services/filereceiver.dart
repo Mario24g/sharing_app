@@ -33,18 +33,14 @@ class FileReceiver {
       _server!.defaultResponseHeaders.clear();
       _server!.autoCompress = false;
 
-      print("File receiver server started on port $port");
-
       _server!.listen((HttpRequest request) {
         _handleRequest(request, filesReceivedMessage, errorReceivingMessage).catchError((error) {
-          print("Error handling request: $error");
           _sendErrorResponse(request, "Internal server error");
         });
       });
 
       return true;
     } catch (e) {
-      print("Failed to start receiver server: $e");
       _isRunning = false;
       return false;
     }
@@ -59,8 +55,6 @@ class FileReceiver {
 
       await _server!.close(force: true);
       _server = null;
-
-      print("File receiver server stopped");
     } catch (e) {
       print("Error stopping receiver server: $e");
     }
@@ -84,7 +78,6 @@ class FileReceiver {
         _sendErrorResponse(request, "Not found", HttpStatus.notFound);
       }
     } catch (e) {
-      print("Error in request handler: $e");
       _sendErrorResponse(request, "Internal server error");
     }
   }
@@ -97,17 +90,15 @@ class FileReceiver {
 
       final int expected = data["fileCount"] ?? 1;
 
-      _sessions[ip] = TransferSession(expectedFiles: expected, receivedFiles: 0, files: [], startTime: DateTime.now(), lastActivity: DateTime.now());
+      _sessions[ip] = TransferSession(expectedFiles: expected, receivedFiles: 0, files: []);
 
       _sendSuccessResponse(request, "Metadata received");
-      print("Metadata received from $ip: expecting $expected files");
     } catch (e) {
-      print("Error handling metadata: $e");
       _sendErrorResponse(request, "Invalid metadata format");
     }
   }
 
-  Future<void> _handleFileUpload(
+  Future _handleFileUpload(
     HttpRequest request,
     String Function(int fileCount, String ip) filesReceivedMessage,
     String Function(String deviceName) errorReceivingMessage,
@@ -128,11 +119,8 @@ class FileReceiver {
         return;
       }
 
-      session.lastActivity = DateTime.now();
-
       final String boundary = contentType.parameters["boundary"]!;
 
-      // Process files with better streaming
       await for (final MimeMultipart part in MimeMultipartTransformer(boundary).bind(request)) {
         if (!_isRunning) {
           _sendErrorResponse(request, "Server shutting down");
@@ -146,24 +134,17 @@ class FileReceiver {
       }
 
       session.receivedFiles++;
-      session.lastActivity = DateTime.now();
 
       _sendSuccessResponse(request, "File uploaded successfully");
 
-      // Check if transfer is complete
       if (session.receivedFiles >= session.expectedFiles) {
-        final duration = DateTime.now().difference(session.startTime);
-        print("Transfer completed from $ip in ${duration.inSeconds} seconds");
-
-        onFileReceived?.call("${session.receivedFiles} file(s) received from $ip", senderDevice, session.files);
+        onFileReceived?.call(filesReceivedMessage(session.receivedFiles, senderDevice.name), senderDevice, session.files);
 
         _sessions.remove(ip);
       }
     } catch (e) {
-      print("Error in file upload from ${senderDevice.name}: $e");
       _sendErrorResponse(request, "Upload failed: $e");
-
-      onFileReceived?.call("Error receiving file from ${senderDevice.name}", senderDevice, []);
+      onFileReceived?.call(errorReceivingMessage(senderDevice.name), senderDevice, List.empty());
     }
   }
 
