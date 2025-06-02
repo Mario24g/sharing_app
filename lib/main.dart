@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:io';
 
+import 'package:blitzshare/services/languageservice.dart';
 import 'package:blitzshare/services/transferservice.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:blitzshare/model/historyentry.dart';
@@ -12,14 +13,15 @@ import 'package:provider/provider.dart';
 import 'package:flutter/material.dart';
 import 'package:blitzshare/services/notificationservice.dart';
 import 'package:blitzshare/data/deviceinfo.dart';
-import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_gen/gen_l10n/app_localizations.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
-void main() {
-  //TODO: remember to remove
+void main() async {
   runZonedGuarded(
     () async {
       WidgetsFlutterBinding.ensureInitialized();
+      await SharedPreferences.getInstance();
+
       if (Platform.isAndroid || Platform.isIOS) {
         await NotificationService().init();
       }
@@ -33,13 +35,36 @@ void main() {
       runApp(const MainApp());
     },
     (error, stack) {
-      print("Unhandled error: $error");
+      print("Unhandled error: $error\n$stack");
     },
   );
 }
 
-class MainApp extends StatelessWidget {
+class MainApp extends StatefulWidget {
   const MainApp({super.key});
+
+  @override
+  State<MainApp> createState() => _MainAppState();
+}
+
+class _MainAppState extends State<MainApp> {
+  Locale? _locale;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadSavedLocale();
+  }
+
+  Future _loadSavedLocale() async {
+    final SharedPreferences sharedPreferences = await SharedPreferences.getInstance();
+    final String languageCode = sharedPreferences.getString("languageCode") ?? "en";
+    if (mounted) {
+      setState(() {
+        _locale = Locale(languageCode);
+      });
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -47,31 +72,27 @@ class MainApp extends StatelessWidget {
       providers: [
         Provider<NetworkService>(create: (_) => NetworkService()),
 
-        //TODO: service starts only with lazy: false
         ChangeNotifierProvider<ConnectivityService>(create: (_) => ConnectivityService(), lazy: false),
 
         ChangeNotifierProxyProvider2<NetworkService, ConnectivityService, AppState>(
           create: (context) {
-            final networkService = context.read<NetworkService>();
-            final connectivityService = context.read<ConnectivityService>();
-            final appState = AppState(networkService, connectivityService);
+            final NetworkService networkService = context.read<NetworkService>();
+            final ConnectivityService connectivityService = context.read<ConnectivityService>();
+            final AppState appState = AppState(networkService, connectivityService);
             appState.initialize();
             return appState;
           },
           update: (context, networkService, connectivityService, appState) => appState!..networkService = networkService,
         ),
-
         ProxyProvider<AppState, TransferService>(update: (context, appState, previous) => previous ?? TransferService(appState: appState, context: context)),
+
+        Provider<LanguageService>(create: (_) => LanguageService()),
       ],
       child: MaterialApp(
-        localizationsDelegates: [
-          AppLocalizations.delegate,
-          GlobalMaterialLocalizations.delegate,
-          GlobalWidgetsLocalizations.delegate,
-          GlobalCupertinoLocalizations.delegate,
-        ],
-        supportedLocales: AppLocalizations.supportedLocales,
         title: 'BlitzShare',
+        locale: _locale,
+        localizationsDelegates: AppLocalizations.localizationsDelegates,
+        supportedLocales: AppLocalizations.supportedLocales,
         darkTheme: ThemeData.dark(),
         home: const ApplicationPage(),
       ),
@@ -195,6 +216,7 @@ class AppState extends ChangeNotifier {
 
   void clearHistoryEntries() {
     _historyEntries.clear();
+    _historyBox.clear();
     notifyListeners();
   }
 

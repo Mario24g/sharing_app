@@ -1,5 +1,6 @@
 import 'dart:io';
 
+import 'package:blitzshare/pages/settingspage.dart';
 import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
@@ -149,8 +150,7 @@ class _ApplicationPageState extends State<ApplicationPage> {
       case 0:
         return DevicePage(isMobile: isMobile);
       case 1:
-        return Scaffold();
-      //return SettingsPage();
+        return SettingsPage();
       case 2:
         return HistoryPage();
       default:
