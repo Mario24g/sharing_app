@@ -147,11 +147,19 @@ class _DevicePageState extends State<DevicePage> {
                         padding: const EdgeInsets.all(16.0),
                         child: Column(
                           children: [
-                            Text(AppLocalizations.of(context)!.devices, style: Theme.of(context).textTheme.bodyMedium),
+                            Text(AppLocalizations.of(context)!.devices, style: TextStyle(fontSize: 18, fontWeight: FontWeight.w500)),
                             Expanded(
                               child:
                                   deviceList.isEmpty
-                                      ? Text(AppLocalizations.of(context)!.noDevicesFound)
+                                      ? Column(
+                                        mainAxisAlignment: MainAxisAlignment.center,
+                                        crossAxisAlignment: CrossAxisAlignment.center,
+                                        spacing: 10,
+                                        children: [
+                                          Text(AppLocalizations.of(context)!.noDevicesFound),
+                                          CircularProgressIndicator(valueColor: AlwaysStoppedAnimation<Color>(Colors.blue)),
+                                        ],
+                                      )
                                       : GridView.count(
                                         crossAxisCount: 2,
                                         children: List.generate(deviceList.length, (index) {
@@ -213,7 +221,7 @@ class _DevicePageState extends State<DevicePage> {
                           padding: const EdgeInsets.all(16.0),
                           child: Column(
                             children: [
-                              Text(AppLocalizations.of(context)!.files, style: Theme.of(context).textTheme.bodyMedium),
+                              Text(AppLocalizations.of(context)!.files, style: TextStyle(fontSize: 18, fontWeight: FontWeight.w500)),
 
                               SizedBox(height: 12),
                               /* CONTROL BUTTONS */
@@ -224,6 +232,7 @@ class _DevicePageState extends State<DevicePage> {
                                     visible: pickedFiles.isNotEmpty,
                                     child: ElevatedButton(
                                       onPressed: _isTransferring ? null : () => appState.clearFiles(),
+                                      style: ElevatedButton.styleFrom(foregroundColor: Colors.white, backgroundColor: Color.fromRGBO(64, 75, 96, 0.2)),
                                       child: Row(
                                         mainAxisAlignment: MainAxisAlignment.center,
                                         mainAxisSize: MainAxisSize.min,
@@ -234,7 +243,7 @@ class _DevicePageState extends State<DevicePage> {
                                   SizedBox(width: 30),
                                   ElevatedButton(
                                     onPressed: _isTransferring ? null : () => _pickFile(appState),
-                                    style: ElevatedButton.styleFrom(padding: EdgeInsets.symmetric(vertical: 12, horizontal: 16)),
+                                    style: ElevatedButton.styleFrom(foregroundColor: Colors.white, backgroundColor: Color.fromRGBO(64, 75, 96, 0.2)),
                                     child: Row(
                                       mainAxisAlignment: MainAxisAlignment.center,
                                       mainAxisSize: MainAxisSize.min,
@@ -259,6 +268,7 @@ class _DevicePageState extends State<DevicePage> {
                                                   }
                                                 }
                                               },
+                                      style: ElevatedButton.styleFrom(foregroundColor: Colors.white, backgroundColor: Color.fromRGBO(64, 75, 96, 0.2)),
                                       child: Row(
                                         mainAxisAlignment: MainAxisAlignment.center,
                                         mainAxisSize: MainAxisSize.min,
@@ -334,29 +344,48 @@ class _DevicePageState extends State<DevicePage> {
                       ),
                     ),
                     SizedBox(height: 8.0),
-                    Row(
-                      spacing: 10,
-                      children: [
-                        ElevatedButton(
-                          onPressed:
-                              (_isTransferring || selectedDevices.isEmpty || selectedFiles.isEmpty)
-                                  ? null
-                                  : () => _startTransfer(appState, context, selectedDevices, selectedFiles, transferService),
-                          child:
-                              _isTransferring
-                                  ? Row(
-                                    mainAxisSize: MainAxisSize.min,
-                                    children: [
-                                      SizedBox(height: 20, width: 20, child: CircularProgressIndicator(strokeWidth: 2)),
-                                      SizedBox(width: 8),
-                                      Text(AppLocalizations.of(context)!.transferring),
-                                    ],
-                                  )
-                                  : Text(AppLocalizations.of(context)!.transfer),
-                        ),
+                    IntrinsicWidth(
+                      child: Row(
+                        spacing: 10,
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          ElevatedButton(
+                            onPressed:
+                                (_isTransferring || selectedDevices.isEmpty || selectedFiles.isEmpty)
+                                    ? null
+                                    : () => _startTransfer(appState, context, selectedDevices, selectedFiles, transferService),
+                            style: ElevatedButton.styleFrom(foregroundColor: Colors.white, backgroundColor: Color.fromRGBO(64, 75, 96, 0.2)),
+                            child:
+                                _isTransferring
+                                    ? Row(
+                                      mainAxisSize: MainAxisSize.min,
+                                      children: [
+                                        SizedBox(height: 20, width: 20, child: CircularProgressIndicator(strokeWidth: 2)),
+                                        SizedBox(width: 8),
+                                        Text(AppLocalizations.of(context)!.transferring),
+                                      ],
+                                    )
+                                    : Text(AppLocalizations.of(context)!.transfer),
+                          ),
 
-                        ElevatedButton(onPressed: (_isTransferring) ? () => _cancelTransfer(transferService) : null, child: Text("Cancel")),
-                      ],
+                          if (_isTransferring)
+                            ElevatedButton(
+                              onPressed: (_isTransferring) ? () => _cancelTransfer(transferService) : null,
+                              style: ButtonStyle(
+                                shape: WidgetStateProperty.all(CircleBorder()),
+                                padding: WidgetStateProperty.all(EdgeInsets.all(20)),
+                                backgroundColor: WidgetStateProperty.all(Colors.red),
+                                overlayColor: WidgetStateProperty.resolveWith<Color?>((states) {
+                                  if (states.contains(WidgetState.pressed)) {
+                                    return Colors.red;
+                                  }
+                                  return null;
+                                }),
+                              ),
+                              child: Icon(Icons.cancel_schedule_send_rounded, color: Colors.white),
+                            ),
+                        ],
+                      ),
                     ),
                   ],
                 ),
@@ -397,7 +426,15 @@ class _DevicePageState extends State<DevicePage> {
                         Text(AppLocalizations.of(context)!.devices, style: Theme.of(context).textTheme.titleMedium),
                         const SizedBox(height: 8),
                         deviceList.isEmpty
-                            ? Text(AppLocalizations.of(context)!.noDevicesFound)
+                            ? Column(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              crossAxisAlignment: CrossAxisAlignment.center,
+                              spacing: 10,
+                              children: [
+                                Text(AppLocalizations.of(context)!.noDevicesFound),
+                                CircularProgressIndicator(valueColor: AlwaysStoppedAnimation<Color>(Colors.blue)),
+                              ],
+                            )
                             : Wrap(
                               spacing: 8,
                               runSpacing: 8,

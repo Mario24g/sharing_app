@@ -108,10 +108,14 @@ class _ApplicationPageState extends State<ApplicationPage> {
     return _isMobile
         ? SafeArea(
           child: BottomNavigationBar(
+            fixedColor: Color.fromARGB(255, 29, 27, 32),
             items: [
-              BottomNavigationBarItem(icon: Icon(Icons.settings_remote_rounded), label: AppLocalizations.of(context)!.navigationItemDevices),
-              BottomNavigationBarItem(icon: Icon(Icons.settings), label: AppLocalizations.of(context)!.navigationItemSettings),
-              BottomNavigationBarItem(icon: Icon(Icons.history), label: AppLocalizations.of(context)!.navigationItemHistory),
+              BottomNavigationBarItem(
+                icon: Icon(Icons.settings_remote_rounded, color: Colors.white),
+                label: AppLocalizations.of(context)!.navigationItemDevices,
+              ),
+              BottomNavigationBarItem(icon: Icon(Icons.settings, color: Colors.white), label: AppLocalizations.of(context)!.navigationItemSettings),
+              BottomNavigationBarItem(icon: Icon(Icons.history, color: Colors.white), label: AppLocalizations.of(context)!.navigationItemHistory),
             ],
             currentIndex: _selectedIndex,
             onTap: _onItemTapped,
@@ -122,10 +126,14 @@ class _ApplicationPageState extends State<ApplicationPage> {
             extended: _isExpanded,
             labelType: NavigationRailLabelType.none,
             minWidth: 80,
+            backgroundColor: Color.fromARGB(255, 29, 27, 32),
             destinations: [
-              NavigationRailDestination(icon: Icon(Icons.settings_remote_rounded), label: Text(AppLocalizations.of(context)!.navigationItemDevices)),
-              NavigationRailDestination(icon: Icon(Icons.settings), label: Text(AppLocalizations.of(context)!.navigationItemSettings)),
-              NavigationRailDestination(icon: Icon(Icons.history), label: Text(AppLocalizations.of(context)!.navigationItemHistory)),
+              NavigationRailDestination(
+                icon: Icon(Icons.settings_remote_rounded, color: Colors.white),
+                label: Text(AppLocalizations.of(context)!.navigationItemDevices),
+              ),
+              NavigationRailDestination(icon: Icon(Icons.settings, color: Colors.white), label: Text(AppLocalizations.of(context)!.navigationItemSettings)),
+              NavigationRailDestination(icon: Icon(Icons.history, color: Colors.white), label: Text(AppLocalizations.of(context)!.navigationItemHistory)),
             ],
             selectedIndex: _selectedIndex,
             onDestinationSelected: _onItemTapped,
@@ -155,10 +163,11 @@ class _ApplicationPageState extends State<ApplicationPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
+        backgroundColor: Color.fromARGB(255, 29, 27, 32),
         title: Consumer<AppState>(
           builder: (context, appState, _) {
-            final deviceInfo = appState.deviceInfo;
-            return Text(deviceInfo ?? AppLocalizations.of(context)!.deviceInfoLoading);
+            final String? deviceInfo = appState.deviceInfo;
+            return Text(deviceInfo ?? AppLocalizations.of(context)!.deviceInfoLoading, style: TextStyle(fontWeight: FontWeight.w500));
           },
         ),
         leading:

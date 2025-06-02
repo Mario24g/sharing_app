@@ -101,7 +101,7 @@ class FileView extends StatelessWidget {
                     return null;
                   }),
                 ),
-                child: Icon(Icons.delete),
+                child: Icon(Icons.delete, color: Colors.white),
               ),
               onTap: onTap,
             ),
