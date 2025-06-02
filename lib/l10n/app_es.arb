@@ -96,9 +96,9 @@
     "@activity": {
         "description": "Actividad"
     },
-    "noActivityYet": "Sin actividad aún",
+    "noActivityYet": "Sin actividad",
     "@noActivityYet": {
-        "description": "Sin actividad aún"
+        "description": "Sin actividad"
     },
     "filesReceived": "{fileCount} archivo(s) recibido(s) de {ip}",
     "@filesReceived": {

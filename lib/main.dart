@@ -193,6 +193,11 @@ class AppState extends ChangeNotifier {
     notifyListeners();
   }
 
+  void clearHistoryEntries() {
+    _historyEntries.clear();
+    notifyListeners();
+  }
+
   void clearDevices() {
     _devices.clear();
     notifyListeners();

@@ -108,7 +108,10 @@ class _ApplicationPageState extends State<ApplicationPage> {
     return _isMobile
         ? SafeArea(
           child: BottomNavigationBar(
-            fixedColor: Color.fromARGB(255, 29, 27, 32),
+            backgroundColor: Color.fromARGB(255, 29, 27, 32),
+            selectedItemColor: Colors.white,
+            unselectedItemColor: Colors.grey[400],
+            selectedLabelStyle: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
             items: [
               BottomNavigationBarItem(
                 icon: Icon(Icons.settings_remote_rounded, color: Colors.white),
@@ -151,7 +154,7 @@ class _ApplicationPageState extends State<ApplicationPage> {
       case 2:
         return HistoryPage();
       default:
-        throw UnimplementedError('No page for index $_selectedIndex');
+        return DevicePage(isMobile: isMobile);
     }
   }
 

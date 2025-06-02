@@ -51,7 +51,11 @@ class _HistoryEntryViewState extends State<HistoryEntryView> {
             decoration: BoxDecoration(color: Color.fromRGBO(64, 75, 96, 0.2), borderRadius: BorderRadius.circular(12.0)),
             child: ListTile(
               contentPadding: EdgeInsets.symmetric(horizontal: 20.0, vertical: 10.0),
-              leading: SizedBox(width: 48, height: 48, child: Icon(isUpload ? Icons.upload : Icons.download)),
+              leading: SizedBox(
+                width: 48,
+                height: 48,
+                child: isUpload ? Icon(Icons.upload, color: Colors.blue[300]) : Icon(Icons.download, color: Colors.red[300]),
+              ),
               title: Container(
                 padding: const EdgeInsets.only(right: 12.0),
                 constraints: BoxConstraints(maxWidth: MediaQuery.of(context).size.width * 0.7),
@@ -88,7 +92,7 @@ class _HistoryEntryViewState extends State<HistoryEntryView> {
                     return null;
                   }),
                 ),
-                child: Icon(Icons.delete),
+                child: Icon(Icons.delete, color: Colors.white),
               ),
             ),
           ),

@@ -26,11 +26,22 @@ class _HistoryPageState extends State<HistoryPage> {
         child: Container(
           padding: const EdgeInsets.all(16.0),
           child: Column(
+            spacing: 10,
             children: [
               Text(
                 historyEntries.isEmpty ? AppLocalizations.of(context)!.noActivityYet : AppLocalizations.of(context)!.activity,
-                style: Theme.of(context).textTheme.bodyMedium,
+                style: TextStyle(fontSize: 18, fontWeight: FontWeight.w500),
               ),
+              if (historyEntries.isNotEmpty)
+                ElevatedButton(
+                  onPressed: () => appState.clearHistoryEntries(),
+                  style: ElevatedButton.styleFrom(foregroundColor: Colors.white, backgroundColor: Color.fromRGBO(64, 75, 96, 0.2)),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    mainAxisSize: MainAxisSize.min,
+                    children: [Icon(Icons.delete), SizedBox(width: 8), Text(AppLocalizations.of(context)!.clearAll)],
+                  ),
+                ),
               Expanded(
                 child: ListView.builder(
                   itemCount: historyEntries.length,
