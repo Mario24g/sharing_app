@@ -45,7 +45,7 @@ class MainApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MultiProvider(
       providers: [
-        Provider<NetworkService>(create: (_) => NetworkService(context: context)),
+        Provider<NetworkService>(create: (_) => NetworkService()),
 
         //TODO: service starts only with lazy: false
         ChangeNotifierProvider<ConnectivityService>(create: (_) => ConnectivityService(), lazy: false),
@@ -61,16 +61,6 @@ class MainApp extends StatelessWidget {
           update: (context, networkService, connectivityService, appState) => appState!..networkService = networkService,
         ),
 
-        /*
-        ChangeNotifierProxyProvider<NetworkService, AppState>(
-          create: (context) {
-            final AppState appState = AppState(context.read<NetworkService>());
-            appState.initialize();
-            return appState;
-          },
-          update: (context, networkService, appState) => appState!..networkService = networkService,
-        ),
-        */
         ProxyProvider<AppState, TransferService>(update: (context, appState, previous) => previous ?? TransferService(appState: appState, context: context)),
       ],
       child: MaterialApp(

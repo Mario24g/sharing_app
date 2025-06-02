@@ -37,7 +37,7 @@ class _ApplicationPageState extends State<ApplicationPage> {
 
       appState.setOnTransferRequestHandler(_handleIncomingRequest);
       appState.networkService.onDeviceDisconnected = (message) {
-        NotificationFlushbar.buildInformation(message).show(context);
+        NotificationFlushbar.buildInformation(AppLocalizations.of(context)!.deviceDisconnected(message)).show(context);
       };
       connectivityService.addListener(() {
         final ConnectivityResult newStatus = connectivityService.currentStatus;
