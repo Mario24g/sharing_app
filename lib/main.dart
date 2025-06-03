@@ -124,7 +124,6 @@ class AppState extends ChangeNotifier {
   void initialize() {
     _fetchDeviceInfo();
     _fetchHistoryEntries();
-    _initializeNetworking();
   }
 
   void _initializeNetworking() async {
@@ -177,7 +176,7 @@ class AppState extends ChangeNotifier {
         _initializeNetworking();
       }
     } else {
-      _deviceInfo = "Unavailable";
+      _deviceInfo = "";
       if (_isNetworkServiceInitialized) _disposeNetworking();
     }
     notifyListeners();

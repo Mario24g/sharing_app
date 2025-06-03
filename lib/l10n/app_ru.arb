@@ -44,9 +44,9 @@
     "@pickFiles": {
         "description": "Поиск файлов для выбора"
     },
-    "noDevicesFound": "Устройства не найдены",
+    "noDevicesFound": "В поиске устройств...",
     "@noDevicesFound": {
-        "description": "Устройства не найдены"
+        "description": "В поиске устройств..."
     },
     "noFilesSelected": "Файлы не выбраны",
     "@noFilesSelected": {
@@ -217,5 +217,10 @@
                 "type": "String"
             }
         }
+    },
+
+    "notAvailableWithMobileData": "Недоступно при использовании мобильных данных",
+    "@notAvailableWithMobileData": {
+        "description": "Недоступно при использовании мобильных данных"
     }
 }

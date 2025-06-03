@@ -32,7 +32,7 @@
     "@navigationItemHistory": {
         "description": "导航中的历史记录页面"
     },
-    "deviceInfoLoading": "加载中...",
+    "deviceInfoLoading": "加载中。。。",
     "@deviceInfoLoading": {
         "description": "设备信息加载中"
     },
@@ -44,9 +44,9 @@
     "@pickFiles": {
         "description": "选择文件用于上传"
     },
-    "noDevicesFound": "未发现设备",
+    "noDevicesFound": "搜索设备。。。",
     "@noDevicesFound": {
-        "description": "未发现可用设备"
+        "description": "搜索设备。。。"
     },
     "noFilesSelected": "未选择文件",
     "@noFilesSelected": {
@@ -84,7 +84,7 @@
     "@pickDropFile": {
         "description": "选择或拖放文件"
     },
-    "transferring": "传输中...",
+    "transferring": "传输中。。。",
     "@transferring": {
         "description": "正在传输"
     },
@@ -217,6 +217,11 @@
                 "type": "String"
             }
         }
+    },
+
+    "notAvailableWithMobileData": "移动数据无法使用",
+    "@notAvailableWithMobileData": {
+        "description": "使用移动数据时不可用"
     }
 
 }

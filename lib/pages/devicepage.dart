@@ -1,5 +1,6 @@
 import 'dart:io';
 
+import 'package:blitzshare/services/connectivityservice.dart';
 import 'package:desktop_drop/desktop_drop.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
@@ -135,6 +136,7 @@ class _DevicePageState extends State<DevicePage> {
     final List<File> selectedFiles,
     final List<Device> selectedDevices,
     final TransferService transferService,
+    final ConnectivityService connectivityService,
   ) {
     return SizedBox.expand(
       child: Column(
@@ -164,8 +166,11 @@ class _DevicePageState extends State<DevicePage> {
                                         crossAxisAlignment: CrossAxisAlignment.center,
                                         spacing: 10,
                                         children: [
-                                          Text(AppLocalizations.of(context)!.noDevicesFound),
-                                          CircularProgressIndicator(valueColor: AlwaysStoppedAnimation<Color>(Colors.blue)),
+                                          connectivityService.isMobileData
+                                              ? Text(AppLocalizations.of(context)!.notAvailableWithMobileData)
+                                              : Text(AppLocalizations.of(context)!.noDevicesFound),
+                                          if (!connectivityService.isMobileData)
+                                            CircularProgressIndicator(valueColor: AlwaysStoppedAnimation<Color>(Colors.blue)),
                                         ],
                                       )
                                       : GridView.count(
@@ -416,6 +421,7 @@ class _DevicePageState extends State<DevicePage> {
     final List<File> selectedFiles,
     final List<Device> selectedDevices,
     final TransferService transferService,
+    final ConnectivityService connectivityService,
   ) {
     const double minHeight = 150;
     return SingleChildScrollView(
@@ -442,8 +448,10 @@ class _DevicePageState extends State<DevicePage> {
                               crossAxisAlignment: CrossAxisAlignment.center,
                               spacing: 10,
                               children: [
-                                Text(AppLocalizations.of(context)!.noDevicesFound),
-                                CircularProgressIndicator(valueColor: AlwaysStoppedAnimation<Color>(Colors.blue)),
+                                connectivityService.isMobileData
+                                    ? Text(AppLocalizations.of(context)!.notAvailableWithMobileData)
+                                    : Text(AppLocalizations.of(context)!.noDevicesFound),
+                                if (!connectivityService.isMobileData) CircularProgressIndicator(valueColor: AlwaysStoppedAnimation<Color>(Colors.blue)),
                               ],
                             )
                             : Wrap(
@@ -595,6 +603,7 @@ class _DevicePageState extends State<DevicePage> {
   @override
   Widget build(BuildContext context) {
     final AppState appState = Provider.of<AppState>(context);
+    final ConnectivityService connectivityService = context.read<ConnectivityService>();
     final List<Device> deviceList = appState.devices;
     final List<File> pickedFiles = appState.pickedFiles;
     final List<File> selectedFiles = appState.selectedFiles;
@@ -602,7 +611,7 @@ class _DevicePageState extends State<DevicePage> {
     final TransferService transferService = context.read<TransferService>();
 
     return widget.isMobile
-        ? _mobilePage(appState, context, deviceList, pickedFiles, selectedFiles, selectedDevices, transferService)
-        : _desktopPage(appState, context, deviceList, pickedFiles, selectedFiles, selectedDevices, transferService);
+        ? _mobilePage(appState, context, deviceList, pickedFiles, selectedFiles, selectedDevices, transferService, connectivityService)
+        : _desktopPage(appState, context, deviceList, pickedFiles, selectedFiles, selectedDevices, transferService, connectivityService);
   }
 }

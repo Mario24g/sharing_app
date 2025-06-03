@@ -44,9 +44,9 @@
     "@pickFiles": {
         "description": "Pick files for selection"
     },
-    "noDevicesFound": "No devices were found",
+    "noDevicesFound": "Discovering devices...",
     "@noDevicesFound": {
-        "description": "No devices were found"
+        "description": "Discovering devices..."
     },
     "noFilesSelected": "No files selected",
     "@noFilesSelected": {
@@ -219,5 +219,10 @@
                 "type": "String"
             }
         }
+    },
+
+    "notAvailableWithMobileData": "Not available with mobile data",
+    "@notAvailableWithMobileData": {
+        "description": "Not available with mobile data"
     }
 }
