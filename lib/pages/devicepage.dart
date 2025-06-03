@@ -92,19 +92,27 @@ class _DevicePageState extends State<DevicePage> {
       context,
       selectedDevices,
       selectedFiles,
-      (message) {
+      (completionMessage) {
         setState(() {
           _isTransferring = false;
           _progress = 0.0;
           _statusMessage = "";
         });
-        NotificationFlushbar.buildInformation(message).show(context);
+        NotificationFlushbar.buildInformation(completionMessage).show(context);
       },
       onPerFileProgress,
       (statusMessage) {
         setState(() {
           _statusMessage = statusMessage;
         });
+      },
+      (error) {
+        setState(() {
+          _isTransferring = false;
+          _progress = 0.0;
+          _statusMessage = "";
+        });
+        //TODO: add error notification
       },
     );
     for (File file in List.from(selectedFiles)) {

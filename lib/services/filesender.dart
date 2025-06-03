@@ -12,15 +12,17 @@ import "package:blitzshare/model/device.dart";
 import "package:path/path.dart" as path;
 
 class FileSender {
+  final int port;
   final BuildContext context;
   final int chunkSize;
   final Duration requestTimeout;
 
-  bool _isCancelled = false;
   final List<StreamSubscription> _activeSubscriptions = [];
-  final List<http.MultipartRequest> _activeRequests = [];
+  final List<MultipartRequest> _activeRequests = [];
 
-  FileSender({required this.context, this.chunkSize = 64 * 1024, this.requestTimeout = const Duration(minutes: 30)});
+  bool _isCancelled = false;
+
+  FileSender({required this.port, required this.context, this.chunkSize = 64 * 1024, this.requestTimeout = const Duration(minutes: 30)});
 
   void cancelTransfer() {
     _isCancelled = true;
@@ -44,14 +46,13 @@ class FileSender {
     if (_isCancelled) return false;
 
     try {
-      final Uri uri = Uri.parse("http://$targetIp:8889/upload-metadata");
-      final response = await http
+      final Uri uri = Uri.parse("http://$targetIp:$port/upload-metadata");
+      final Response response = await http
           .post(uri, headers: {"Content-Type": "application/json"}, body: jsonEncode({"fileCount": fileCount}))
           .timeout(const Duration(seconds: 10));
 
       return response.statusCode == 200;
     } catch (e) {
-      print("Error sending metadata: $e");
       return false;
     }
   }
@@ -61,35 +62,33 @@ class FileSender {
     List<File> selectedFiles,
     void Function(String message)? onTransferComplete,
     void Function(double progress)? onProgressUpdate,
-    void Function(String statusMessage)? onStatusUpdate, {
+    void Function(String statusMessage)? onStatusUpdate,
+    void Function(String error)? onError, {
     required String Function(String filePath, String deviceName) statusUpdateTransferring,
     required String Function(String filePath, String deviceName) statusUpdateTransferred,
     required String Function(int fileCount, int deviceCount) transferComplete,
-    void Function(String error)? onError,
+    required String Function() transferFailed,
   }) async {
     resetCancellation();
 
     final int totalFiles = selectedDevices.length * selectedFiles.length;
     int completedFiles = 0;
-    final List<String> failedTransfers = [];
 
     try {
       for (final Device device in selectedDevices) {
         if (_isCancelled) {
-          return TransferResult(success: false, completedFiles: completedFiles, totalFiles: totalFiles, cancelled: true, errors: failedTransfers);
+          return TransferResult(success: false, completedFiles: completedFiles, totalFiles: totalFiles, cancelled: true);
         }
 
         final bool metadataSuccess = await sendMetadata(device.ip, selectedFiles.length);
         if (!metadataSuccess) {
-          final String error = "Failed to send metadata to ${device.name}";
-          failedTransfers.add(error);
-          onError?.call(error);
+          onError?.call(transferFailed());
           continue;
         }
 
         for (final File file in selectedFiles) {
           if (_isCancelled) {
-            return TransferResult(success: false, completedFiles: completedFiles, totalFiles: totalFiles, cancelled: true, errors: failedTransfers);
+            return TransferResult(success: false, completedFiles: completedFiles, totalFiles: totalFiles, cancelled: true);
           }
 
           try {
@@ -101,14 +100,10 @@ class FileSender {
               completedFiles++;
               onStatusUpdate?.call("${statusUpdateTransferred(basename(file.path), device.name)} ($completedFiles/$totalFiles)");
             } else {
-              final String error = "Failed to transfer ${basename(file.path)} to ${device.name}";
-              failedTransfers.add(error);
-              onError?.call(error);
+              onError?.call(transferFailed());
             }
           } catch (e) {
-            final String error = "Error transferring ${basename(file.path)} to ${device.name}: $e";
-            failedTransfers.add(error);
-            onError?.call(error);
+            onError?.call(transferFailed());
           }
         }
       }
@@ -117,22 +112,10 @@ class FileSender {
         onTransferComplete?.call(transferComplete(selectedFiles.length, selectedDevices.length));
       }
 
-      return TransferResult(
-        success: !_isCancelled && failedTransfers.isEmpty,
-        completedFiles: completedFiles,
-        totalFiles: totalFiles,
-        cancelled: _isCancelled,
-        errors: failedTransfers,
-      );
+      return TransferResult(success: !_isCancelled, completedFiles: completedFiles, totalFiles: totalFiles, cancelled: _isCancelled);
     } catch (e) {
-      onError?.call("Transfer task error: $e");
-      return TransferResult(
-        success: false,
-        completedFiles: completedFiles,
-        totalFiles: totalFiles,
-        cancelled: _isCancelled,
-        errors: [...failedTransfers, e.toString()],
-      );
+      onError?.call(transferFailed());
+      return TransferResult(success: false, completedFiles: completedFiles, totalFiles: totalFiles, cancelled: _isCancelled);
     }
   }
 

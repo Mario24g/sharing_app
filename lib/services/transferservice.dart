@@ -29,17 +29,20 @@ class TransferService {
     void Function(String message)? onTransferComplete,
     void Function(double progress)? onProgressUpdate,
     void Function(String statusMessage)? onStatusUpdate,
+    void Function(String error)? onError,
   ) async {
-    fileSender = FileSender(context: context);
+    fileSender = FileSender(port: 8889, context: context);
     TransferResult result = await fileSender.createTransferTask(
       selectedDevices,
       selectedFiles,
       onTransferComplete,
       onProgressUpdate,
       onStatusUpdate,
+      onError,
       statusUpdateTransferring: (filePath, deviceName) => AppLocalizations.of(context)!.statusUpdateTransferring(filePath, deviceName),
       statusUpdateTransferred: (filePath, deviceName) => AppLocalizations.of(context)!.statusUpdateTransferred(filePath, deviceName),
       transferComplete: (fileCount, deviceCount) => AppLocalizations.of(context)!.transferComplete(fileCount, deviceCount),
+      transferFailed: () => AppLocalizations.of(context)!.transferFailed,
     );
     if (result.success) {
       appState.addHistoryEntry(
@@ -84,11 +87,8 @@ class TransferResult {
   final int completedFiles;
   final int totalFiles;
   final bool cancelled;
-  final List<String> errors;
 
-  TransferResult({required this.success, required this.completedFiles, required this.totalFiles, required this.cancelled, required this.errors});
+  TransferResult({required this.success, required this.completedFiles, required this.totalFiles, required this.cancelled});
 
   double get completionPercentage => totalFiles > 0 ? completedFiles / totalFiles : 0.0;
-
-  bool get hasErrors => errors.isNotEmpty;
 }

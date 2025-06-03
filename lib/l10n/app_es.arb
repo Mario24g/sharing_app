@@ -145,6 +145,12 @@
             }
         }
     },
+
+    "transferFailed": "No se pudo completar la transferencia",
+    "@transferFailed": {
+        "description": "Se muestra cuando falla la transferencia"
+    },
+
     "transferComplete": "Transferidos {fileCount} archivo(s) a {devicesCount} dispositivo(s)",
     "@transferComplete": {
         "description": "Se muestra cuando se completa la transferencia",

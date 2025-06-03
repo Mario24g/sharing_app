@@ -145,6 +145,12 @@
             }
         }
     },
+
+    "transferFailed": "Наступила ошибка при передаче",
+    "@transferFailed": {
+        "description": "Отображается при ошибках"
+    },
+
     "transferComplete": "Передано {fileCount} файл(ов) на {devicesCount} устройство(в)",
     "@transferComplete": {
         "description": "Отображается после завершения передачи",

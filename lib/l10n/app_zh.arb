@@ -145,6 +145,12 @@
             }
         }
     },
+
+    "transferFailed": "传输失败",
+    "@transferFailed": {
+        "description": "显示在传输失败时"
+    },
+
     "transferComplete": "已将 {fileCount} 个文件传输到 {devicesCount} 个设备",
     "@transferComplete": {
         "description": "传输完成后显示",

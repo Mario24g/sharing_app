@@ -146,6 +146,12 @@
             }
         }
     },
+
+    "transferFailed": "Failed to complete transfer",
+    "@transferFailed": {
+        "description": "Show on transfer failed"
+    },
+
     "transferComplete": "Transferred {fileCount} file(s) to {devicesCount} device(s)",
     "@transferComplete": {
         "description": "Show on transfer completed",
