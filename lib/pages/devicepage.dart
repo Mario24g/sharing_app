@@ -233,62 +233,65 @@ class _DevicePageState extends State<DevicePage> {
 
                               SizedBox(height: 12),
                               /* CONTROL BUTTONS */
-                              Row(
-                                mainAxisAlignment: MainAxisAlignment.center,
-                                children: [
-                                  Visibility(
-                                    visible: pickedFiles.isNotEmpty,
-                                    child: ElevatedButton(
-                                      onPressed: _isTransferring ? null : () => appState.clearFiles(),
+                              SingleChildScrollView(
+                                scrollDirection: Axis.horizontal,
+                                child: Row(
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  children: [
+                                    Visibility(
+                                      visible: pickedFiles.isNotEmpty,
+                                      child: ElevatedButton(
+                                        onPressed: _isTransferring ? null : () => appState.clearFiles(),
+                                        style: ElevatedButton.styleFrom(foregroundColor: Colors.white, backgroundColor: Color.fromRGBO(64, 75, 96, 0.2)),
+                                        child: Row(
+                                          mainAxisAlignment: MainAxisAlignment.center,
+                                          mainAxisSize: MainAxisSize.min,
+                                          children: [Icon(Icons.delete), SizedBox(width: 8), Text(AppLocalizations.of(context)!.clearAll)],
+                                        ),
+                                      ),
+                                    ),
+                                    SizedBox(width: 30),
+                                    ElevatedButton(
+                                      onPressed: _isTransferring ? null : () => _pickFile(appState),
                                       style: ElevatedButton.styleFrom(foregroundColor: Colors.white, backgroundColor: Color.fromRGBO(64, 75, 96, 0.2)),
                                       child: Row(
                                         mainAxisAlignment: MainAxisAlignment.center,
                                         mainAxisSize: MainAxisSize.min,
-                                        children: [Icon(Icons.delete), SizedBox(width: 8), Text(AppLocalizations.of(context)!.clearAll)],
+                                        children: [Icon(Icons.upload_file), SizedBox(width: 8), Text(AppLocalizations.of(context)!.pickFiles)],
                                       ),
                                     ),
-                                  ),
-                                  SizedBox(width: 30),
-                                  ElevatedButton(
-                                    onPressed: _isTransferring ? null : () => _pickFile(appState),
-                                    style: ElevatedButton.styleFrom(foregroundColor: Colors.white, backgroundColor: Color.fromRGBO(64, 75, 96, 0.2)),
-                                    child: Row(
-                                      mainAxisAlignment: MainAxisAlignment.center,
-                                      mainAxisSize: MainAxisSize.min,
-                                      children: [Icon(Icons.upload_file), SizedBox(width: 8), Text(AppLocalizations.of(context)!.pickFiles)],
-                                    ),
-                                  ),
-                                  SizedBox(width: 30),
-                                  Visibility(
-                                    visible: pickedFiles.isNotEmpty,
-                                    child: ElevatedButton(
-                                      onPressed:
-                                          _isTransferring
-                                              ? null
-                                              : () {
-                                                if (selectedFiles.isEmpty) {
-                                                  for (File file in pickedFiles) {
-                                                    appState.toggleFileSelection(file);
+                                    SizedBox(width: 30),
+                                    Visibility(
+                                      visible: pickedFiles.isNotEmpty,
+                                      child: ElevatedButton(
+                                        onPressed:
+                                            _isTransferring
+                                                ? null
+                                                : () {
+                                                  if (selectedFiles.isEmpty) {
+                                                    for (File file in pickedFiles) {
+                                                      appState.toggleFileSelection(file);
+                                                    }
+                                                  } else {
+                                                    for (File file in List.from(selectedFiles)) {
+                                                      appState.toggleFileSelection(file);
+                                                    }
                                                   }
-                                                } else {
-                                                  for (File file in List.from(selectedFiles)) {
-                                                    appState.toggleFileSelection(file);
-                                                  }
-                                                }
-                                              },
-                                      style: ElevatedButton.styleFrom(foregroundColor: Colors.white, backgroundColor: Color.fromRGBO(64, 75, 96, 0.2)),
-                                      child: Row(
-                                        mainAxisAlignment: MainAxisAlignment.center,
-                                        mainAxisSize: MainAxisSize.min,
-                                        children: [
-                                          Icon(selectedFiles.isEmpty ? Icons.select_all : Icons.deselect),
-                                          SizedBox(width: 8),
-                                          Text(selectedFiles.isEmpty ? AppLocalizations.of(context)!.selectAll : AppLocalizations.of(context)!.deselectAll),
-                                        ],
+                                                },
+                                        style: ElevatedButton.styleFrom(foregroundColor: Colors.white, backgroundColor: Color.fromRGBO(64, 75, 96, 0.2)),
+                                        child: Row(
+                                          mainAxisAlignment: MainAxisAlignment.center,
+                                          mainAxisSize: MainAxisSize.min,
+                                          children: [
+                                            Icon(selectedFiles.isEmpty ? Icons.select_all : Icons.deselect),
+                                            SizedBox(width: 8),
+                                            Text(selectedFiles.isEmpty ? AppLocalizations.of(context)!.selectAll : AppLocalizations.of(context)!.deselectAll),
+                                          ],
+                                        ),
                                       ),
                                     ),
-                                  ),
-                                ],
+                                  ],
+                                ),
                               ),
                               SizedBox(height: 12),
                               pickedFiles.isEmpty

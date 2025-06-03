@@ -26,7 +26,7 @@ class DeviceView extends StatelessWidget {
           child: LayoutBuilder(
             builder: (context, constraints) {
               return Column(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                mainAxisAlignment: MainAxisAlignment.center,
                 children: [
                   /* HEADER */
                   Column(
@@ -74,22 +74,22 @@ class DeviceView extends StatelessWidget {
                   ),
 
                   /* CONTROL BUTTONS */
-                  Row(
+                  /*Row(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
                       ElevatedButton(
                         onPressed: () {},
                         style: ElevatedButton.styleFrom(shape: const CircleBorder(), padding: const EdgeInsets.all(16), backgroundColor: Colors.blue),
-                        child: const Icon(Icons.push_pin),
+                        child: const Icon(Icons.push_pin, color: Colors.white),
                       ),
                       const SizedBox(width: 4),
                       ElevatedButton(
                         onPressed: () {},
                         style: ElevatedButton.styleFrom(shape: const CircleBorder(), padding: const EdgeInsets.all(16), backgroundColor: Colors.red),
-                        child: const Icon(Icons.block),
+                        child: const Icon(Icons.block, color: Colors.white),
                       ),
                     ],
-                  ),
+                  ),*/
                 ],
               );
             },
