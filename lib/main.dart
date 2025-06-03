@@ -110,6 +110,7 @@ class AppState extends ChangeNotifier {
   final List<HistoryEntry> _historyEntries = [];
   final Box<HistoryEntry> _historyBox = Hive.box<HistoryEntry>("history");
   String? _deviceInfo;
+  bool _isNetworkServiceInitialized = false;
 
   List<Device> get devices => List.unmodifiable(_devices);
   List<File> get selectedFiles => List.unmodifiable(_selectedFiles);
@@ -126,35 +127,58 @@ class AppState extends ChangeNotifier {
     _initializeNetworking();
   }
 
-  void _initializeNetworking() {
-    networkService.initialize();
-    networkService.discoveredDevices.listen(
-      (device) {
-        if (!_devices.any((d) => d.ip == device.ip)) {
-          _devices.add(device);
+  void _initializeNetworking() async {
+    if (_isNetworkServiceInitialized) return;
+
+    try {
+      await networkService.initialize();
+      _isNetworkServiceInitialized = true;
+
+      networkService.discoveredDevices.listen(
+        (device) {
+          if (!_devices.any((d) => d.ip == device.ip)) {
+            _devices.add(device);
+            notifyListeners();
+          }
+        },
+        onError: (disconnectedIp) {
+          _devices.removeWhere((d) => d.ip == disconnectedIp);
+          _selectedDevices.removeWhere((d) => d.ip == disconnectedIp);
           notifyListeners();
-        }
-      },
-      onError: (disconnectedIp) {
-        _devices.removeWhere((d) => d.ip == disconnectedIp);
-        _selectedDevices.removeWhere((d) => d.ip == disconnectedIp);
-        notifyListeners();
-      },
-    );
+        },
+      );
+    } catch (e) {
+      _isNetworkServiceInitialized = false;
+    }
+  }
+
+  void _disposeNetworking() {
+    if (!_isNetworkServiceInitialized) return;
+
+    networkService.dispose();
+    _isNetworkServiceInitialized = false;
+
+    _devices.clear();
+    _selectedDevices.clear();
+
+    notifyListeners();
   }
 
   Future _fetchDeviceInfo() async {
     await _updateNetworking();
-
     connectivityService.addListener(_updateNetworking);
   }
 
   Future _updateNetworking() async {
     if (connectivityService.isWifi) {
       _deviceInfo = await DeviceInfo.getMyDeviceInfo();
-      //_initializeNetworking();
+
+      if (!_isNetworkServiceInitialized) {
+        _initializeNetworking();
+      }
     } else {
       _deviceInfo = "Unavailable";
+      if (_isNetworkServiceInitialized) _disposeNetworking();
     }
     notifyListeners();
   }
@@ -231,5 +255,13 @@ class AppState extends ChangeNotifier {
 
   void setOnAcceptHandler(void Function() handler) {
     networkService.onAccept = handler;
+  }
+
+  @override
+  void dispose() {
+    connectivityService.removeListener(_updateNetworking);
+    if (_isNetworkServiceInitialized) _disposeNetworking();
+
+    super.dispose();
   }
 }

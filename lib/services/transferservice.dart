@@ -29,9 +29,9 @@ class TransferService {
     void Function(String message)? onTransferComplete,
     void Function(double progress)? onProgressUpdate,
     void Function(String statusMessage)? onStatusUpdate,
-  ) {
+  ) async {
     fileSender = FileSender(context: context);
-    fileSender.createTransferTask(
+    TransferResult result = await fileSender.createTransferTask(
       selectedDevices,
       selectedFiles,
       onTransferComplete,
@@ -41,9 +41,16 @@ class TransferService {
       statusUpdateTransferred: (filePath, deviceName) => AppLocalizations.of(context)!.statusUpdateTransferred(filePath, deviceName),
       transferComplete: (fileCount, deviceCount) => AppLocalizations.of(context)!.transferComplete(fileCount, deviceCount),
     );
-    appState.addHistoryEntry(
-      HistoryEntry(isUpload: true, filePaths: selectedFiles.map((f) => f.path).toList(), targetDevices: selectedDevices, timestamp: DateTime.now().toString()),
-    );
+    if (result.success) {
+      appState.addHistoryEntry(
+        HistoryEntry(
+          isUpload: true,
+          filePaths: selectedFiles.map((f) => f.path).toList(),
+          targetDevices: selectedDevices,
+          timestamp: DateTime.now().toString(),
+        ),
+      );
+    }
   }
 
   void _startFileReceiver() async {

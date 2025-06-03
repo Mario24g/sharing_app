@@ -24,7 +24,6 @@ class ConnectivityService with ChangeNotifier {
 
     _connectivitySubscription = _connectivity.onConnectivityChanged.listen((List<ConnectivityResult> results) {
       _currentStatus = results.firstOrNull ?? ConnectivityResult.none;
-      print(_currentStatus);
       notifyListeners();
     });
   }

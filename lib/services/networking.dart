@@ -22,20 +22,27 @@ class NetworkService {
   final Set<String> _knownIps = {};
   final Map<String, Socket> _tcpSockets = {};
   final Set<Device> _cachedDevices = {};
-  final StreamController<Device> _discoveryController = StreamController.broadcast();
+
+  late StreamController<Device> _discoveryController = StreamController.broadcast();
 
   String? _localIp;
   String? _deviceId;
   Timer? _monitorTimer;
   TCPConnection? _tcpConnection;
   DeviceDiscoverer? _deviceDiscoverer;
+  bool _isInitialized = false;
 
   Stream<Device> get discoveredDevices => _discoveryController.stream;
 
   Future initialize() async {
+    if (_isInitialized) return;
+
     try {
+      _discoveryController = StreamController.broadcast();
+
       _localIp = await _networkInfo.getWifiIP();
       _deviceId = await DeviceInfo.getDeviceInfo();
+
       _discoveryController.stream.listen((device) {
         _cachedDevices.add(device);
       });
@@ -65,8 +72,10 @@ class NetworkService {
       _deviceDiscoverer!.initialize();
 
       _monitorDevices();
+      _isInitialized = true;
     } catch (e) {
-      print("NetworkService initialization error: $e");
+      dispose();
+      rethrow;
     }
   }
 
@@ -113,9 +122,30 @@ class NetworkService {
   }
 
   void dispose() {
+    if (!_isInitialized) return;
+
     _monitorTimer?.cancel();
+    _monitorTimer = null;
+
     _tcpConnection?.dispose();
+    _tcpConnection = null;
+
     _deviceDiscoverer?.dispose();
-    _discoveryController.close();
+    _deviceDiscoverer = null;
+
+    for (Socket socket in _tcpSockets.values) {
+      socket.destroy();
+    }
+    _tcpSockets.clear();
+
+    _knownIps.clear();
+    _deviceLastSeen.clear();
+    _cachedDevices.clear();
+
+    if (!_discoveryController.isClosed) _discoveryController.close();
+
+    _localIp = null;
+    _deviceId = null;
+    _isInitialized = false;
   }
 }

@@ -138,15 +138,17 @@ class TCPConnection {
   }
 
   void dispose() {
-    for (Timer timer in _heartbeatTimers.values) {
-      timer.cancel();
-    }
-    _heartbeatTimers.clear();
+    try {
+      for (Timer timer in _heartbeatTimers.values) {
+        timer.cancel();
+      }
+      _heartbeatTimers.clear();
 
-    for (Socket socket in tcpSockets.values) {
-      socket.destroy();
-    }
-    tcpSockets.clear();
-    _server?.close();
+      for (Socket socket in tcpSockets.values) {
+        socket.destroy();
+      }
+      tcpSockets.clear();
+      _server?.close();
+    } catch (_) {}
   }
 }

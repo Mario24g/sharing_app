@@ -1,9 +1,7 @@
 import 'package:blitzshare/l10n/l10n.dart';
-import 'package:blitzshare/main.dart';
 import 'package:blitzshare/services/languageservice.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 
 class SettingsPage extends StatefulWidget {
   const SettingsPage({super.key});
