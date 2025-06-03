@@ -241,6 +241,7 @@ class _DevicePageState extends State<DevicePage> {
                               SingleChildScrollView(
                                 scrollDirection: Axis.horizontal,
                                 child: Row(
+                                  spacing: 10,
                                   mainAxisAlignment: MainAxisAlignment.center,
                                   children: [
                                     Visibility(
@@ -255,7 +256,6 @@ class _DevicePageState extends State<DevicePage> {
                                         ),
                                       ),
                                     ),
-                                    SizedBox(width: 30),
                                     ElevatedButton(
                                       onPressed: _isTransferring ? null : () => _pickFile(appState),
                                       style: ElevatedButton.styleFrom(foregroundColor: Colors.white, backgroundColor: Color.fromRGBO(64, 75, 96, 0.2)),
@@ -265,7 +265,6 @@ class _DevicePageState extends State<DevicePage> {
                                         children: [Icon(Icons.upload_file), SizedBox(width: 8), Text(AppLocalizations.of(context)!.pickFiles)],
                                       ),
                                     ),
-                                    SizedBox(width: 30),
                                     Visibility(
                                       visible: pickedFiles.isNotEmpty,
                                       child: ElevatedButton(

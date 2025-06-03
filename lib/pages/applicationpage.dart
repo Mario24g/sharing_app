@@ -60,7 +60,7 @@ class _ApplicationPageState extends State<ApplicationPage> {
         NotificationService().showNotification(title: AppLocalizations.of(context)!.fileReceived, body: message);
         NotificationFlushbar.buildInformation(message).show(context);
       };
-      transferService.initializeReceiver(context);
+      transferService.initialize(context);
 
       /*appState.networkService.onFileReceived = (message) {
         NotificationService().showNotification(

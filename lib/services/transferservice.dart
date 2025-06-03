@@ -7,18 +7,24 @@ import 'package:blitzshare/services/filereceiver.dart';
 import 'package:blitzshare/services/filesender.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_gen/gen_l10n/app_localizations.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class TransferService {
   final AppState appState;
   late FileSender fileSender;
+  late int _httpPort;
   BuildContext _context;
 
   void Function(String message)? onFileReceived;
 
   TransferService({required this.appState, required BuildContext context}) : _context = context;
 
-  void initializeReceiver(BuildContext context) {
+  void initialize(BuildContext context) async {
     _context = context;
+
+    final SharedPreferences sharedPreferences = await SharedPreferences.getInstance();
+    _httpPort = sharedPreferences.getInt("httpPort") ?? 7352;
+
     _startFileReceiver();
   }
 
@@ -31,7 +37,7 @@ class TransferService {
     void Function(String statusMessage)? onStatusUpdate,
     void Function(String error)? onError,
   ) async {
-    fileSender = FileSender(port: 8889, context: context);
+    fileSender = FileSender(port: _httpPort, context: context);
     TransferResult result = await fileSender.createTransferTask(
       selectedDevices,
       selectedFiles,
@@ -58,7 +64,7 @@ class TransferService {
 
   void _startFileReceiver() async {
     FileReceiver(
-      port: 8889,
+      port: _httpPort,
       appState: appState,
       context: _context,
       onFileReceived: (String message, Device senderDevice, List<File> files) {

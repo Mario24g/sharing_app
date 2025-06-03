@@ -6,6 +6,7 @@ import 'package:blitzshare/data/deviceinfo.dart';
 import 'package:blitzshare/services/devicediscovery.dart';
 import 'package:blitzshare/model/device.dart';
 import 'package:blitzshare/services/tcpconnection.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 /*
 TODO: Keep in mind linux ufw, android permissions and firewall
@@ -37,6 +38,10 @@ class NetworkService {
   Future initialize() async {
     if (_isInitialized) return;
 
+    final SharedPreferences sharedPreferences = await SharedPreferences.getInstance();
+    final int tcpPort = sharedPreferences.getInt("tcpPort") ?? 7350;
+    final int udpPort = sharedPreferences.getInt("udpPort") ?? 7351;
+
     try {
       _discoveryController = StreamController.broadcast();
 
@@ -48,7 +53,7 @@ class NetworkService {
       });
 
       _tcpConnection = TCPConnection(
-        port: 8890,
+        port: tcpPort,
         localIp: _localIp!,
         deviceLastSeen: _deviceLastSeen,
         discoveryController: _discoveryController,
@@ -60,7 +65,7 @@ class NetworkService {
       _tcpConnection!.initialize();
 
       _deviceDiscoverer = DeviceDiscoverer(
-        port: 8888,
+        port: udpPort,
         ip: _localIp!,
         deviceId: _deviceId!,
         networkInfo: _networkInfo,
