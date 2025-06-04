@@ -107,9 +107,7 @@ class NetworkService {
 
   void _removeDevice(String ip) {
     try {
-      if (!_knownIps.contains(ip)) {
-        return;
-      }
+      if (!_knownIps.contains(ip)) return;
 
       _tcpSockets[ip]?.destroy();
       _tcpSockets.remove(ip);

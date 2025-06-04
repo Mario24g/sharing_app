@@ -86,7 +86,7 @@ class TCPConnection {
 
   Future _startTcpServer() async {
     try {
-      _server = await ServerSocket.bind(InternetAddress.anyIPv4, port, shared: true);
+      _server = await ServerSocket.bind(InternetAddress.anyIPv4, port);
       _server!.listen((Socket client) {
         String clientIp = client.remoteAddress.address;
 

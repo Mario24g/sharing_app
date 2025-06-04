@@ -16,12 +16,10 @@ class PortInput extends StatefulWidget {
 class _PortInputState extends State<PortInput> {
   late TextEditingController _controller;
   bool _isValid = true;
-  int? _currentValue;
 
   @override
   void initState() {
     super.initState();
-    _currentValue = widget.defaultValue;
     _controller = TextEditingController(text: widget.defaultValue.toInt().toString());
     _controller.addListener(_onTextChanged);
   }
@@ -39,7 +37,6 @@ class _PortInputState extends State<PortInput> {
     if (text.isEmpty) {
       setState(() {
         _isValid = false;
-        _currentValue = null;
       });
       return;
     }
@@ -49,7 +46,6 @@ class _PortInputState extends State<PortInput> {
     if (value == null) {
       setState(() {
         _isValid = false;
-        _currentValue = null;
       });
       return;
     }
@@ -58,7 +54,6 @@ class _PortInputState extends State<PortInput> {
 
     setState(() {
       _isValid = isInRange;
-      _currentValue = value;
     });
 
     if (isInRange && widget.onChanged != null) {
