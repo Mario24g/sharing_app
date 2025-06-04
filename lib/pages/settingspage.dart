@@ -16,6 +16,10 @@ class SettingsPage extends StatefulWidget {
 
 class _SettingsPageState extends State<SettingsPage> {
   late Future<Map<String, int>> _portsFuture;
+  late Map<String, int> _portsValues;
+  late Map<String, int> _portsRuntimeValues;
+  Map<String, PortStatus> statuses = {"tcp": PortStatus.none, "udp": PortStatus.none, "http": PortStatus.none};
+  Map<String, String> statusMessages = {"tcp": "", "udp": "", "http": ""};
 
   @override
   void initState() {
@@ -26,34 +30,81 @@ class _SettingsPageState extends State<SettingsPage> {
   Future<Map<String, int>> _loadPorts() async {
     final SharedPreferences sharedPreferences = await SharedPreferences.getInstance();
 
-    return {
-      "tcpPort": sharedPreferences.getInt("tcpPort") ?? 7350,
-      "udpPort": sharedPreferences.getInt("udpPort") ?? 7351,
-      "httpPort": sharedPreferences.getInt("httpPort") ?? 7352,
-    };
+    int tcpPort = sharedPreferences.getInt("tcpPort") ?? 7350;
+    int udpPort = sharedPreferences.getInt("udpPort") ?? 7351;
+    int httpPort = sharedPreferences.getInt("httpPort") ?? 7352;
+
+    _portsRuntimeValues = {"tcp": tcpPort, "udp": udpPort, "http": httpPort};
+    _portsValues = {"tcp": tcpPort, "udp": udpPort, "http": httpPort};
+    return {"tcpPort": tcpPort, "udpPort": udpPort, "httpPort": httpPort};
   }
 
-  void _validateChanges(int tcpPort, int udpPort, int httpPort) async {
-    bool tcpValid = await _isTCPPortAvailable(tcpPort);
-    bool udpValid = await _isUDPPortAvailable(udpPort);
-    bool httpValid = await _isHTTPPortAvailable(httpPort);
-    print(tcpValid);
-    print(udpValid);
-    print(httpValid);
-    //TODO: save one by one instead
-    if (tcpValid && udpValid && httpValid) _saveChanges(tcpPort, udpPort, httpPort);
+  Future _validateChanges(String portType, int portValue) async {
+    final bool isDuplicate = _portsValues.entries.any((entry) => entry.key != portType && entry.value == portValue);
+    final bool isRuntimeUsed = _portsRuntimeValues[portType] == portValue;
+
+    if (isRuntimeUsed) {
+      setState(() {
+        statuses[portType] = PortStatus.none;
+        statusMessages[portType] = "Port is currently being used";
+      });
+      return;
+    }
+
+    if (isDuplicate) {
+      setState(() {
+        statuses[portType] = PortStatus.error;
+        statusMessages[portType] = "Port already used for another protocol";
+      });
+      return;
+    }
+
+    setState(() {
+      statuses[portType] = PortStatus.checking;
+      statusMessages[portType] = "Validating...";
+    });
+
+    bool tcpValid = false, udpValid = false, httpValid = false;
+
+    switch (portType) {
+      case "tcp":
+        tcpValid = await _isTCPPortAvailable(portValue);
+        break;
+      case "udp":
+        udpValid = await _isUDPPortAvailable(portValue);
+        break;
+      case "http":
+        httpValid = await _isHTTPPortAvailable(portValue);
+        break;
+    }
+
+    final bool isValid = tcpValid || udpValid || httpValid;
+
+    if (isValid) {
+      final bool saved = await _savePort("${portType}Port", portValue);
+      if (saved) {
+        _portsValues[portType] = portValue;
+      }
+      setState(() {
+        statuses[portType] = saved ? PortStatus.saved : PortStatus.error;
+        statusMessages[portType] = saved ? "Port saved successfully" : "Save failed";
+      });
+    } else {
+      setState(() {
+        statuses[portType] = PortStatus.error;
+        statusMessages[portType] = "Port unavailable";
+      });
+    }
   }
 
-  void _saveChanges(int tcpPort, int udpPort, int httpPort) async {
-    final SharedPreferences sharedPreferences = await SharedPreferences.getInstance();
-    await sharedPreferences.setInt("tcpPort", tcpPort);
-    await sharedPreferences.setInt("udpPort", udpPort);
-    await sharedPreferences.setInt("httpPort", httpPort);
-    print("Saved");
+  Future<bool> _savePort(String key, int port) async {
+    final SharedPreferences prefs = await SharedPreferences.getInstance();
+    return await prefs.setInt(key, port);
   }
 
   Future<bool> _isTCPPortAvailable(int port) async {
     try {
+      await Future.delayed(const Duration(milliseconds: 500));
       final Socket socket = await Socket.connect("localhost", port);
       await socket.close();
       return false;
@@ -64,6 +115,7 @@ class _SettingsPageState extends State<SettingsPage> {
 
   Future<bool> _isUDPPortAvailable(int port) async {
     try {
+      await Future.delayed(const Duration(milliseconds: 500));
       final RawDatagramSocket socket = await RawDatagramSocket.bind("0.0.0.0", port);
       socket.close();
       return true;
@@ -74,6 +126,7 @@ class _SettingsPageState extends State<SettingsPage> {
 
   Future<bool> _isHTTPPortAvailable(int port) async {
     try {
+      await Future.delayed(const Duration(milliseconds: 500));
       final HttpServer httpServer = await HttpServer.bind("0.0.0.0", port);
       httpServer.close();
       return true;
@@ -103,9 +156,6 @@ class _SettingsPageState extends State<SettingsPage> {
                 }
 
                 final Map<String, int> ports = snapshot.data!;
-                int tcpPort = ports["tcpPort"]!;
-                int udpPort = ports["udpPort"]!;
-                int httpPort = ports["httpPort"]!;
 
                 return Column(
                   spacing: 10,
@@ -128,28 +178,80 @@ class _SettingsPageState extends State<SettingsPage> {
                               }).toList(),
                       onSelected: (locale) => languageService.changeLanguage(context, locale),
                     ),
-                    PortInput(
-                      defaultValue: ports["tcpPort"]!,
-                      onChanged:
-                          (value) => () {
-                            tcpPort = value.toInt();
-                          },
+                    Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        SizedBox(
+                          width: 80,
+                          height: 56,
+                          child: Align(
+                            alignment: Alignment.center,
+                            child: Padding(
+                              padding: EdgeInsets.only(left: 8.0),
+                              child: Text("TCP", style: TextStyle(fontWeight: FontWeight.w500, color: Colors.white), textAlign: TextAlign.right),
+                            ),
+                          ),
+                        ),
+                        Expanded(
+                          child: PortInput(
+                            defaultValue: ports["tcpPort"]!,
+                            status: statuses["tcp"]!,
+                            statusMessage: statusMessages["tcp"],
+                            onChanged: (value) => _validateChanges("tcp", value.toInt()),
+                          ),
+                        ),
+                      ],
                     ),
-                    PortInput(
-                      defaultValue: ports["udpPort"]!,
-                      onChanged:
-                          (value) => () {
-                            udpPort = value.toInt();
-                          },
+
+                    Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        SizedBox(
+                          width: 80,
+                          height: 56,
+                          child: Align(
+                            alignment: Alignment.center,
+                            child: Padding(
+                              padding: EdgeInsets.only(left: 8.0),
+                              child: Text("UDP", style: TextStyle(fontWeight: FontWeight.w500, color: Colors.white), textAlign: TextAlign.right),
+                            ),
+                          ),
+                        ),
+                        Expanded(
+                          child: PortInput(
+                            defaultValue: ports["udpPort"]!,
+                            status: statuses["udp"]!,
+                            statusMessage: statusMessages["udp"],
+                            onChanged: (value) => _validateChanges("udp", value.toInt()),
+                          ),
+                        ),
+                      ],
                     ),
-                    PortInput(
-                      defaultValue: ports["httpPort"]!,
-                      onChanged:
-                          (value) => () {
-                            httpPort = value.toInt();
-                          },
+
+                    Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        SizedBox(
+                          width: 80,
+                          height: 56,
+                          child: Align(
+                            alignment: Alignment.center,
+                            child: Padding(
+                              padding: EdgeInsets.only(left: 8.0),
+                              child: Text("HTTP", style: TextStyle(fontWeight: FontWeight.w500, color: Colors.white), textAlign: TextAlign.right),
+                            ),
+                          ),
+                        ),
+                        Expanded(
+                          child: PortInput(
+                            defaultValue: ports["httpPort"]!,
+                            status: statuses["http"]!,
+                            statusMessage: statusMessages["http"],
+                            onChanged: (value) => _validateChanges("http", value.toInt()),
+                          ),
+                        ),
+                      ],
                     ),
-                    ElevatedButton(onPressed: () => _validateChanges(tcpPort, udpPort, httpPort), child: Text("Save")),
                   ],
                 );
               },

@@ -6,8 +6,10 @@ class PortInput extends StatefulWidget {
   final int minValue = 1024;
   final int maxValue = 65535;
   final ValueChanged<int>? onChanged;
+  final String? statusMessage;
+  final PortStatus status;
 
-  const PortInput({super.key, required this.defaultValue, this.onChanged});
+  const PortInput({super.key, required this.defaultValue, required this.onChanged, required this.statusMessage, this.status = PortStatus.none});
 
   @override
   State<PortInput> createState() => _PortInputState();
@@ -22,6 +24,14 @@ class _PortInputState extends State<PortInput> {
     super.initState();
     _controller = TextEditingController(text: widget.defaultValue.toInt().toString());
     _controller.addListener(_onTextChanged);
+  }
+
+  @override
+  void didUpdateWidget(PortInput oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.defaultValue != widget.defaultValue) {
+      _controller.text = widget.defaultValue.toString();
+    }
   }
 
   @override
@@ -61,8 +71,67 @@ class _PortInputState extends State<PortInput> {
     }
   }
 
+  Color _getBorderColor() {
+    if (!_isValid) return Colors.red;
+
+    switch (widget.status) {
+      case PortStatus.checking:
+        return Colors.orange;
+      case PortStatus.valid:
+        return Colors.blue;
+      case PortStatus.saved:
+        return Colors.green;
+      case PortStatus.error:
+        return Colors.red;
+      default:
+        return Colors.grey;
+    }
+  }
+
+  Widget? _getSuffixIcon() {
+    if (!_isValid) {
+      return const Icon(Icons.error, color: Colors.red);
+    }
+
+    switch (widget.status) {
+      case PortStatus.checking:
+        return const SizedBox(width: 16, height: 16, child: CircularProgressIndicator(strokeWidth: 2));
+      case PortStatus.saved:
+        return const Icon(Icons.check_circle, color: Colors.green);
+      case PortStatus.error:
+        return const Icon(Icons.error, color: Colors.red);
+      default:
+        return null;
+    }
+  }
+
+  String? _getStatusMessage() {
+    if (!_isValid) {
+      return 'Value must be between ${widget.minValue} and ${widget.maxValue}';
+    }
+    return widget.statusMessage;
+  }
+
+  Color _getStatusColor() {
+    if (!_isValid) return Colors.red;
+
+    switch (widget.status) {
+      case PortStatus.saved:
+        return Colors.green;
+      case PortStatus.error:
+        return Colors.red;
+      case PortStatus.checking:
+        return Colors.orange;
+      default:
+        return Colors.grey;
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
+    final String? statusMessage = _getStatusMessage();
+    final Color borderColor = _getBorderColor();
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       mainAxisSize: MainAxisSize.min,
@@ -72,21 +141,20 @@ class _PortInputState extends State<PortInput> {
           keyboardType: TextInputType.numberWithOptions(),
           inputFormatters: [FilteringTextInputFormatter.digitsOnly],
           decoration: InputDecoration(
-            border: OutlineInputBorder(borderSide: BorderSide(color: _isValid ? Colors.grey : Colors.red, width: _isValid ? 1.0 : 2.0)),
-            enabledBorder: OutlineInputBorder(borderSide: BorderSide(color: _isValid ? Colors.grey : Colors.red, width: _isValid ? 1.0 : 2.0)),
-            focusedBorder: OutlineInputBorder(borderSide: BorderSide(color: _isValid ? Theme.of(context).primaryColor : Colors.red, width: 2.0)),
+            border: OutlineInputBorder(borderSide: BorderSide(color: borderColor, width: 1.0)),
+            enabledBorder: OutlineInputBorder(borderSide: BorderSide(color: borderColor, width: 1.0)),
+            focusedBorder: OutlineInputBorder(borderSide: BorderSide(color: borderColor, width: 2.0)),
             errorBorder: const OutlineInputBorder(borderSide: BorderSide(color: Colors.red, width: 2.0)),
             focusedErrorBorder: const OutlineInputBorder(borderSide: BorderSide(color: Colors.red, width: 2.0)),
-            suffixIcon: !_isValid ? const Icon(Icons.error, color: Colors.red) : null,
+            suffixIcon: _getSuffixIcon(),
           ),
           style: TextStyle(color: _isValid ? null : Colors.red),
         ),
-        if (!_isValid)
-          Padding(
-            padding: const EdgeInsets.only(top: 8.0, left: 12.0),
-            child: Text('Value must be between ${widget.minValue} and ${widget.maxValue}', style: const TextStyle(color: Colors.red, fontSize: 12.0)),
-          ),
+        if (statusMessage != null)
+          Padding(padding: const EdgeInsets.only(top: 8.0, left: 12.0), child: Text(statusMessage, style: TextStyle(color: _getStatusColor(), fontSize: 12.0))),
       ],
     );
   }
 }
+
+enum PortStatus { none, checking, valid, invalid, saved, error }
