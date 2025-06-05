@@ -16,17 +16,17 @@ class FileView extends StatelessWidget {
 
   IconData iconForMimeType(String? mime) {
     if (mime == null) return FontAwesomeIcons.question;
-    if (mime.startsWith('image/')) return FontAwesomeIcons.image;
-    if (mime.startsWith('video/')) return FontAwesomeIcons.video;
-    if (mime.startsWith('audio/')) return FontAwesomeIcons.music;
-    if (mime == 'application/pdf') return FontAwesomeIcons.filePdf;
-    if (mime.startsWith('text/')) return FontAwesomeIcons.fileLines;
+    if (mime.startsWith("image/")) return FontAwesomeIcons.image;
+    if (mime.startsWith("video/")) return FontAwesomeIcons.video;
+    if (mime.startsWith("audio/")) return FontAwesomeIcons.music;
+    if (mime == "application/pdf") return FontAwesomeIcons.filePdf;
+    if (mime.startsWith("text/")) return FontAwesomeIcons.fileLines;
     return FontAwesomeIcons.file;
   }
 
   bool isImageFile(File file) {
     final String? mime = lookupMimeType(file.path);
-    return mime != null && mime.startsWith('image/');
+    return mime != null && mime.startsWith("image");
   }
 
   static String formatBytes(int bytes, [int decimals = 2]) {
@@ -53,15 +53,6 @@ class FileView extends StatelessWidget {
             ),
             child: ListTile(
               contentPadding: EdgeInsets.symmetric(horizontal: 20.0, vertical: 10.0),
-              /*leading: Container(
-                padding: EdgeInsets.only(right: 12.0),
-                decoration: BoxDecoration(
-                  border: Border(
-                    right: BorderSide(width: 1.0, color: Colors.white24),
-                  ),
-                ),
-                child: FaIcon(iconForMimeType(lookupMimeType(file.path))),
-              ),*/
               leading: SizedBox(
                 width: 48,
                 height: 48,

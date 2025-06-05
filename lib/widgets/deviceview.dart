@@ -72,24 +72,6 @@ class DeviceView extends StatelessWidget {
                       ),
                     ],
                   ),
-
-                  /* CONTROL BUTTONS */
-                  /*Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      ElevatedButton(
-                        onPressed: () {},
-                        style: ElevatedButton.styleFrom(shape: const CircleBorder(), padding: const EdgeInsets.all(16), backgroundColor: Colors.blue),
-                        child: const Icon(Icons.push_pin, color: Colors.white),
-                      ),
-                      const SizedBox(width: 4),
-                      ElevatedButton(
-                        onPressed: () {},
-                        style: ElevatedButton.styleFrom(shape: const CircleBorder(), padding: const EdgeInsets.all(16), backgroundColor: Colors.red),
-                        child: const Icon(Icons.block, color: Colors.white),
-                      ),
-                    ],
-                  ),*/
                 ],
               );
             },

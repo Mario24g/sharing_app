@@ -154,7 +154,7 @@ class _SettingsPageState extends State<SettingsPage> {
               future: _portsFuture,
               builder: (context, snapshot) {
                 if (snapshot.connectionState == ConnectionState.waiting) {
-                  return const Center(child: CircularProgressIndicator());
+                  return const Center(child: CircularProgressIndicator(valueColor: AlwaysStoppedAnimation<Color>(Colors.blue)));
                 }
 
                 final Map<String, int> ports = snapshot.data!;

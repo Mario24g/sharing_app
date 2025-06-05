@@ -49,22 +49,6 @@ class _DevicePageState extends State<DevicePage> {
     }
   }
 
-  /*void _notifyTransfer(Device targetDevice) async {
-    final NetworkInfo networkInfo = NetworkInfo();
-    final String localIp = await networkInfo.getWifiIP() ?? '0.0.0.0';
-    final String notification = "NOTIFICATION:$localIp";
-
-    try {
-      final Socket socket = await Socket.connect(targetDevice.ip, 8890);
-
-      socket.writeln(notification);
-      await socket.flush();
-      await socket.close();
-    } catch (e) {
-      print("Failed to notify target device: $e");
-    }
-  }*/
-
   void _startTransfer(AppState appState, BuildContext context, List<Device> selectedDevices, List<File> selectedFiles, TransferService transferService) {
     setState(() {
       _isTransferring = true;
@@ -113,7 +97,6 @@ class _DevicePageState extends State<DevicePage> {
           _progress = 0.0;
           _statusMessage = "";
         });
-        //TODO: add error notification
       },
     );
     for (File file in List.from(selectedFiles)) {
@@ -332,7 +315,6 @@ class _DevicePageState extends State<DevicePage> {
           ),
 
           /* CONTROL BUTTONS */
-          //TODO
           Expanded(
             flex: 2,
             child: Card(
@@ -375,7 +357,11 @@ class _DevicePageState extends State<DevicePage> {
                                     ? Row(
                                       mainAxisSize: MainAxisSize.min,
                                       children: [
-                                        SizedBox(height: 20, width: 20, child: CircularProgressIndicator(strokeWidth: 2)),
+                                        SizedBox(
+                                          height: 20,
+                                          width: 20,
+                                          child: CircularProgressIndicator(valueColor: AlwaysStoppedAnimation<Color>(Colors.blue)),
+                                        ),
                                         SizedBox(width: 8),
                                         Text(AppLocalizations.of(context)!.transferring),
                                       ],

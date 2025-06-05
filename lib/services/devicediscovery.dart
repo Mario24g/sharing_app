@@ -64,9 +64,7 @@ class DeviceDiscoverer {
           }
         }
       });
-    } catch (e) {
-      print("Error starting broadcast listener: $e");
-    }
+    } catch (_) {}
   }
 
   void _addDiscoveredDevice(String senderIp, String identification) {
@@ -89,9 +87,7 @@ class DeviceDiscoverer {
       );
 
       onDeviceDiscovered?.call(senderIp);
-    } catch (e) {
-      print("Error adding discovered device: $e");
-    }
+    } catch (_) {}
   }
 
   void _startDiscoveryLoop() {
@@ -138,8 +134,7 @@ class DeviceDiscoverer {
         }
         await Future.delayed(Duration(milliseconds: 50));
       }
-    } catch (e) {
-      print("Discovery broadcast error: $e");
+    } catch (_) {
     } finally {
       socket?.close();
     }
@@ -150,7 +145,6 @@ class DeviceDiscoverer {
       final List<NetworkInterface> interfaces = await NetworkInterface.list(includeLoopback: false, type: InternetAddressType.IPv4);
       return interfaces.expand((interface) => interface.addresses).map((addr) => addr.address).toSet();
     } catch (e) {
-      print("Error getting local IPs: $e");
       return <String>{};
     }
   }

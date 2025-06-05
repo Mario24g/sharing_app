@@ -6,7 +6,6 @@ import "package:blitzshare/services/transferservice.dart";
 import "package:http/http.dart";
 import "package:http_parser/http_parser.dart";
 import "package:path/path.dart";
-import "package:http/http.dart" as http;
 import "package:blitzshare/model/device.dart";
 
 class FileSender {
@@ -139,10 +138,10 @@ class FileSender {
       final int fileSize = await file.length();
 
       final Stream<List<int>> progressStream = _createProgressStream(file.openRead(), fileSize, onProgress);
-      final http.ByteStream byteStream = http.ByteStream(progressStream);
+      final ByteStream byteStream = ByteStream(progressStream);
 
-      final request = http.MultipartRequest("POST", uri);
-      final multipartFile = http.MultipartFile("file", byteStream, fileSize, filename: basename(file.path), contentType: _getContentType(file.path));
+      final MultipartRequest request = MultipartRequest("POST", uri);
+      final MultipartFile multipartFile = MultipartFile("file", byteStream, fileSize, filename: basename(file.path), contentType: _getContentType(file.path));
 
       request.files.add(multipartFile);
       request.headers.addAll({'Connection': 'keep-alive', 'Accept-Encoding': 'gzip, deflate'});

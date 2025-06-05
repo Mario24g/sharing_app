@@ -6,7 +6,6 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:blitzshare/pages/devicepage.dart';
 import 'package:blitzshare/main.dart';
-import 'package:blitzshare/model/device.dart';
 import 'package:blitzshare/pages/historypage.dart';
 import 'package:blitzshare/services/connectivityservice.dart';
 import 'package:blitzshare/services/notificationservice.dart';
@@ -36,7 +35,6 @@ class _ApplicationPageState extends State<ApplicationPage> {
       final ConnectivityService connectivityService = context.read<ConnectivityService>();
       final TransferService transferService = context.read<TransferService>();
 
-      appState.setOnTransferRequestHandler(_handleIncomingRequest);
       appState.networkService.onDeviceDisconnected = (message) {
         NotificationFlushbar.buildInformation(AppLocalizations.of(context)!.deviceDisconnected(message)).show(context);
       };
@@ -61,48 +59,7 @@ class _ApplicationPageState extends State<ApplicationPage> {
         NotificationFlushbar.buildInformation(message).show(context);
       };
       transferService.initialize(context);
-
-      /*appState.networkService.onFileReceived = (message) {
-        NotificationService().showNotification(
-          title: "File Received",
-          body: message,
-        );
-        NotificationFlushbar.build(message).show(context);
-      };*/
     });
-  }
-
-  //TODO: IMPLEMENT
-  void _handleIncomingRequest(String ip) {
-    final AppState appState = context.read<AppState>();
-    final Device requestingDevice = appState.devices.firstWhere((d) => d.ip.trim() == ip.trim());
-    showDialog(
-      context: context,
-      builder:
-          (context) => AlertDialog(
-            title: Text("Incoming File Transfer"),
-            content: Text("${requestingDevice.name} wants to send you a file."),
-            actions: [
-              TextButton(onPressed: () => Navigator.of(context).pop(), child: Text("Deny")),
-              TextButton(
-                onPressed: () async {
-                  Navigator.of(context).pop();
-
-                  try {
-                    final Socket socket = await Socket.connect(requestingDevice.ip, 8890);
-
-                    socket.writeln("ACCEPT");
-                    await socket.flush();
-                    await socket.close();
-                  } catch (e) {
-                    print("Failed to notify target device: $e");
-                  }
-                },
-                child: Text("Accept"),
-              ),
-            ],
-          ),
-    );
   }
 
   Widget _buildNavigation(BuildContext context) {

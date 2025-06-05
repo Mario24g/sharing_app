@@ -14,11 +14,6 @@ class HistoryEntryView extends StatefulWidget {
   int get totalFiles => historyEntry.files.length;
   String get senderDevice => historyEntry.senderDevice?.name ?? "unknown";
   String get timestamp => format.format(DateTime.parse(historyEntry.timestamp));
-  /*int get totalSize =>
-      files.map((f) => f.lengthSync()).fold(0, (a, b) => a + b);*/
-  Future<int> getTotalSize() {
-    return Future.wait<int>(historyEntry.files.map((f) => f.length())).then((sizes) => sizes.fold<int>(0, (a, b) => a + b));
-  }
 
   static String formatBytes(int bytes, [int decimals = 2]) {
     if (bytes <= 0) return "0 B";

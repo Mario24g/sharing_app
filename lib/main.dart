@@ -248,14 +248,6 @@ class AppState extends ChangeNotifier {
     notifyListeners();
   }
 
-  void setOnTransferRequestHandler(void Function(String ip) handler) {
-    networkService.onTransferRequest = handler;
-  }
-
-  void setOnAcceptHandler(void Function() handler) {
-    networkService.onAccept = handler;
-  }
-
   @override
   void dispose() {
     connectivityService.removeListener(_updateNetworking);

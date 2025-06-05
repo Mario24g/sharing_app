@@ -15,7 +15,6 @@ TODO: Keep in mind linux ufw, android permissions and firewall
 class NetworkService {
   final NetworkInfo _networkInfo = NetworkInfo();
   void Function(String senderIp)? onTransferRequest;
-  void Function()? onAccept;
   void Function(String ip)? startTcpConnection;
   void Function(String deviceName)? onDeviceDisconnected;
 
@@ -57,8 +56,6 @@ class NetworkService {
         localIp: _localIp!,
         deviceLastSeen: _deviceLastSeen,
         discoveryController: _discoveryController,
-        onTransferRequest: onTransferRequest,
-        onAccept: onAccept,
         tcpSockets: _tcpSockets,
         onConnectionLost: (ip) => _handleConnectionLost(ip),
       );

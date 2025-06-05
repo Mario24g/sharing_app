@@ -11,8 +11,6 @@ class TCPConnection {
   final Map<String, Socket> tcpSockets;
   final Map<String, DateTime> deviceLastSeen;
   final StreamController<Device> discoveryController;
-  final void Function(String senderIp)? onTransferRequest;
-  final void Function()? onAccept;
   final void Function(String ip)? onConnectionLost;
 
   ServerSocket? _server;
@@ -24,8 +22,6 @@ class TCPConnection {
     required this.tcpSockets,
     required this.deviceLastSeen,
     required this.discoveryController,
-    required this.onTransferRequest,
-    required this.onAccept,
     this.onConnectionLost,
   });
 
@@ -69,15 +65,6 @@ class TCPConnection {
       if (message.startsWith("HEARTBEAT:")) {
         String senderIp = message.substring(10);
         deviceLastSeen[senderIp] = DateTime.now();
-      } else if (message.startsWith("NOTIFICATION:")) {
-        String content = message.substring(13);
-        List<String> components = content.split(":");
-        if (components.isNotEmpty) {
-          String senderIp = components[0];
-          onTransferRequest?.call(senderIp);
-        }
-      } else if (message.startsWith("ACCEPT")) {
-        onAccept?.call();
       }
     } catch (e) {
       print("Error handling socket data from $ip: $e");
