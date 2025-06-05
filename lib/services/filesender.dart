@@ -29,7 +29,7 @@ class FileSender {
     required String Function(int fileCount, int deviceCount) transferComplete,
     void Function(String error)? onError,
   }) async {
-    resetCancellation();
+    _resetCancellation();
 
     final int totalFiles = selectedDevices.length * selectedFiles.length;
     int completedFiles = 0;
@@ -41,7 +41,7 @@ class FileSender {
           return TransferResult(success: false, completedFiles: completedFiles, totalFiles: totalFiles, cancelled: true, errors: failedTransfers);
         }
 
-        final bool metadataSuccess = await sendMetadata(device.ip, selectedFiles.length);
+        final bool metadataSuccess = await _sendMetadata(device.ip, selectedFiles.length);
         if (!metadataSuccess) {
           final String error = "Failed to send metadata to ${device.name}";
           failedTransfers.add(error);
@@ -57,7 +57,7 @@ class FileSender {
           try {
             onStatusUpdate?.call(statusUpdateTransferring(basename(file.path), device.name));
 
-            final bool success = await sendFile(device.ip, file, (progress) {
+            final bool success = await _sendFile(device.ip, file, (progress) {
               final double fileProgress = (completedFiles + progress) / totalFiles;
               onProgressUpdate?.call(fileProgress);
             });
@@ -102,7 +102,7 @@ class FileSender {
     }
   }
 
-  Future<bool> sendMetadata(String targetIp, int fileCount) async {
+  Future<bool> _sendMetadata(String targetIp, int fileCount) async {
     if (_isCancelled) return false;
 
     Client? client;
@@ -126,7 +126,7 @@ class FileSender {
     }
   }
 
-  Future<bool> sendFile(String targetIp, File file, void Function(double progress)? onProgress) async {
+  Future<bool> _sendFile(String targetIp, File file, void Function(double progress)? onProgress) async {
     if (_isCancelled) return false;
 
     Client? client;
@@ -221,7 +221,7 @@ class FileSender {
     _activeClients.clear();
   }
 
-  void resetCancellation() {
+  void _resetCancellation() {
     _isCancelled = false;
     _activeSubscriptions.clear();
     _activeClients.clear();

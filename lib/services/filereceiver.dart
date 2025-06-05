@@ -69,8 +69,6 @@ class FileReceiver {
         await _handleMetadata(request);
       } else if (method == "POST" && path == "/upload") {
         await _handleFileUpload(request, filesReceivedMessage, errorReceivingMessage);
-      } else if (method == "GET" && path == "/status") {
-        await _handleStatusRequest(request);
       } else {
         _sendErrorResponse(request, "Not found", HttpStatus.notFound);
       }
@@ -275,28 +273,6 @@ class FileReceiver {
     }
 
     return currentFile;
-  }
-
-  Future _handleStatusRequest(HttpRequest request) async {
-    final Map<String, dynamic> status = {
-      "running": _isRunning,
-      "port": port,
-      "activeSessions": _sessions.length,
-      "sessionDetails": _sessions.map(
-        (ip, session) => MapEntry(ip, {
-          "expectedFiles": session.expectedFiles,
-          "receivedFiles": session.receivedFiles,
-          "startTime": session.startTime.toIso8601String(),
-          "lastActivity": session.lastActivity.toIso8601String(),
-        }),
-      ),
-    };
-
-    request.response
-      ..statusCode = HttpStatus.ok
-      ..headers.contentType = ContentType.json
-      ..write(jsonEncode(status))
-      ..close();
   }
 
   Device _getSenderDevice(String ip) {

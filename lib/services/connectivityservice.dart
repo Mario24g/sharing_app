@@ -12,6 +12,7 @@ class ConnectivityService with ChangeNotifier {
 
   bool get isMobileData => _currentStatus == ConnectivityResult.mobile;
   bool get isWifi => _currentStatus == ConnectivityResult.wifi;
+  bool get isNone => _currentStatus == ConnectivityResult.none;
 
   ConnectivityService() {
     _initialize();

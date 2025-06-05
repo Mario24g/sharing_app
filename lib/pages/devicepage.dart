@@ -22,7 +22,6 @@ class DevicePage extends StatefulWidget {
 }
 
 class _DevicePageState extends State<DevicePage> {
-  //bool _isTransferring = false;
   bool _isDragging = false;
   bool _isFilePickerActive = false;
   double _progress = 0.0;
@@ -60,7 +59,6 @@ class _DevicePageState extends State<DevicePage> {
   void _startTransfer(AppState appState, BuildContext context, List<Device> selectedDevices, List<File> selectedFiles, TransferService transferService) {
     appState.setTransferring(true);
     setState(() {
-      //_isTransferring = true;
       _progress = 0.0;
       _statusMessage = "";
     });
@@ -88,7 +86,6 @@ class _DevicePageState extends State<DevicePage> {
       selectedFiles,
       (completionMessage) {
         setState(() {
-          //_isTransferring = false;
           appState.setTransferring(false);
           _progress = 0.0;
           _statusMessage = "";
@@ -103,7 +100,6 @@ class _DevicePageState extends State<DevicePage> {
       },
       (error) {
         setState(() {
-          //_isTransferring = false;
           appState.setTransferring(false);
           _progress = 0.0;
           _statusMessage = "";
@@ -118,7 +114,6 @@ class _DevicePageState extends State<DevicePage> {
   void _cancelTransfer(TransferService transferService, AppState appState) {
     transferService.fileSender!.cancelTransfer();
     setState(() {
-      //_isTransferring = false;
       appState.setTransferring(false);
     });
   }
@@ -161,11 +156,13 @@ class _DevicePageState extends State<DevicePage> {
                                         crossAxisAlignment: CrossAxisAlignment.center,
                                         spacing: 10,
                                         children: [
-                                          connectivityService.isMobileData
-                                              ? Text(AppLocalizations.of(context)!.notAvailableWithMobileData)
-                                              : Text(AppLocalizations.of(context)!.noDevicesFound),
-                                          if (!connectivityService.isMobileData)
-                                            CircularProgressIndicator(valueColor: AlwaysStoppedAnimation<Color>(Colors.blue)),
+                                          if (connectivityService.isMobileData)
+                                            Text(AppLocalizations.of(context)!.notAvailableWithMobileData)
+                                          else if (connectivityService.isWifi)
+                                            Text(AppLocalizations.of(context)!.noDevicesFound)
+                                          else if (connectivityService.isNone)
+                                            Text(AppLocalizations.of(context)!.disconnected),
+                                          if (connectivityService.isWifi) CircularProgressIndicator(valueColor: AlwaysStoppedAnimation<Color>(Colors.blue)),
                                         ],
                                       )
                                       : GridView.count(
@@ -433,10 +430,13 @@ class _DevicePageState extends State<DevicePage> {
                                   crossAxisAlignment: CrossAxisAlignment.center,
                                   spacing: 10,
                                   children: [
-                                    connectivityService.isMobileData
-                                        ? Text(AppLocalizations.of(context)!.notAvailableWithMobileData)
-                                        : Text(AppLocalizations.of(context)!.noDevicesFound),
-                                    if (!connectivityService.isMobileData) CircularProgressIndicator(valueColor: AlwaysStoppedAnimation<Color>(Colors.blue)),
+                                    if (connectivityService.isMobileData)
+                                      Text(AppLocalizations.of(context)!.notAvailableWithMobileData)
+                                    else if (connectivityService.isWifi)
+                                      Text(AppLocalizations.of(context)!.noDevicesFound)
+                                    else if (connectivityService.isNone)
+                                      Text(AppLocalizations.of(context)!.disconnected),
+                                    if (connectivityService.isWifi) CircularProgressIndicator(valueColor: AlwaysStoppedAnimation<Color>(Colors.blue)),
                                   ],
                                 )
                                 : Wrap(
