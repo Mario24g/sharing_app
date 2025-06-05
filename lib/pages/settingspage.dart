@@ -6,6 +6,7 @@ import 'package:blitzshare/widgets/portinput.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:flutter_gen/gen_l10n/app_localizations.dart' as internationalization;
 
 class SettingsPage extends StatefulWidget {
   const SettingsPage({super.key});
@@ -39,14 +40,14 @@ class _SettingsPageState extends State<SettingsPage> {
     return {"tcpPort": tcpPort, "udpPort": udpPort, "httpPort": httpPort};
   }
 
-  Future _validateChanges(String portType, int portValue) async {
+  Future _validateChanges(String portType, int portValue, BuildContext context) async {
     final bool isDuplicate = _portsValues.entries.any((entry) => entry.key != portType && entry.value == portValue);
     final bool isRuntimeUsed = _portsRuntimeValues[portType] == portValue;
 
     if (isRuntimeUsed) {
       setState(() {
         statuses[portType] = PortStatus.none;
-        statusMessages[portType] = "Port is currently being used";
+        statusMessages[portType] = internationalization.AppLocalizations.of(context)!.portUsedRuntime;
       });
       return;
     }
@@ -54,14 +55,14 @@ class _SettingsPageState extends State<SettingsPage> {
     if (isDuplicate) {
       setState(() {
         statuses[portType] = PortStatus.error;
-        statusMessages[portType] = "Port already used for another protocol";
+        statusMessages[portType] = internationalization.AppLocalizations.of(context)!.portUsedAnotherProtocol;
       });
       return;
     }
 
     setState(() {
       statuses[portType] = PortStatus.checking;
-      statusMessages[portType] = "Validating...";
+      statusMessages[portType] = internationalization.AppLocalizations.of(context)!.portValidating;
     });
 
     bool tcpValid = false, udpValid = false, httpValid = false;
@@ -87,12 +88,13 @@ class _SettingsPageState extends State<SettingsPage> {
       }
       setState(() {
         statuses[portType] = saved ? PortStatus.saved : PortStatus.error;
-        statusMessages[portType] = saved ? "Port saved successfully" : "Save failed";
+        statusMessages[portType] =
+            saved ? internationalization.AppLocalizations.of(context)!.portSaveSuccessful : internationalization.AppLocalizations.of(context)!.portSaveFailed;
       });
     } else {
       setState(() {
         statuses[portType] = PortStatus.error;
-        statusMessages[portType] = "Port unavailable";
+        statusMessages[portType] = internationalization.AppLocalizations.of(context)!.portUnavailable;
       });
     }
   }
@@ -197,7 +199,7 @@ class _SettingsPageState extends State<SettingsPage> {
                             defaultValue: ports["tcpPort"]!,
                             status: statuses["tcp"]!,
                             statusMessage: statusMessages["tcp"],
-                            onChanged: (value) => _validateChanges("tcp", value.toInt()),
+                            onChanged: (value) => _validateChanges("tcp", value.toInt(), context),
                           ),
                         ),
                       ],
@@ -222,7 +224,7 @@ class _SettingsPageState extends State<SettingsPage> {
                             defaultValue: ports["udpPort"]!,
                             status: statuses["udp"]!,
                             statusMessage: statusMessages["udp"],
-                            onChanged: (value) => _validateChanges("udp", value.toInt()),
+                            onChanged: (value) => _validateChanges("udp", value.toInt(), context),
                           ),
                         ),
                       ],
@@ -247,7 +249,7 @@ class _SettingsPageState extends State<SettingsPage> {
                             defaultValue: ports["httpPort"]!,
                             status: statuses["http"]!,
                             statusMessage: statusMessages["http"],
-                            onChanged: (value) => _validateChanges("http", value.toInt()),
+                            onChanged: (value) => _validateChanges("http", value.toInt(), context),
                           ),
                         ),
                       ],

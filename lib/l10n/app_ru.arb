@@ -92,13 +92,13 @@
     "@transfer": {
         "description": "Начать передачу"
     },
-    "activity": "Активность",
+    "activity": "Журналы",
     "@activity": {
-        "description": "Активность"
+        "description": "Журналы"
     },
-    "noActivityYet": "Активности пока нет",
+    "noActivityYet": "Журналов пока нет",
     "@noActivityYet": {
-        "description": "Пока нет активности"
+        "description": "Пока нет Журналов"
     },
     "filesReceived": "Получено {fileCount} файл(ов) от {ip}",
     "@filesReceived": {
@@ -222,5 +222,48 @@
     "notAvailableWithMobileData": "Недоступно при использовании мобильных данных",
     "@notAvailableWithMobileData": {
         "description": "Недоступно при использовании мобильных данных"
+    },
+
+    "portsValuesBetween": "Значение должно быть между {minValue} и {maxValue}",
+    "@portsValuesBetween": {
+        "description": "Диапазон допустимых значений портов",
+        "placeholders": {
+            "minValue": {
+                "type": "int"
+            },
+            "maxValue": {
+                "type": "int"
+            }
+        }
+    },
+
+    "portValidating": "Проверка порта...",
+    "@portValidating": {
+        "description": "Используется при проверке порта"
+    },
+
+    "portSaveSuccessful": "Порт успешно сохранён",
+    "@portSaveSuccessful": {
+        "description": "Используется, когда порт успешно сохранён"
+    },
+
+    "portSaveFailed": "Не удалось сохранить порт",
+    "@portSaveFailed": {
+        "description": "Используется, когда порт не удалось сохранить"
+    },
+
+    "portUnavailable": "Порт недоступен",
+    "@portUnavailable": {
+        "description": "Используется, когда порт недоступен"
+    },
+
+    "portUsedRuntime": "Порт в настоящее время используется",
+    "@portUsedRuntime": {
+        "description": "Используется, когда порт используется во время выполнения"
+    },
+
+    "portUsedAnotherProtocol": "Порт уже используется другим протоколом",
+    "@portUsedAnotherProtocol": {
+        "description": "Используется, когда порт занят другим протоколом"
     }
 }

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 
 class PortInput extends StatefulWidget {
   final int defaultValue;
@@ -105,9 +106,9 @@ class _PortInputState extends State<PortInput> {
     }
   }
 
-  String? _getStatusMessage() {
+  String? _getStatusMessage(BuildContext context) {
     if (!_isValid) {
-      return 'Value must be between ${widget.minValue} and ${widget.maxValue}';
+      return AppLocalizations.of(context)!.portsValuesBetween(widget.minValue, widget.maxValue);
     }
     return widget.statusMessage;
   }
@@ -129,7 +130,7 @@ class _PortInputState extends State<PortInput> {
 
   @override
   Widget build(BuildContext context) {
-    final String? statusMessage = _getStatusMessage();
+    final String? statusMessage = _getStatusMessage(context);
     final Color borderColor = _getBorderColor();
 
     return Column(

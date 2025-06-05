@@ -219,8 +219,51 @@
         }
     },
 
+    "portsValuesBetween": "El valor debe estar entre {minValue} y {maxValue}",
+    "@portsValuesBetween": {
+        "description": "Rango de valores posibles para los puertos",
+        "placeholders": {
+            "minValue": {
+                "type": "int"
+            },
+            "maxValue": {
+                "type": "int"
+            }
+        }
+    },
+
     "notAvailableWithMobileData": "No disponible con datos móviles",
     "@notAvailableWithMobileData": {
         "description": "No disponible con datos móviles"
+    },
+
+    "portValidating": "Validando el puerto...",
+    "@portValidating": {
+        "description": "Se utiliza al validar el puerto"
+    },
+
+    "portSaveSuccessful": "Puerto guardado correctamente",
+    "@portSaveSuccessful": {
+        "description": "Se utiliza cuando el puerto se ha guardado correctamente"
+    },
+
+    "portSaveFailed": "Error al guardar el puerto",
+    "@portSaveFailed": {
+        "description": "Se utiliza cuando no se pudo guardar el puerto"
+    },
+
+    "portUnavailable": "Puerto no disponible",
+    "@portUnavailable": {
+        "description": "Se utiliza cuando el puerto no está disponible"
+    },
+
+    "portUsedRuntime": "El puerto está en uso actualmente",
+    "@portUsedRuntime": {
+        "description": "Se utiliza cuando el puerto está en uso en tiempo de ejecución"
+    },
+
+    "portUsedAnotherProtocol": "El puerto ya está en uso por otro protocolo",
+    "@portUsedAnotherProtocol": {
+        "description": "Se utiliza cuando otro protocolo está utilizando el puerto"
     }
 }

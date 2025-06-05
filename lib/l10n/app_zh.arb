@@ -222,6 +222,49 @@
     "notAvailableWithMobileData": "移动数据无法使用",
     "@notAvailableWithMobileData": {
         "description": "使用移动数据时不可用"
+    },
+
+    "portsValuesBetween": "值必须在 {minValue} 到 {maxValue} 之间",
+    "@portsValuesBetween": {
+        "description": "端口的可能值范围",
+        "placeholders": {
+            "minValue": {
+                "type": "int"
+            },
+            "maxValue": {
+                "type": "int"
+            }
+        }
+    },
+
+    "portValidating": "正在验证端口。。。",
+    "@portValidating": {
+        "description": "用于验证端口时"
+    },
+
+    "portSaveSuccessful": "端口保存成功",
+    "@portSaveSuccessful": {
+        "description": "用于端口成功保存时"
+    },
+
+    "portSaveFailed": "端口保存失败",
+    "@portSaveFailed": {
+        "description": "用于端口保存失败时"
+    },
+
+    "portUnavailable": "端口不可用",
+    "@portUnavailable": {
+        "description": "用于端口不可用时"
+    },
+
+    "portUsedRuntime": "端口当前正在使用",
+    "@portUsedRuntime": {
+        "description": "用于端口在运行时被占用的情况"
+    },
+
+    "portUsedAnotherProtocol": "端口已被其他协议占用",
+    "@portUsedAnotherProtocol": {
+        "description": "用于端口被其他协议占用时"
     }
 
 }

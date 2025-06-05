@@ -224,5 +224,48 @@
     "notAvailableWithMobileData": "Not available with mobile data",
     "@notAvailableWithMobileData": {
         "description": "Not available with mobile data"
+    },
+
+    "portsValuesBetween": "Value must be between {minValue} and {maxValue}",
+    "@portsValuesBetween": {
+        "description": "Range of possible values for ports",
+        "placeholders": {
+            "minValue": {
+                "type": "int"
+            },
+            "maxValue": {
+                "type": "int"
+            }
+        }
+    },
+
+    "portValidating": "Validating port...",
+    "@portValidating": {
+        "description": "Used when validating port"
+    },
+
+    "portSaveSuccessful": "Port saved successfully",
+    "@portSaveSuccessful": {
+        "description": "Used when the port was saved successfully"
+    },
+
+    "portSaveFailed": "Failed to save the port",
+    "@portSaveFailed": {
+        "description": "Used when the port failed to save"
+    },
+
+    "portUnavailable": "Port unavailable",
+    "@portUnavailable": {
+        "description": "Used when the port is unavailable"
+    },
+
+    "portUsedRuntime": "Port is currently being used",
+    "@portUsedRuntime": {
+        "description": "Used when the port is being used in runtime"
+    },
+
+    "portUsedAnotherProtocol": "Port already used for another protocol",
+    "@portUsedAnotherProtocol": {
+        "description": "Used when the port is being used by another protocol"
     }
 }
