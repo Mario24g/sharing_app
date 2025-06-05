@@ -265,5 +265,10 @@
     "portUsedAnotherProtocol": "El puerto ya está en uso por otro protocolo",
     "@portUsedAnotherProtocol": {
         "description": "Se utiliza cuando otro protocolo está utilizando el puerto"
+    },
+
+    "cancelTransfer": "Cancelar",
+    "@cancelTransfer": {
+        "description": "Para el botón de Cancelar"
     }
 }

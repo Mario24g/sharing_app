@@ -359,44 +359,29 @@ class _DevicePageState extends State<DevicePage> {
                         spacing: 10,
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
-                          ElevatedButton(
+                          ElevatedButton.icon(
                             onPressed:
                                 (appState.isTransferring || selectedDevices.isEmpty || selectedFiles.isEmpty)
                                     ? null
                                     : () => _startTransfer(appState, context, selectedDevices, selectedFiles, transferService),
-                            style: ElevatedButton.styleFrom(foregroundColor: Colors.white, backgroundColor: Color.fromRGBO(64, 75, 96, 0.2)),
-                            child:
+                            icon:
                                 appState.isTransferring
-                                    ? Row(
-                                      mainAxisSize: MainAxisSize.min,
-                                      children: [
-                                        SizedBox(
-                                          height: 20,
-                                          width: 20,
-                                          child: CircularProgressIndicator(valueColor: AlwaysStoppedAnimation<Color>(Colors.blue)),
-                                        ),
-                                        SizedBox(width: 8),
-                                        Text(AppLocalizations.of(context)!.transferring),
-                                      ],
+                                    ? SizedBox(
+                                      width: 18,
+                                      height: 18,
+                                      child: CircularProgressIndicator(valueColor: AlwaysStoppedAnimation<Color>(Colors.blue), strokeWidth: 2),
                                     )
-                                    : Text(AppLocalizations.of(context)!.transfer),
+                                    : Icon(Icons.send),
+                            label: Text(appState.isTransferring ? AppLocalizations.of(context)!.transferring : AppLocalizations.of(context)!.transfer),
+                            style: ElevatedButton.styleFrom(padding: EdgeInsets.all(14), foregroundColor: Colors.white, backgroundColor: Colors.blue),
                           ),
 
                           if (appState.isTransferring)
-                            ElevatedButton(
+                            ElevatedButton.icon(
                               onPressed: (appState.isTransferring) ? () => _cancelTransfer(transferService, appState) : null,
-                              style: ButtonStyle(
-                                shape: WidgetStateProperty.all(CircleBorder()),
-                                padding: WidgetStateProperty.all(EdgeInsets.all(20)),
-                                backgroundColor: WidgetStateProperty.all(Colors.red),
-                                overlayColor: WidgetStateProperty.resolveWith<Color?>((states) {
-                                  if (states.contains(WidgetState.pressed)) {
-                                    return Colors.red;
-                                  }
-                                  return null;
-                                }),
-                              ),
-                              child: Icon(Icons.cancel_schedule_send_rounded, color: Colors.white),
+                              style: ElevatedButton.styleFrom(foregroundColor: Colors.white, backgroundColor: Colors.red),
+                              icon: Icon(Icons.cancel_schedule_send_sharp),
+                              label: Text(AppLocalizations.of(context)!.cancelTransfer),
                             ),
                         ],
                       ),
@@ -614,7 +599,7 @@ class _DevicePageState extends State<DevicePage> {
                         child: ElevatedButton.icon(
                           onPressed: appState.isTransferring ? () => _cancelTransfer(transferService, appState) : null,
                           icon: Icon(Icons.cancel_schedule_send_sharp),
-                          label: Text("Cancel"),
+                          label: Text(AppLocalizations.of(context)!.cancelTransfer),
                           style: ElevatedButton.styleFrom(padding: const EdgeInsets.all(14), foregroundColor: Colors.white, backgroundColor: Colors.red[300]),
                         ),
                       ),

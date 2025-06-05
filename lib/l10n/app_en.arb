@@ -267,5 +267,10 @@
     "portUsedAnotherProtocol": "Port already used for another protocol",
     "@portUsedAnotherProtocol": {
         "description": "Used when the port is being used by another protocol"
+    },
+
+    "cancelTransfer": "Cancel",
+    "@cancelTransfer": {
+        "description": "For Cancel button"
     }
 }

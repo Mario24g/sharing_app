@@ -265,5 +265,10 @@
     "portUsedAnotherProtocol": "Порт уже используется другим протоколом",
     "@portUsedAnotherProtocol": {
         "description": "Используется, когда порт занят другим протоколом"
+    },
+
+    "cancelTransfer": "Отменить",
+    "@cancelTransfer": {
+        "description": "Для кнопки Отменить"
     }
 }

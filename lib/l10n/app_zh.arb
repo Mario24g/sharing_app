@@ -265,6 +265,11 @@
     "portUsedAnotherProtocol": "端口已被其他协议占用",
     "@portUsedAnotherProtocol": {
         "description": "用于端口被其他协议占用时"
+    },
+
+    "cancelTransfer": "取消",
+    "@cancelTransfer": {
+        "description": "用于“取消”按钮"
     }
 
 }
