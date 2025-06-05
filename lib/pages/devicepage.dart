@@ -22,36 +22,45 @@ class DevicePage extends StatefulWidget {
 }
 
 class _DevicePageState extends State<DevicePage> {
-  bool _isTransferring = false;
+  //bool _isTransferring = false;
   bool _isDragging = false;
+  bool _isFilePickerActive = false;
   double _progress = 0.0;
   String _statusMessage = "";
 
   Future _pickFile(AppState appState) async {
-    FilePickerResult? result = await FilePicker.platform.pickFiles(
-      dialogTitle: AppLocalizations.of(context)!.selectFiles,
-      type: FileType.any,
-      allowMultiple: true,
-    );
+    if (_isFilePickerActive) return;
 
-    if (result != null) {
-      bool hasDirectories = result.files.any((file) => file.path != null && FileSystemEntity.isDirectorySync(file.path!));
-      if (hasDirectories) {
-        if (mounted) {
+    _isFilePickerActive = true;
+    try {
+      FilePickerResult? result = await FilePicker.platform.pickFiles(
+        dialogTitle: AppLocalizations.of(context)!.selectFiles,
+        type: FileType.any,
+        allowMultiple: true,
+      );
+
+      if (result != null) {
+        bool hasDirectories = result.files.any((file) => file.path != null && FileSystemEntity.isDirectorySync(file.path!));
+
+        if (hasDirectories && mounted) {
           NotificationFlushbar.buildWarning(AppLocalizations.of(context)!.foldersNotAllowed).show(context);
         }
+
+        final List<File> files =
+            result.files.where((file) => file.path != null && FileSystemEntity.isFileSync(file.path!)).map((file) => File(file.path!)).toList();
+
+        appState.addPickedFiles(files);
       }
-
-      final List<File> files =
-          result.files.where((file) => file.path != null && FileSystemEntity.isFileSync(file.path!)).map((file) => File(file.path!)).toList();
-
-      appState.addPickedFiles(files);
+    } catch (_) {
+    } finally {
+      _isFilePickerActive = false;
     }
   }
 
   void _startTransfer(AppState appState, BuildContext context, List<Device> selectedDevices, List<File> selectedFiles, TransferService transferService) {
+    appState.setTransferring(true);
     setState(() {
-      _isTransferring = true;
+      //_isTransferring = true;
       _progress = 0.0;
       _statusMessage = "";
     });
@@ -79,7 +88,8 @@ class _DevicePageState extends State<DevicePage> {
       selectedFiles,
       (completionMessage) {
         setState(() {
-          _isTransferring = false;
+          //_isTransferring = false;
+          appState.setTransferring(false);
           _progress = 0.0;
           _statusMessage = "";
         });
@@ -93,7 +103,8 @@ class _DevicePageState extends State<DevicePage> {
       },
       (error) {
         setState(() {
-          _isTransferring = false;
+          //_isTransferring = false;
+          appState.setTransferring(false);
           _progress = 0.0;
           _statusMessage = "";
         });
@@ -104,10 +115,11 @@ class _DevicePageState extends State<DevicePage> {
     }
   }
 
-  void _cancelTransfer(TransferService transferService) {
+  void _cancelTransfer(TransferService transferService, AppState appState) {
     transferService.fileSender!.cancelTransfer();
     setState(() {
-      _isTransferring = false;
+      //_isTransferring = false;
+      appState.setTransferring(false);
     });
   }
 
@@ -230,7 +242,7 @@ class _DevicePageState extends State<DevicePage> {
                                     Visibility(
                                       visible: pickedFiles.isNotEmpty,
                                       child: ElevatedButton(
-                                        onPressed: _isTransferring ? null : () => appState.clearFiles(),
+                                        onPressed: appState.isTransferring ? null : () => appState.clearFiles(),
                                         style: ElevatedButton.styleFrom(foregroundColor: Colors.white, backgroundColor: Color.fromRGBO(64, 75, 96, 0.2)),
                                         child: Row(
                                           mainAxisAlignment: MainAxisAlignment.center,
@@ -240,7 +252,7 @@ class _DevicePageState extends State<DevicePage> {
                                       ),
                                     ),
                                     ElevatedButton(
-                                      onPressed: _isTransferring ? null : () => _pickFile(appState),
+                                      onPressed: appState.isTransferring ? null : () => _pickFile(appState),
                                       style: ElevatedButton.styleFrom(foregroundColor: Colors.white, backgroundColor: Color.fromRGBO(64, 75, 96, 0.2)),
                                       child: Row(
                                         mainAxisAlignment: MainAxisAlignment.center,
@@ -252,7 +264,7 @@ class _DevicePageState extends State<DevicePage> {
                                       visible: pickedFiles.isNotEmpty,
                                       child: ElevatedButton(
                                         onPressed:
-                                            _isTransferring
+                                            appState.isTransferring
                                                 ? null
                                                 : () {
                                                   if (selectedFiles.isEmpty) {
@@ -292,6 +304,7 @@ class _DevicePageState extends State<DevicePage> {
                                         return FileView(
                                           file: file,
                                           isSelected: isSelected,
+                                          isMobile: false,
                                           onTap: () => appState.toggleFileSelection(file),
                                           onFileRemoved: () {
                                             appState.toggleFileSelection(file);
@@ -327,11 +340,11 @@ class _DevicePageState extends State<DevicePage> {
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
                     Visibility(
-                      visible: _isTransferring,
+                      visible: appState.isTransferring,
                       child: Text(_statusMessage, textAlign: TextAlign.center, style: Theme.of(context).textTheme.bodyMedium?.copyWith(color: Colors.white)),
                     ),
                     Visibility(
-                      visible: _isTransferring,
+                      visible: appState.isTransferring,
                       child: SizedBox(
                         width: MediaQuery.of(context).size.width / 3,
                         child: ClipRRect(
@@ -348,12 +361,12 @@ class _DevicePageState extends State<DevicePage> {
                         children: [
                           ElevatedButton(
                             onPressed:
-                                (_isTransferring || selectedDevices.isEmpty || selectedFiles.isEmpty)
+                                (appState.isTransferring || selectedDevices.isEmpty || selectedFiles.isEmpty)
                                     ? null
                                     : () => _startTransfer(appState, context, selectedDevices, selectedFiles, transferService),
                             style: ElevatedButton.styleFrom(foregroundColor: Colors.white, backgroundColor: Color.fromRGBO(64, 75, 96, 0.2)),
                             child:
-                                _isTransferring
+                                appState.isTransferring
                                     ? Row(
                                       mainAxisSize: MainAxisSize.min,
                                       children: [
@@ -369,9 +382,9 @@ class _DevicePageState extends State<DevicePage> {
                                     : Text(AppLocalizations.of(context)!.transfer),
                           ),
 
-                          if (_isTransferring)
+                          if (appState.isTransferring)
                             ElevatedButton(
-                              onPressed: (_isTransferring) ? () => _cancelTransfer(transferService) : null,
+                              onPressed: (appState.isTransferring) ? () => _cancelTransfer(transferService, appState) : null,
                               style: ButtonStyle(
                                 shape: WidgetStateProperty.all(CircleBorder()),
                                 padding: WidgetStateProperty.all(EdgeInsets.all(20)),
@@ -409,179 +422,210 @@ class _DevicePageState extends State<DevicePage> {
     final ConnectivityService connectivityService,
   ) {
     const double minHeight = 150;
-    return SingleChildScrollView(
-      child: Padding(
-        padding: const EdgeInsets.all(8.0),
-        child: Column(
-          children: [
-            /* DEVICES */
-            SizedBox(
-              width: double.infinity,
-              child: ConstrainedBox(
-                constraints: BoxConstraints(minHeight: minHeight),
-                child: Card(
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                  child: Padding(
-                    padding: const EdgeInsets.all(12.0),
-                    child: Column(
-                      children: [
-                        Text(AppLocalizations.of(context)!.devices, style: Theme.of(context).textTheme.titleMedium),
-                        const SizedBox(height: 8),
-                        deviceList.isEmpty
-                            ? Column(
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              crossAxisAlignment: CrossAxisAlignment.center,
-                              spacing: 10,
-                              children: [
-                                connectivityService.isMobileData
-                                    ? Text(AppLocalizations.of(context)!.notAvailableWithMobileData)
-                                    : Text(AppLocalizations.of(context)!.noDevicesFound),
-                                if (!connectivityService.isMobileData) CircularProgressIndicator(valueColor: AlwaysStoppedAnimation<Color>(Colors.blue)),
-                              ],
-                            )
-                            : Wrap(
-                              spacing: 8,
-                              runSpacing: 8,
-                              children:
-                                  deviceList.map((device) {
-                                    final isSelected = selectedDevices.contains(device);
-                                    return DeviceView(
-                                      device: device,
-                                      isSelected: isSelected,
-                                      isMobile: true,
-                                      onTap: () => appState.toggleDeviceSelection(device),
-                                    );
-                                  }).toList(),
-                            ),
-                      ],
-                    ),
-                  ),
-                ),
-              ),
-            ),
-
-            const SizedBox(height: 12),
-
-            /* FILES */
-            SizedBox(
-              width: double.infinity,
-              child: ConstrainedBox(
-                constraints: BoxConstraints(minHeight: minHeight),
-                child: Card(
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                  color: _isDragging ? const Color.fromARGB(127, 29, 27, 32) : const Color.fromARGB(255, 29, 27, 32),
-                  child: Padding(
-                    padding: const EdgeInsets.all(12.0),
-                    child: Column(
-                      children: [
-                        Text(AppLocalizations.of(context)!.files, style: Theme.of(context).textTheme.titleMedium),
-                        /* CONTROL BUTTONS */
-                        const SizedBox(height: 8),
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+    return Stack(
+      children: [
+        SingleChildScrollView(
+          child: Padding(
+            padding: const EdgeInsets.all(8.0),
+            child: Column(
+              children: [
+                /* DEVICES */
+                SizedBox(
+                  width: double.infinity,
+                  child: ConstrainedBox(
+                    constraints: BoxConstraints(minHeight: minHeight),
+                    child: Card(
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                      child: Padding(
+                        padding: const EdgeInsets.all(12.0),
+                        child: Column(
                           children: [
-                            if (pickedFiles.isNotEmpty)
-                              IconButton(
-                                icon: Icon(Icons.delete),
-                                tooltip: AppLocalizations.of(context)!.clearFiles,
-                                onPressed: _isTransferring ? null : () => appState.clearFiles(),
-                              ),
-                            IconButton(
-                              icon: Icon(Icons.upload_file),
-                              tooltip: AppLocalizations.of(context)!.pickFiles,
-                              onPressed: _isTransferring ? null : () => _pickFile(appState),
-                            ),
-                            if (pickedFiles.isNotEmpty)
-                              IconButton(
-                                icon: Icon(selectedFiles.isEmpty ? Icons.select_all : Icons.deselect),
-                                tooltip: selectedFiles.isEmpty ? AppLocalizations.of(context)!.selectAll : AppLocalizations.of(context)!.deselectAll,
-                                onPressed:
-                                    _isTransferring
-                                        ? null
-                                        : () {
-                                          if (selectedFiles.isEmpty) {
-                                            for (File file in pickedFiles) {
-                                              appState.toggleFileSelection(file);
-                                            }
-                                          } else {
-                                            for (File file in List.from(selectedFiles)) {
-                                              appState.toggleFileSelection(file);
-                                            }
-                                          }
-                                        },
-                              ),
+                            Text(AppLocalizations.of(context)!.devices, style: Theme.of(context).textTheme.titleMedium),
+                            const SizedBox(height: 8),
+                            deviceList.isEmpty
+                                ? Column(
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  crossAxisAlignment: CrossAxisAlignment.center,
+                                  spacing: 10,
+                                  children: [
+                                    connectivityService.isMobileData
+                                        ? Text(AppLocalizations.of(context)!.notAvailableWithMobileData)
+                                        : Text(AppLocalizations.of(context)!.noDevicesFound),
+                                    if (!connectivityService.isMobileData) CircularProgressIndicator(valueColor: AlwaysStoppedAnimation<Color>(Colors.blue)),
+                                  ],
+                                )
+                                : Wrap(
+                                  spacing: 8,
+                                  runSpacing: 8,
+                                  children:
+                                      deviceList.map((device) {
+                                        final isSelected = selectedDevices.contains(device);
+                                        return DeviceView(
+                                          device: device,
+                                          isSelected: isSelected,
+                                          isMobile: true,
+                                          onTap: () => appState.toggleDeviceSelection(device),
+                                        );
+                                      }).toList(),
+                                ),
                           ],
                         ),
-                        const SizedBox(height: 8),
-                        pickedFiles.isEmpty
-                            ? Text(AppLocalizations.of(context)!.noFilesSelected)
-                            : ListView.builder(
-                              shrinkWrap: true,
-                              physics: const NeverScrollableScrollPhysics(),
-                              itemCount: pickedFiles.length,
-                              itemBuilder: (context, index) {
-                                final file = pickedFiles[index];
-                                final isSelected = selectedFiles.contains(file);
-                                return FileView(
-                                  file: file,
-                                  isSelected: isSelected,
-                                  onTap: () => appState.toggleFileSelection(file),
-                                  onFileRemoved: () {
-                                    appState.toggleFileSelection(file);
-                                    final updatedList = List<File>.from(pickedFiles)..remove(file);
-                                    appState.clearFiles();
-                                    appState.addPickedFiles(updatedList);
-                                  },
-                                );
-                              },
-                            ),
-                      ],
+                      ),
                     ),
                   ),
                 ),
-              ),
-            ),
 
-            const SizedBox(height: 16),
+                SizedBox(height: 12),
 
-            /* TRANSFER BUTTON */
-            Visibility(
-              visible: _isTransferring,
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(_statusMessage, style: Theme.of(context).textTheme.bodySmall?.copyWith(color: Colors.black)),
-                  const SizedBox(height: 4),
-                  LinearProgressIndicator(value: _progress, minHeight: 6, backgroundColor: Colors.grey[700], color: Colors.blueAccent),
-                ],
-              ),
-            ),
-            SizedBox(
-              width: double.infinity,
-              child: Row(
-                spacing: 10,
-                children: [
-                  ElevatedButton.icon(
-                    onPressed:
-                        (_isTransferring || selectedDevices.isEmpty || selectedFiles.isEmpty)
-                            ? null
-                            : () => _startTransfer(appState, context, selectedDevices, selectedFiles, transferService),
-                    icon: _isTransferring ? const SizedBox(width: 18, height: 18, child: CircularProgressIndicator(strokeWidth: 2)) : Icon(Icons.send),
-                    label: Text(_isTransferring ? AppLocalizations.of(context)!.transferring : AppLocalizations.of(context)!.transfer),
-                    style: ElevatedButton.styleFrom(padding: const EdgeInsets.all(14)),
+                /* FILES */
+                SizedBox(
+                  width: double.infinity,
+                  child: ConstrainedBox(
+                    constraints: BoxConstraints(minHeight: minHeight),
+                    child: Card(
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                      color: _isDragging ? const Color.fromARGB(127, 29, 27, 32) : const Color.fromARGB(255, 29, 27, 32),
+                      child: Padding(
+                        padding: const EdgeInsets.all(12.0),
+                        child: Column(
+                          children: [
+                            Text(AppLocalizations.of(context)!.files, style: Theme.of(context).textTheme.titleMedium),
+                            /* CONTROL BUTTONS */
+                            const SizedBox(height: 8),
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                              children: [
+                                if (pickedFiles.isNotEmpty)
+                                  IconButton(
+                                    icon: Icon(Icons.delete),
+                                    tooltip: AppLocalizations.of(context)!.clearFiles,
+                                    onPressed: appState.isTransferring ? null : () => appState.clearFiles(),
+                                  ),
+                                IconButton(
+                                  icon: Icon(Icons.upload_file),
+                                  tooltip: AppLocalizations.of(context)!.pickFiles,
+                                  onPressed: appState.isTransferring ? null : () => _pickFile(appState),
+                                ),
+                                if (pickedFiles.isNotEmpty)
+                                  IconButton(
+                                    icon: Icon(selectedFiles.isEmpty ? Icons.select_all : Icons.deselect),
+                                    tooltip: selectedFiles.isEmpty ? AppLocalizations.of(context)!.selectAll : AppLocalizations.of(context)!.deselectAll,
+                                    onPressed:
+                                        appState.isTransferring
+                                            ? null
+                                            : () {
+                                              if (selectedFiles.isEmpty) {
+                                                for (File file in pickedFiles) {
+                                                  appState.toggleFileSelection(file);
+                                                }
+                                              } else {
+                                                for (File file in List.from(selectedFiles)) {
+                                                  appState.toggleFileSelection(file);
+                                                }
+                                              }
+                                            },
+                                  ),
+                              ],
+                            ),
+
+                            SizedBox(height: 8),
+
+                            pickedFiles.isEmpty
+                                ? Text(AppLocalizations.of(context)!.noFilesSelected)
+                                : ListView.builder(
+                                  shrinkWrap: true,
+                                  physics: NeverScrollableScrollPhysics(),
+                                  itemCount: pickedFiles.length,
+                                  itemBuilder: (context, index) {
+                                    final File file = pickedFiles[index];
+                                    final bool isSelected = selectedFiles.contains(file);
+                                    return FileView(
+                                      file: file,
+                                      isSelected: isSelected,
+                                      isMobile: true,
+                                      onTap: () => appState.toggleFileSelection(file),
+                                      onFileRemoved: () {
+                                        appState.toggleFileSelection(file);
+                                        final List<File> updatedList = List<File>.from(pickedFiles)..remove(file);
+                                        appState.clearFiles();
+                                        appState.addPickedFiles(updatedList);
+                                      },
+                                    );
+                                  },
+                                ),
+                          ],
+                        ),
+                      ),
+                    ),
                   ),
-                  ElevatedButton.icon(
-                    onPressed: _isTransferring ? () => _cancelTransfer(transferService) : null,
-                    icon: Icon(Icons.cancel_outlined),
-                    label: Text("Cancel"),
-                    style: ElevatedButton.styleFrom(padding: const EdgeInsets.all(14)),
-                  ),
-                ],
-              ),
+                ),
+
+                SizedBox(height: appState.isTransferring ? 120 : 80),
+              ],
             ),
-          ],
+          ),
         ),
-      ),
+
+        /* TRANSFER CONTROLS */
+        Positioned(
+          bottom: 0,
+          left: 0,
+          right: 0,
+          child: Material(
+            elevation: 8,
+            child: Container(
+              padding: EdgeInsets.all(12),
+              color: Color.fromARGB(255, 29, 27, 32),
+              child: Column(
+                children: [
+                  if (appState.isTransferring)
+                    Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(_statusMessage, style: Theme.of(context).textTheme.bodySmall?.copyWith(color: Colors.white)),
+                        SizedBox(height: 4),
+                        LinearProgressIndicator(value: _progress, minHeight: 8, backgroundColor: Colors.grey[300], color: Colors.blue),
+                        SizedBox(height: 8),
+                      ],
+                    ),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                    children: [
+                      Expanded(
+                        child: ElevatedButton.icon(
+                          onPressed:
+                              (appState.isTransferring || selectedDevices.isEmpty || selectedFiles.isEmpty)
+                                  ? null
+                                  : () => _startTransfer(appState, context, selectedDevices, selectedFiles, transferService),
+                          icon:
+                              appState.isTransferring
+                                  ? SizedBox(
+                                    width: 18,
+                                    height: 18,
+                                    child: CircularProgressIndicator(valueColor: AlwaysStoppedAnimation<Color>(Colors.blue), strokeWidth: 2),
+                                  )
+                                  : Icon(Icons.send),
+                          label: Text(appState.isTransferring ? AppLocalizations.of(context)!.transferring : AppLocalizations.of(context)!.transfer),
+                          style: ElevatedButton.styleFrom(padding: EdgeInsets.all(14), foregroundColor: Colors.white, backgroundColor: Colors.blue),
+                        ),
+                      ),
+                      SizedBox(width: 12),
+                      Expanded(
+                        child: ElevatedButton.icon(
+                          onPressed: appState.isTransferring ? () => _cancelTransfer(transferService, appState) : null,
+                          icon: Icon(Icons.cancel_schedule_send_sharp),
+                          label: Text("Cancel"),
+                          style: ElevatedButton.styleFrom(padding: const EdgeInsets.all(14), foregroundColor: Colors.white, backgroundColor: Colors.red[300]),
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ),
+      ],
     );
   }
 

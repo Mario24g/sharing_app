@@ -8,10 +8,6 @@ import 'package:blitzshare/model/device.dart';
 import 'package:blitzshare/services/tcpconnection.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
-/*
-TODO: Keep in mind linux ufw, android permissions and firewall
-*/
-
 class NetworkService {
   final NetworkInfo _networkInfo = NetworkInfo();
   void Function(String senderIp)? onTransferRequest;

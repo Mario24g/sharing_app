@@ -79,10 +79,7 @@ class DeviceDiscoverer {
         Device(
           ip: senderIp,
           name: components[0],
-          devicePlatform:
-              components.length > 1
-                  ? DevicePlatform.values.firstWhere((v) => v.toString() == "DevicePlatform.${components[1]}", orElse: () => DevicePlatform.unknown)
-                  : DevicePlatform.unknown,
+          devicePlatform: DevicePlatform.values.firstWhere((v) => v.toString() == "DevicePlatform.${components[1]}", orElse: () => DevicePlatform.unknown),
         ),
       );
 

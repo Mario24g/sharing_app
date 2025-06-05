@@ -63,43 +63,61 @@ class _ApplicationPageState extends State<ApplicationPage> {
   }
 
   Widget _buildNavigation(BuildContext context) {
-    return _isMobile
-        ? SafeArea(
-          child: BottomNavigationBar(
-            backgroundColor: Color.fromARGB(255, 29, 27, 32),
-            selectedItemColor: Colors.white,
-            unselectedItemColor: Colors.grey[400],
-            selectedLabelStyle: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
-            items: [
-              BottomNavigationBarItem(
-                icon: Icon(Icons.settings_remote_rounded, color: Colors.white),
-                label: AppLocalizations.of(context)!.navigationItemDevices,
+    return Consumer<AppState>(
+      builder: (context, appState, child) {
+        final bool isTransferring = appState.isTransferring;
+
+        return _isMobile
+            ? SafeArea(
+              child: BottomNavigationBar(
+                backgroundColor: Color.fromARGB(255, 29, 27, 32),
+                selectedItemColor: isTransferring ? Colors.grey : Colors.white,
+                unselectedItemColor: Colors.grey[400],
+                selectedLabelStyle: TextStyle(color: isTransferring ? Colors.grey : Colors.white, fontWeight: FontWeight.bold),
+                items: [
+                  BottomNavigationBarItem(
+                    icon: Icon(Icons.settings_remote_rounded, color: isTransferring ? Colors.grey : Colors.white),
+                    label: AppLocalizations.of(context)!.navigationItemDevices,
+                  ),
+                  BottomNavigationBarItem(
+                    icon: Icon(Icons.settings, color: isTransferring ? Colors.grey : Colors.white),
+                    label: AppLocalizations.of(context)!.navigationItemSettings,
+                  ),
+                  BottomNavigationBarItem(
+                    icon: Icon(Icons.history, color: isTransferring ? Colors.grey : Colors.white),
+                    label: AppLocalizations.of(context)!.navigationItemHistory,
+                  ),
+                ],
+                currentIndex: _selectedIndex,
+                onTap: _onItemTapped,
               ),
-              BottomNavigationBarItem(icon: Icon(Icons.settings, color: Colors.white), label: AppLocalizations.of(context)!.navigationItemSettings),
-              BottomNavigationBarItem(icon: Icon(Icons.history, color: Colors.white), label: AppLocalizations.of(context)!.navigationItemHistory),
-            ],
-            currentIndex: _selectedIndex,
-            onTap: _onItemTapped,
-          ),
-        )
-        : SafeArea(
-          child: NavigationRail(
-            extended: _isExpanded,
-            labelType: NavigationRailLabelType.none,
-            minWidth: 80,
-            backgroundColor: Color.fromARGB(255, 29, 27, 32),
-            destinations: [
-              NavigationRailDestination(
-                icon: Icon(Icons.settings_remote_rounded, color: Colors.white),
-                label: Text(AppLocalizations.of(context)!.navigationItemDevices),
+            )
+            : SafeArea(
+              child: NavigationRail(
+                extended: _isExpanded,
+                labelType: NavigationRailLabelType.none,
+                minWidth: 80,
+                backgroundColor: Color.fromARGB(255, 29, 27, 32),
+                destinations: [
+                  NavigationRailDestination(
+                    icon: Icon(Icons.settings_remote_rounded, color: isTransferring ? Colors.grey : Colors.white),
+                    label: Text(AppLocalizations.of(context)!.navigationItemDevices),
+                  ),
+                  NavigationRailDestination(
+                    icon: Icon(Icons.settings, color: isTransferring ? Colors.grey : Colors.white),
+                    label: Text(AppLocalizations.of(context)!.navigationItemSettings),
+                  ),
+                  NavigationRailDestination(
+                    icon: Icon(Icons.history, color: isTransferring ? Colors.grey : Colors.white),
+                    label: Text(AppLocalizations.of(context)!.navigationItemHistory),
+                  ),
+                ],
+                selectedIndex: _selectedIndex,
+                onDestinationSelected: _onItemTapped,
               ),
-              NavigationRailDestination(icon: Icon(Icons.settings, color: Colors.white), label: Text(AppLocalizations.of(context)!.navigationItemSettings)),
-              NavigationRailDestination(icon: Icon(Icons.history, color: Colors.white), label: Text(AppLocalizations.of(context)!.navigationItemHistory)),
-            ],
-            selectedIndex: _selectedIndex,
-            onDestinationSelected: _onItemTapped,
-          ),
-        );
+            );
+      },
+    );
   }
 
   Widget _buildCurrentPage(bool isMobile) {
@@ -116,6 +134,8 @@ class _ApplicationPageState extends State<ApplicationPage> {
   }
 
   void _onItemTapped(int index) {
+    final AppState appState = Provider.of<AppState>(context, listen: false);
+    if (appState.isTransferring) return;
     setState(() => _selectedIndex = index);
   }
 

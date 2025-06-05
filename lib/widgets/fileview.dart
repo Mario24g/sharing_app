@@ -10,9 +10,10 @@ class FileView extends StatelessWidget {
   final File file;
   final bool isSelected;
   final VoidCallback onTap;
+  final bool isMobile;
   final void Function()? onFileRemoved;
 
-  const FileView({super.key, required this.file, required this.isSelected, required this.onTap, required this.onFileRemoved});
+  const FileView({super.key, required this.file, required this.isSelected, required this.isMobile, required this.onTap, required this.onFileRemoved});
 
   IconData iconForMimeType(String? mime) {
     if (mime == null) return FontAwesomeIcons.question;

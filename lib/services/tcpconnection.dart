@@ -66,9 +66,7 @@ class TCPConnection {
         String senderIp = message.substring(10);
         deviceLastSeen[senderIp] = DateTime.now();
       }
-    } catch (e) {
-      print("Error handling socket data from $ip: $e");
-    }
+    } catch (_) {}
   }
 
   Future _startTcpServer() async {
@@ -89,9 +87,7 @@ class TCPConnection {
           },
         );
       });
-    } catch (e) {
-      print("Failed to start TCP server: $e");
-    }
+    } catch (_) {}
   }
 
   void _startHeartbeat(Socket socket, String ip) {

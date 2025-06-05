@@ -111,6 +111,7 @@ class AppState extends ChangeNotifier {
   final Box<HistoryEntry> _historyBox = Hive.box<HistoryEntry>("history");
   String? _deviceInfo;
   bool _isNetworkServiceInitialized = false;
+  bool _isTransferring = false;
 
   List<Device> get devices => List.unmodifiable(_devices);
   List<File> get selectedFiles => List.unmodifiable(_selectedFiles);
@@ -118,6 +119,7 @@ class AppState extends ChangeNotifier {
   List<Device> get selectedDevices => List.unmodifiable(_selectedDevices);
   List<HistoryEntry> get historyEntries => List.unmodifiable(_historyEntries);
   String? get deviceInfo => _deviceInfo;
+  bool get isTransferring => _isTransferring;
 
   AppState(this.networkService, this.connectivityService);
 
@@ -246,6 +248,13 @@ class AppState extends ChangeNotifier {
   void clearDevices() {
     _devices.clear();
     notifyListeners();
+  }
+
+  void setTransferring(bool isTransferring) {
+    if (_isTransferring != isTransferring) {
+      _isTransferring = isTransferring;
+      notifyListeners();
+    }
   }
 
   @override
