@@ -3,107 +3,79 @@ import "dart:convert";
 import "dart:io";
 
 import "package:blitzshare/services/transferservice.dart";
-import "package:flutter/widgets.dart";
 import "package:http/http.dart";
 import "package:http_parser/http_parser.dart";
 import "package:path/path.dart";
 import "package:http/http.dart" as http;
 import "package:blitzshare/model/device.dart";
-import "package:path/path.dart" as path;
 
 class FileSender {
   final int port;
-  final BuildContext context;
-  final int chunkSize;
   final Duration requestTimeout;
 
-  final List<StreamSubscription> _activeSubscriptions = [];
-  final List<MultipartRequest> _activeRequests = [];
-
   bool _isCancelled = false;
+  final List<StreamSubscription> _activeSubscriptions = [];
+  final List<Client> _activeClients = [];
 
-  FileSender({required this.port, required this.context, this.chunkSize = 64 * 1024, this.requestTimeout = const Duration(minutes: 30)});
-
-  void cancelTransfer() {
-    _isCancelled = true;
-
-    for (final StreamSubscription subscription in _activeSubscriptions) {
-      subscription.cancel();
-    }
-    _activeSubscriptions.clear();
-
-    //HTTP requests cant be directly cancelled in Dart, but we can ignore their responses
-    _activeRequests.clear();
-  }
-
-  void resetCancellation() {
-    _isCancelled = false;
-    _activeSubscriptions.clear();
-    _activeRequests.clear();
-  }
-
-  Future<bool> sendMetadata(String targetIp, int fileCount) async {
-    if (_isCancelled) return false;
-
-    try {
-      final Uri uri = Uri.parse("http://$targetIp:$port/upload-metadata");
-      final Response response = await http
-          .post(uri, headers: {"Content-Type": "application/json"}, body: jsonEncode({"fileCount": fileCount}))
-          .timeout(const Duration(seconds: 10));
-
-      return response.statusCode == 200;
-    } catch (e) {
-      return false;
-    }
-  }
+  FileSender({required this.port, this.requestTimeout = const Duration(minutes: 2)});
 
   Future<TransferResult> createTransferTask(
     List<Device> selectedDevices,
     List<File> selectedFiles,
     void Function(String message)? onTransferComplete,
     void Function(double progress)? onProgressUpdate,
-    void Function(String statusMessage)? onStatusUpdate,
-    void Function(String error)? onError, {
+    void Function(String statusMessage)? onStatusUpdate, {
     required String Function(String filePath, String deviceName) statusUpdateTransferring,
     required String Function(String filePath, String deviceName) statusUpdateTransferred,
     required String Function(int fileCount, int deviceCount) transferComplete,
-    required String Function() transferFailed,
+    void Function(String error)? onError,
   }) async {
     resetCancellation();
 
     final int totalFiles = selectedDevices.length * selectedFiles.length;
     int completedFiles = 0;
+    final List<String> failedTransfers = [];
 
     try {
       for (final Device device in selectedDevices) {
         if (_isCancelled) {
-          return TransferResult(success: false, completedFiles: completedFiles, totalFiles: totalFiles, cancelled: true);
+          return TransferResult(success: false, completedFiles: completedFiles, totalFiles: totalFiles, cancelled: true, errors: failedTransfers);
         }
 
         final bool metadataSuccess = await sendMetadata(device.ip, selectedFiles.length);
         if (!metadataSuccess) {
-          onError?.call(transferFailed());
+          final String error = "Failed to send metadata to ${device.name}";
+          failedTransfers.add(error);
+          onError?.call(error);
           continue;
         }
 
         for (final File file in selectedFiles) {
           if (_isCancelled) {
-            return TransferResult(success: false, completedFiles: completedFiles, totalFiles: totalFiles, cancelled: true);
+            return TransferResult(success: false, completedFiles: completedFiles, totalFiles: totalFiles, cancelled: true, errors: failedTransfers);
           }
 
           try {
             onStatusUpdate?.call(statusUpdateTransferring(basename(file.path), device.name));
 
-            final bool success = await sendFile(device.ip, file, onProgressUpdate);
+            final bool success = await sendFile(device.ip, file, (progress) {
+              final double fileProgress = (completedFiles + progress) / totalFiles;
+              onProgressUpdate?.call(fileProgress);
+            });
 
             if (success) {
               completedFiles++;
               onStatusUpdate?.call("${statusUpdateTransferred(basename(file.path), device.name)} ($completedFiles/$totalFiles)");
+              onProgressUpdate?.call(completedFiles / totalFiles);
             } else {
-              onError?.call(transferFailed());
+              final String error = "Failed to transfer ${basename(file.path)} to ${device.name}";
+              failedTransfers.add(error);
+              onError?.call(error);
             }
           } catch (e) {
-            onError?.call(transferFailed());
+            final String error = "Error transferring ${basename(file.path)} to ${device.name}: $e";
+            failedTransfers.add(error);
+            onError?.call(error);
           }
         }
       }
@@ -112,95 +84,112 @@ class FileSender {
         onTransferComplete?.call(transferComplete(selectedFiles.length, selectedDevices.length));
       }
 
-      return TransferResult(success: !_isCancelled, completedFiles: completedFiles, totalFiles: totalFiles, cancelled: _isCancelled);
+      return TransferResult(
+        success: !_isCancelled && failedTransfers.isEmpty,
+        completedFiles: completedFiles,
+        totalFiles: totalFiles,
+        cancelled: _isCancelled,
+        errors: failedTransfers,
+      );
     } catch (e) {
-      onError?.call(transferFailed());
-      return TransferResult(success: false, completedFiles: completedFiles, totalFiles: totalFiles, cancelled: _isCancelled);
+      onError?.call("Transfer task error: $e");
+      return TransferResult(
+        success: false,
+        completedFiles: completedFiles,
+        totalFiles: totalFiles,
+        cancelled: _isCancelled,
+        errors: [...failedTransfers, e.toString()],
+      );
+    }
+  }
+
+  Future<bool> sendMetadata(String targetIp, int fileCount) async {
+    if (_isCancelled) return false;
+
+    Client? client;
+    try {
+      client = Client();
+      _activeClients.add(client);
+
+      final Uri uri = Uri.parse("http://$targetIp:$port/upload-metadata");
+      final response = await client
+          .post(uri, headers: {"Content-Type": "application/json"}, body: jsonEncode({"fileCount": fileCount}))
+          .timeout(const Duration(seconds: 10));
+
+      return response.statusCode == 200;
+    } catch (e) {
+      return false;
+    } finally {
+      if (client != null) {
+        _activeClients.remove(client);
+        client.close();
+      }
     }
   }
 
   Future<bool> sendFile(String targetIp, File file, void Function(double progress)? onProgress) async {
     if (_isCancelled) return false;
 
+    Client? client;
     try {
-      final Uri uri = Uri.parse("http://$targetIp:8889/upload");
+      client = Client();
+      _activeClients.add(client);
+
+      final Uri uri = Uri.parse("http://$targetIp:$port/upload");
       final int fileSize = await file.length();
 
-      final Stream<List<int>> fileStream = _createStream(file, fileSize, onProgress);
-      final ByteStream byteStream = http.ByteStream(fileStream);
+      final Stream<List<int>> progressStream = _createProgressStream(file.openRead(), fileSize, onProgress);
+      final http.ByteStream byteStream = http.ByteStream(progressStream);
 
-      final MultipartRequest request = http.MultipartRequest("POST", uri);
-      _activeRequests.add(request);
-
-      final MultipartFile multipartFile = http.MultipartFile(
-        "file",
-        byteStream,
-        fileSize,
-        filename: basename(file.path),
-        contentType: _getContentType(file.path),
-      );
+      final request = http.MultipartRequest("POST", uri);
+      final multipartFile = http.MultipartFile("file", byteStream, fileSize, filename: basename(file.path), contentType: _getContentType(file.path));
 
       request.files.add(multipartFile);
-
-      request.headers.addAll({"Connection": "keep-alive", "Accept-Encoding": "gzip, deflate"});
-
-      if (_isCancelled) return false;
-
-      final response = await request.send().timeout(requestTimeout);
-
-      _activeRequests.remove(request);
+      request.headers.addAll({'Connection': 'keep-alive', 'Accept-Encoding': 'gzip, deflate'});
 
       if (_isCancelled) return false;
 
-      if (response.statusCode == 200) {
-        await response.stream.drain();
+      final StreamedResponse streamedResponse = await client.send(request).timeout(requestTimeout);
+
+      if (_isCancelled) return false;
+
+      if (streamedResponse.statusCode == 200) {
+        await streamedResponse.stream.drain();
         return true;
       } else {
+        await streamedResponse.stream.bytesToString();
         return false;
       }
     } catch (e) {
+      if (!_isCancelled) {}
       return false;
-    }
-  }
-
-  Stream<List<int>> _createStream(File file, int fileSize, void Function(double progress)? onProgress) {
-    return Stream.fromFuture(_readFileInChunks(file, fileSize, onProgress));
-  }
-
-  Future<List<int>> _readFileInChunks(File file, int fileSize, void Function(double progress)? onProgress) async {
-    final List<int> allBytes = [];
-    int bytesRead = 0;
-
-    final RandomAccessFile raf = await file.open();
-
-    try {
-      while (bytesRead < fileSize && !_isCancelled) {
-        final int remainingBytes = fileSize - bytesRead;
-        final int currentChunkSize = remainingBytes < chunkSize ? remainingBytes : chunkSize;
-
-        final List<int> chunk = await raf.read(currentChunkSize);
-        if (chunk.isEmpty) break;
-
-        allBytes.addAll(chunk);
-        bytesRead += chunk.length;
-
-        if (onProgress != null) {
-          final double progress = bytesRead / fileSize;
-          onProgress(progress);
-        }
-
-        await Future.delayed(Duration.zero);
-      }
     } finally {
-      await raf.close();
+      if (client != null) {
+        _activeClients.remove(client);
+        client.close();
+      }
     }
+  }
 
-    return allBytes;
+  Stream<List<int>> _createProgressStream(Stream<List<int>> sourceStream, int totalBytes, void Function(double progress)? onProgress) {
+    int bytesSent = 0;
+
+    return sourceStream.map((chunk) {
+      if (_isCancelled) {
+        throw Exception("Transfer cancelled");
+      }
+
+      bytesSent += chunk.length;
+      final double progress = bytesSent / totalBytes;
+      onProgress?.call(progress);
+
+      return chunk;
+    });
   }
 
   MediaType? _getContentType(String filePath) {
-    final String extension = path.extension(filePath).toLowerCase();
-    switch (extension) {
+    final String extensionStr = extension(filePath).toLowerCase();
+    switch (extensionStr) {
       case ".jpg":
       case ".jpeg":
         return MediaType("image", "jpeg");
@@ -217,5 +206,29 @@ class FileSender {
       default:
         return MediaType("application", "octet-stream");
     }
+  }
+
+  void cancelTransfer() {
+    _isCancelled = true;
+
+    for (final StreamSubscription subscription in _activeSubscriptions) {
+      subscription.cancel();
+    }
+    _activeSubscriptions.clear();
+
+    for (final Client client in _activeClients) {
+      client.close();
+    }
+    _activeClients.clear();
+  }
+
+  void resetCancellation() {
+    _isCancelled = false;
+    _activeSubscriptions.clear();
+    _activeClients.clear();
+  }
+
+  void dispose() {
+    cancelTransfer();
   }
 }

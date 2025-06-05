@@ -3,7 +3,6 @@ import "dart:io";
 
 import "package:blitzshare/services/transferservice.dart";
 import "package:downloadsfolder/downloadsfolder.dart";
-import "package:flutter/material.dart";
 import "package:mime/mime.dart";
 import "package:path_provider/path_provider.dart";
 import "package:blitzshare/main.dart";
@@ -12,31 +11,31 @@ import "package:blitzshare/model/device.dart";
 class FileReceiver {
   final int port;
   final AppState appState;
-  final BuildContext context;
   final void Function(String message, Device senderDevice, List<File> files)? onFileReceived;
 
   final Map<String, TransferSession> _sessions = {};
   HttpServer? _server;
   bool _isRunning = false;
-  final int bufferSize = 64 * 1024;
+  final int bufferSize = 8 * 1024;
 
-  FileReceiver({required this.port, required this.appState, required this.context, required this.onFileReceived});
+  FileReceiver({required this.port, required this.appState, required this.onFileReceived});
 
   Future<bool> startReceiverServer({required String Function(int, String) filesReceivedMessage, required String Function(String) errorReceivingMessage}) async {
     if (_isRunning) return true;
 
     try {
       _server = await HttpServer.bind(InternetAddress.anyIPv4, port, backlog: 50);
-
       _isRunning = true;
 
       _server!.defaultResponseHeaders.clear();
       _server!.autoCompress = false;
 
-      _server!.listen((HttpRequest request) {
-        _handleRequest(request, filesReceivedMessage, errorReceivingMessage).catchError((error) {
+      _server!.listen((HttpRequest request) async {
+        try {
+          await _handleRequest(request, filesReceivedMessage, errorReceivingMessage);
+        } catch (e) {
           _sendErrorResponse(request, "Internal server error");
-        });
+        }
       });
 
       return true;
@@ -49,15 +48,11 @@ class FileReceiver {
   Future stopReceiverServer() async {
     if (!_isRunning || _server == null) return;
 
-    try {
-      _isRunning = false;
-      _sessions.clear();
+    _isRunning = false;
+    _sessions.clear();
 
-      await _server!.close(force: true);
-      _server = null;
-    } catch (e) {
-      print("Error stopping receiver server: $e");
-    }
+    await _server!.close(force: true);
+    _server = null;
   }
 
   Future _handleRequest(HttpRequest request, String Function(int, String) filesReceivedMessage, String Function(String) errorReceivingMessage) async {
@@ -74,6 +69,8 @@ class FileReceiver {
         await _handleMetadata(request);
       } else if (method == "POST" && path == "/upload") {
         await _handleFileUpload(request, filesReceivedMessage, errorReceivingMessage);
+      } else if (method == "GET" && path == "/status") {
+        await _handleStatusRequest(request);
       } else {
         _sendErrorResponse(request, "Not found", HttpStatus.notFound);
       }
@@ -90,7 +87,7 @@ class FileReceiver {
 
       final int expected = data["fileCount"] ?? 1;
 
-      _sessions[ip] = TransferSession(expectedFiles: expected, receivedFiles: 0, files: []);
+      _sessions[ip] = TransferSession(expectedFiles: expected, receivedFiles: 0, files: [], startTime: DateTime.now(), lastActivity: DateTime.now());
 
       _sendSuccessResponse(request, "Metadata received");
     } catch (e) {
@@ -119,8 +116,15 @@ class FileReceiver {
         return;
       }
 
-      final String boundary = contentType.parameters["boundary"]!;
+      session.lastActivity = DateTime.now();
 
+      final String? boundary = contentType.parameters["boundary"];
+      if (boundary == null) {
+        _sendErrorResponse(request, "Invalid multipart format", HttpStatus.badRequest);
+        return;
+      }
+
+      bool fileProcessed = false;
       await for (final MimeMultipart part in MimeMultipartTransformer(boundary).bind(request)) {
         if (!_isRunning) {
           _sendErrorResponse(request, "Server shutting down");
@@ -130,92 +134,210 @@ class FileReceiver {
         final File? savedFile = await _processFilePart(part, session, senderDevice);
         if (savedFile != null) {
           session.files.add(savedFile);
+          fileProcessed = true;
         }
       }
 
-      session.receivedFiles++;
+      if (fileProcessed) {
+        session.receivedFiles++;
+        session.lastActivity = DateTime.now();
 
-      _sendSuccessResponse(request, "File uploaded successfully");
+        _sendSuccessResponse(request, "File uploaded successfully");
 
-      if (session.receivedFiles >= session.expectedFiles) {
-        onFileReceived?.call(filesReceivedMessage(session.receivedFiles, senderDevice.name), senderDevice, session.files);
-
-        _sessions.remove(ip);
+        if (session.receivedFiles >= session.expectedFiles) {
+          onFileReceived?.call(filesReceivedMessage(session.receivedFiles, senderDevice.name), senderDevice, session.files);
+          _sessions.remove(ip);
+        }
+      } else {
+        _sendErrorResponse(request, "No file received");
       }
     } catch (e) {
       _sendErrorResponse(request, "Upload failed: $e");
-      onFileReceived?.call(errorReceivingMessage(senderDevice.name), senderDevice, List.empty());
+      onFileReceived?.call(errorReceivingMessage(senderDevice.name), senderDevice, []);
     }
   }
 
   Future<File?> _processFilePart(MimeMultipart part, TransferSession session, Device senderDevice) async {
     try {
       final Map<String, String> headers = part.headers;
-      final RegExpMatch? match = RegExp(r'filename="(.+)"').firstMatch(headers["content-disposition"] ?? "");
+      final RegExpMatch? match = RegExp(r'filename="([^"]+)"').firstMatch(headers["content-disposition"] ?? "");
       final String filename = match?.group(1) ?? "received_file_${DateTime.now().millisecondsSinceEpoch}";
 
       final Directory tempDir = await getTemporaryDirectory();
-      final String tempFilePath = "${tempDir.path}/${DateTime.now().millisecondsSinceEpoch}_$filename";
+      final String tempFilePath = "${tempDir.path}/$filename";
       final File tempFile = File(tempFilePath);
 
-      final IOSink sink = tempFile.openWrite();
+      final File uniqueTempFile = await _ensureUniqueFilename(tempFile);
 
+      final IOSink sink = uniqueTempFile.openWrite();
+      int bytesWritten = 0;
       try {
-        await part.pipe(sink);
+        await for (final List<int> chunk in part) {
+          if (!_isRunning) {
+            throw Exception("Server shutting down");
+          }
+          sink.add(chunk);
+          bytesWritten += chunk.length;
+
+          if (bytesWritten % (bufferSize * 4) == 0) {
+            await sink.flush();
+          }
+        }
         await sink.flush();
       } finally {
         await sink.close();
       }
 
-      if (!await tempFile.exists() || await tempFile.length() == 0) {
-        throw Exception("File was not properly saved");
+      if (!await uniqueTempFile.exists()) {
+        throw Exception("Temporary file was not created");
       }
 
-      final bool success = await _moveFileToDownloads(tempFilePath, filename);
+      await copyFileIntoDownloadFolder(uniqueTempFile.path, filename);
+      await uniqueTempFile.delete();
 
-      if (success) {
-        return tempFile;
-      } else {
-        if (await tempFile.exists()) {
-          await tempFile.delete();
-        }
-        throw Exception("Failed to move file to downloads folder");
+      final Directory? downloadsDir = await _getDownloadsDirectory();
+      if (downloadsDir != null) {
+        final File finalFile = File('${downloadsDir.path}/$filename');
+        return finalFile;
       }
+
+      return null;
     } catch (e) {
-      print("Error processing file part: $e");
       return null;
     }
   }
 
-  Future<bool> _moveFileToDownloads(String tempPath, String filename) async {
+  //~/storage/shared/Android/data/com.projects.blitzshare/files/Downloads/
+  //---- COULD BE Download OR Downloads
+  Future<Directory?> _getDownloadsDirectory() async {
     try {
-      return await copyFileIntoDownloadFolder(tempPath, filename) ?? false;
+      if (Platform.isAndroid) {
+        final Directory? externalDir = await getExternalStorageDirectory();
+        if (externalDir != null) {
+          final Directory appDownloads = Directory("${externalDir.path}/Downloads");
+          if (!await appDownloads.exists()) {
+            await appDownloads.create(recursive: true);
+          }
+          return appDownloads;
+        }
+
+        final Directory documentsDir = await getApplicationDocumentsDirectory();
+        final Directory appDownloads = Directory("${documentsDir.path}/Downloads");
+        if (!await appDownloads.exists()) {
+          await appDownloads.create();
+        }
+        return appDownloads;
+      } else if (Platform.isIOS) {
+        final Directory documentsDir = await getApplicationDocumentsDirectory();
+        final Directory appDownloads = Directory("${documentsDir.path}/Downloads");
+        if (!await appDownloads.exists()) {
+          await appDownloads.create();
+        }
+        return appDownloads;
+      } else {
+        try {
+          return await getDownloadsDirectory();
+        } catch (e) {
+          final Directory documentsDir = await getApplicationDocumentsDirectory();
+          final Directory appDownloads = Directory("${documentsDir.path}/Downloads");
+          if (!await appDownloads.exists()) {
+            await appDownloads.create();
+          }
+          return appDownloads;
+        }
+      }
     } catch (e) {
-      print("Error moving file to downloads: $e");
-      return false;
+      try {
+        final Directory documentsDir = await getApplicationDocumentsDirectory();
+        final Directory appDownloads = Directory("${documentsDir.path}/Downloads");
+        if (!await appDownloads.exists()) {
+          await appDownloads.create();
+        }
+        return appDownloads;
+      } catch (e2) {
+        return await getApplicationDocumentsDirectory();
+      }
     }
+  }
+
+  Future<File> _ensureUniqueFilename(File originalFile) async {
+    File currentFile = originalFile;
+    int counter = 1;
+
+    while (await currentFile.exists()) {
+      final String directory = dirname(originalFile.path);
+      final String nameWithoutExtension = basenameWithoutExtension(originalFile.path);
+      final String extensionStr = extension(originalFile.path);
+
+      final String newName = "${nameWithoutExtension}_$counter$extensionStr";
+      currentFile = File("$directory/$newName");
+      counter++;
+    }
+
+    return currentFile;
+  }
+
+  Future _handleStatusRequest(HttpRequest request) async {
+    final Map<String, dynamic> status = {
+      "running": _isRunning,
+      "port": port,
+      "activeSessions": _sessions.length,
+      "sessionDetails": _sessions.map(
+        (ip, session) => MapEntry(ip, {
+          "expectedFiles": session.expectedFiles,
+          "receivedFiles": session.receivedFiles,
+          "startTime": session.startTime.toIso8601String(),
+          "lastActivity": session.lastActivity.toIso8601String(),
+        }),
+      ),
+    };
+
+    request.response
+      ..statusCode = HttpStatus.ok
+      ..headers.contentType = ContentType.json
+      ..write(jsonEncode(status))
+      ..close();
   }
 
   Device _getSenderDevice(String ip) {
     return appState.devices.firstWhere(
       (device) => device.ip == ip,
-      orElse: () => Device(ip: ip, name: "Unknown Device", devicePlatform: DevicePlatform.unknown),
+      orElse: () => Device(ip: ip, name: "Unknown Device ($ip)", devicePlatform: DevicePlatform.unknown),
     );
   }
 
   void _sendSuccessResponse(HttpRequest request, String message) {
-    request.response
-      ..statusCode = HttpStatus.ok
-      ..headers.contentType = ContentType.text
-      ..write(message)
-      ..close();
+    try {
+      request.response
+        ..statusCode = HttpStatus.ok
+        ..headers.contentType = ContentType.text
+        ..write(message)
+        ..close();
+    } catch (_) {}
   }
 
   void _sendErrorResponse(HttpRequest request, String message, [int statusCode = HttpStatus.internalServerError]) {
-    request.response
-      ..statusCode = statusCode
-      ..headers.contentType = ContentType.text
-      ..write(message)
-      ..close();
+    try {
+      request.response
+        ..statusCode = statusCode
+        ..headers.contentType = ContentType.text
+        ..write(message)
+        ..close();
+    } catch (_) {}
+  }
+
+  void cleanupStaleSessions({Duration timeout = const Duration(minutes: 10)}) {
+    final DateTime now = DateTime.now();
+    final List<String> staleIps = [];
+
+    for (final entry in _sessions.entries) {
+      if (now.difference(entry.value.lastActivity) > timeout) {
+        staleIps.add(entry.key);
+      }
+    }
+
+    for (final String ip in staleIps) {
+      _sessions.remove(ip);
+    }
   }
 }

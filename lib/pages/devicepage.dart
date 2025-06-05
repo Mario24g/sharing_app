@@ -122,7 +122,7 @@ class _DevicePageState extends State<DevicePage> {
   }
 
   void _cancelTransfer(TransferService transferService) {
-    transferService.fileSender.cancelTransfer();
+    transferService.fileSender!.cancelTransfer();
     setState(() {
       _isTransferring = false;
     });
