@@ -17,28 +17,22 @@ import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 void main() async {
-  //TODO: HTTP ports must be the same for two devices!
-  runZonedGuarded(
-    () async {
-      WidgetsFlutterBinding.ensureInitialized();
-      await SharedPreferences.getInstance();
+  runZonedGuarded(() async {
+    WidgetsFlutterBinding.ensureInitialized();
+    await SharedPreferences.getInstance();
 
-      if (Platform.isAndroid || Platform.isIOS) {
-        await NotificationService().init();
-      }
+    if (Platform.isAndroid || Platform.isIOS) {
+      await NotificationService().init();
+    }
 
-      await Hive.initFlutter();
-      Hive.registerAdapter(DeviceAdapter());
-      Hive.registerAdapter(DevicePlatformAdapter());
-      Hive.registerAdapter(HistoryEntryAdapter());
-      await Hive.openBox<HistoryEntry>("history");
+    await Hive.initFlutter();
+    Hive.registerAdapter(DeviceAdapter());
+    Hive.registerAdapter(DevicePlatformAdapter());
+    Hive.registerAdapter(HistoryEntryAdapter());
+    await Hive.openBox<HistoryEntry>("history");
 
-      runApp(const MainApp());
-    },
-    (error, stack) {
-      print("Unhandled error: $error\n$stack");
-    },
-  );
+    runApp(const MainApp());
+  }, (_, _) {});
 }
 
 class MainApp extends StatefulWidget {
