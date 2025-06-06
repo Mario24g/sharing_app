@@ -159,7 +159,7 @@ class FileReceiver {
     try {
       final Map<String, String> headers = part.headers;
       final RegExpMatch? match = RegExp(r'filename="([^"]+)"').firstMatch(headers["content-disposition"] ?? "");
-      final String filename = match?.group(1) ?? "received_file_${DateTime.now().millisecondsSinceEpoch}";
+      String filename = match?.group(1) ?? "received_file_${DateTime.now().millisecondsSinceEpoch}";
 
       final Directory tempDir = await getTemporaryDirectory();
       final String tempFilePath = "${tempDir.path}/$filename";
@@ -190,7 +190,9 @@ class FileReceiver {
         throw Exception("Temporary file was not created");
       }
 
-      await copyFileIntoDownloadFolder(uniqueTempFile.path, filename);
+      filename = basenameWithoutExtension(filename);
+      final String extensionStr = extension(uniqueTempFile.path).replaceAll(".", "");
+      await copyFileIntoDownloadFolder(uniqueTempFile.path, filename, desiredExtension: extensionStr);
       await uniqueTempFile.delete();
 
       final Directory? downloadsDir = await _getDownloadsDirectory();
