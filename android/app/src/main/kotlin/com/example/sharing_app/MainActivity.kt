@@ -1,4 +1,4 @@
-package com.example.sharing_app
+package com.projects.blitzshare
 
 import io.flutter.embedding.android.FlutterActivity
 
