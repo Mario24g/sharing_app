@@ -89,7 +89,6 @@ class _MainAppState extends State<MainApp> {
         localizationsDelegates: AppLocalizations.localizationsDelegates,
         supportedLocales: AppLocalizations.supportedLocales,
         darkTheme: ThemeData.dark(),
-        theme: ThemeData(splashFactory: NoSplash.splashFactory),
         home: const ApplicationPage(),
       ),
     );

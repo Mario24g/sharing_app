@@ -137,20 +137,25 @@ class _PortInputState extends State<PortInput> {
       crossAxisAlignment: CrossAxisAlignment.start,
       mainAxisSize: MainAxisSize.min,
       children: [
-        TextFormField(
-          controller: _controller,
-          keyboardType: TextInputType.numberWithOptions(),
-          inputFormatters: [FilteringTextInputFormatter.digitsOnly],
-          cursorColor: Colors.blue,
-          decoration: InputDecoration(
-            border: OutlineInputBorder(borderSide: BorderSide(color: borderColor, width: 1.0)),
-            enabledBorder: OutlineInputBorder(borderSide: BorderSide(color: borderColor, width: 1.0)),
-            focusedBorder: OutlineInputBorder(borderSide: BorderSide(color: borderColor, width: 2.0)),
-            errorBorder: const OutlineInputBorder(borderSide: BorderSide(color: Colors.red, width: 2.0)),
-            focusedErrorBorder: const OutlineInputBorder(borderSide: BorderSide(color: Colors.red, width: 2.0)),
-            suffixIcon: _getSuffixIcon(),
+        Theme(
+          data: ThemeData.dark().copyWith(
+            textSelectionTheme: TextSelectionThemeData(cursorColor: Colors.blue, selectionColor: Colors.blue, selectionHandleColor: Colors.blue),
           ),
-          style: TextStyle(color: _isValid ? null : Colors.red),
+          child: TextFormField(
+            controller: _controller,
+            keyboardType: TextInputType.numberWithOptions(),
+            inputFormatters: [FilteringTextInputFormatter.digitsOnly],
+            cursorColor: Colors.blue,
+            decoration: InputDecoration(
+              border: OutlineInputBorder(borderSide: BorderSide(color: borderColor, width: 1.0)),
+              enabledBorder: OutlineInputBorder(borderSide: BorderSide(color: borderColor, width: 1.0)),
+              focusedBorder: OutlineInputBorder(borderSide: BorderSide(color: borderColor, width: 2.0)),
+              errorBorder: const OutlineInputBorder(borderSide: BorderSide(color: Colors.red, width: 2.0)),
+              focusedErrorBorder: const OutlineInputBorder(borderSide: BorderSide(color: Colors.red, width: 2.0)),
+              suffixIcon: _getSuffixIcon(),
+            ),
+            style: TextStyle(color: _isValid ? null : Colors.red),
+          ),
         ),
         if (statusMessage != null)
           Padding(padding: const EdgeInsets.only(top: 8.0, left: 12.0), child: Text(statusMessage, style: TextStyle(color: _getStatusColor(), fontSize: 12.0))),
