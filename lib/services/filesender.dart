@@ -2,6 +2,7 @@ import "dart:async";
 import "dart:convert";
 import "dart:io";
 
+import "package:blitzshare/main.dart";
 import "package:blitzshare/services/transferservice.dart";
 import "package:http/http.dart";
 import "package:http_parser/http_parser.dart";
@@ -11,12 +12,13 @@ import "package:blitzshare/model/device.dart";
 class FileSender {
   final int port;
   final Duration requestTimeout;
+  final AppState appState;
 
   bool _isCancelled = false;
   final List<StreamSubscription> _activeSubscriptions = [];
   final List<Client> _activeClients = [];
 
-  FileSender({required this.port, this.requestTimeout = const Duration(minutes: 2)});
+  FileSender({required this.port, required this.appState, this.requestTimeout = const Duration(minutes: 2)});
 
   Future<TransferResult> createTransferTask(
     List<Device> selectedDevices,
@@ -173,17 +175,27 @@ class FileSender {
   Stream<List<int>> _createProgressStream(Stream<List<int>> sourceStream, int totalBytes, void Function(double progress)? onProgress) {
     int bytesSent = 0;
 
-    return sourceStream.map((chunk) {
-      if (_isCancelled) {
-        throw Exception("Transfer cancelled");
-      }
+    return sourceStream
+        .map((chunk) {
+          if (_isCancelled) {
+            throw Exception("Transfer cancelled");
+          }
 
-      bytesSent += chunk.length;
-      final double progress = bytesSent / totalBytes;
-      onProgress?.call(progress);
+          bytesSent += chunk.length;
+          final double progress = bytesSent / totalBytes;
+          onProgress?.call(progress);
+          print("Update");
 
-      return chunk;
-    });
+          return chunk;
+        })
+        .timeout(
+          Duration(seconds: 4),
+          onTimeout: (sink) {
+            sink.close();
+            cancelTransfer();
+            appState.setTransferring(false);
+          },
+        );
   }
 
   MediaType? _getContentType(String filePath) {

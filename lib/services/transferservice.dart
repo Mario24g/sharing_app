@@ -46,7 +46,7 @@ class TransferService {
   ) async {
     fileSender?.dispose();
 
-    fileSender = FileSender(port: _httpPort);
+    fileSender = FileSender(port: _httpPort, appState: appState);
 
     try {
       TransferResult result = await fileSender!.createTransferTask(
