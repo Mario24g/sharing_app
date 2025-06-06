@@ -1,0 +1,9 @@
+[Desktop Entry]
+Name=BlitzShare
+Comment=Fast and simple file sharing app
+Exec=blitzshare
+Icon=blitzshare
+Terminal=false
+Type=Application
+Categories=Utility;Network;
+StartupNotify=true

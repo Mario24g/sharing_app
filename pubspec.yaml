@@ -1,5 +1,5 @@
 name: blitzshare
-description: "Application to share media among devices within the same network."
+description: "Application to share media across devices within the same network."
 publish_to: 'none'
 version: 0.1.0
 

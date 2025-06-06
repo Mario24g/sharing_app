@@ -6,7 +6,7 @@ plugins {
 }
 
 android {
-    namespace = "com.example.sharing_app"
+    namespace = "com.projects.blitzshare"
     compileSdk = flutter.compileSdkVersion
     ndkVersion = "27.0.12077973"
 

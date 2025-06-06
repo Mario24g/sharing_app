@@ -1,0 +1,8 @@
+Package: blitzshare
+Version: 1.0.0
+Section: utils
+Priority: optional
+Architecture: amd64
+Depends: libgtk-3-0
+Maintainer: Mario
+Description: Application to share media across devices within the same network..
