@@ -17,6 +17,7 @@ import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 void main() async {
+  //TODO: HTTP ports must be the same for two devices!
   runZonedGuarded(
     () async {
       WidgetsFlutterBinding.ensureInitialized();
@@ -94,6 +95,7 @@ class _MainAppState extends State<MainApp> {
         localizationsDelegates: AppLocalizations.localizationsDelegates,
         supportedLocales: AppLocalizations.supportedLocales,
         darkTheme: ThemeData.dark(),
+        theme: ThemeData(splashFactory: NoSplash.splashFactory),
         home: const ApplicationPage(),
       ),
     );

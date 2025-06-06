@@ -270,6 +270,10 @@
     "cancelTransfer": "取消",
     "@cancelTransfer": {
         "description": "用于“取消”按钮"
-    }
+    },
 
+    "httpWarning": "所有设备必须使用相同的 HTTP 端口才能进行传输",
+    "@httpWarning": {
+        "description": "用于设置页面"
+    }
 }

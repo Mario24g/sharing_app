@@ -270,5 +270,10 @@
     "cancelTransfer": "Отменить",
     "@cancelTransfer": {
         "description": "Для кнопки Отменить"
+    },
+
+    "httpWarning": "Все устройства должны использовать один и тот же HTTP-порт для передачи",
+    "@httpWarning": {
+        "description": "Используется на странице настроек"
     }
 }

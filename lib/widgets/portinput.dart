@@ -141,6 +141,7 @@ class _PortInputState extends State<PortInput> {
           controller: _controller,
           keyboardType: TextInputType.numberWithOptions(),
           inputFormatters: [FilteringTextInputFormatter.digitsOnly],
+          cursorColor: Colors.blue,
           decoration: InputDecoration(
             border: OutlineInputBorder(borderSide: BorderSide(color: borderColor, width: 1.0)),
             enabledBorder: OutlineInputBorder(borderSide: BorderSide(color: borderColor, width: 1.0)),

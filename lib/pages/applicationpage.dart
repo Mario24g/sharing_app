@@ -35,28 +35,28 @@ class _ApplicationPageState extends State<ApplicationPage> {
       final ConnectivityService connectivityService = context.read<ConnectivityService>();
       final TransferService transferService = context.read<TransferService>();
 
-      appState.networkService.onDeviceDisconnected = (message) {
-        NotificationFlushbar.buildInformation(AppLocalizations.of(context)!.deviceDisconnected(message)).show(context);
+      appState.networkService.onDeviceDisconnected = (message) async {
+        await NotificationFlushbar.buildInformation(AppLocalizations.of(context)!.deviceDisconnected(message)).show(context);
       };
-      connectivityService.addListener(() {
+      connectivityService.addListener(() async {
         final ConnectivityResult newStatus = connectivityService.currentStatus;
         switch (newStatus) {
           case ConnectivityResult.mobile:
-            NotificationFlushbar.buildWarning(AppLocalizations.of(context)!.connectedMobile).show(context);
+            if (mounted) await NotificationFlushbar.buildWarning(AppLocalizations.of(context)!.connectedMobile).show(context);
             break;
           case ConnectivityResult.wifi:
-            NotificationFlushbar.buildInformation(AppLocalizations.of(context)!.connectedWifi).show(context);
+            if (mounted) await NotificationFlushbar.buildInformation(AppLocalizations.of(context)!.connectedWifi).show(context);
             break;
           case ConnectivityResult.none:
-            NotificationFlushbar.buildError(AppLocalizations.of(context)!.disconnected).show(context);
+            if (mounted) await NotificationFlushbar.buildError(AppLocalizations.of(context)!.disconnected).show(context);
             break;
           case _:
             break;
         }
       });
-      transferService.onFileReceived = (message) {
-        NotificationService().showNotification(title: AppLocalizations.of(context)!.fileReceived, body: message);
-        NotificationFlushbar.buildInformation(message).show(context);
+      transferService.onFileReceived = (message) async {
+        await NotificationService().showNotification(title: AppLocalizations.of(context)!.fileReceived, body: message);
+        if (mounted) await NotificationFlushbar.buildInformation(message).show(context);
       };
       transferService.initialize(context);
     });

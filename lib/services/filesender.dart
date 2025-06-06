@@ -184,7 +184,6 @@ class FileSender {
           bytesSent += chunk.length;
           final double progress = bytesSent / totalBytes;
           onProgress?.call(progress);
-          print("Update");
 
           return chunk;
         })

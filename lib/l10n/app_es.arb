@@ -270,5 +270,10 @@
     "cancelTransfer": "Cancelar",
     "@cancelTransfer": {
         "description": "Para el botón de Cancelar"
+    },
+
+    "httpWarning": "Todos los dispositivos deben tener el mismo puerto HTTP para poder transferir",
+    "@httpWarning": {
+        "description": "Usado en la página de configuración"
     }
 }

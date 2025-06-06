@@ -254,6 +254,13 @@ class _SettingsPageState extends State<SettingsPage> {
                         ),
                       ],
                     ),
+
+                    Flexible(
+                      child: Text(
+                        internationalization.AppLocalizations.of(context)!.httpWarning,
+                        style: TextStyle(fontWeight: FontWeight.w600, color: Colors.white),
+                      ),
+                    ),
                   ],
                 );
               },

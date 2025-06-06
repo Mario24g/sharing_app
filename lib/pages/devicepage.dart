@@ -42,7 +42,7 @@ class _DevicePageState extends State<DevicePage> {
         bool hasDirectories = result.files.any((file) => file.path != null && FileSystemEntity.isDirectorySync(file.path!));
 
         if (hasDirectories && mounted) {
-          NotificationFlushbar.buildWarning(AppLocalizations.of(context)!.foldersNotAllowed).show(context);
+          await NotificationFlushbar.buildWarning(AppLocalizations.of(context)!.foldersNotAllowed).show(context);
         }
 
         final List<File> files =
@@ -90,7 +90,7 @@ class _DevicePageState extends State<DevicePage> {
           _progress = 0.0;
           _statusMessage = "";
         });
-        NotificationFlushbar.buildInformation(completionMessage).show(context);
+        if (mounted) NotificationFlushbar.buildInformation(completionMessage).show(context);
       },
       onPerFileProgress,
       (statusMessage) {
@@ -417,7 +417,7 @@ class _DevicePageState extends State<DevicePage> {
                   child: ConstrainedBox(
                     constraints: BoxConstraints(minHeight: minHeight),
                     child: Card(
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
                       child: Padding(
                         padding: const EdgeInsets.all(12.0),
                         child: Column(
@@ -468,7 +468,7 @@ class _DevicePageState extends State<DevicePage> {
                   child: ConstrainedBox(
                     constraints: BoxConstraints(minHeight: minHeight),
                     child: Card(
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
                       color: _isDragging ? const Color.fromARGB(127, 29, 27, 32) : const Color.fromARGB(255, 29, 27, 32),
                       child: Padding(
                         padding: const EdgeInsets.all(12.0),
